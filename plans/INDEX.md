@@ -12,7 +12,7 @@
 
 | Plan ID | Task key | Текущая фаза | Обновлено | План |
 |---|---|---|---|---|
-| PLAN-20260823-github-release-v1-0-0 | github-release-v1-0-0 | P4 | 2026-08-23T17:18:46Z | [План: GitHub release Codex Analyst Template v1.0.0](2026-08-23-github-release-v1-0-0.md) |
+| PLAN-20260823-github-release-v1-0-0 | github-release-v1-0-0 | P4 | 2026-08-23T17:22:45Z | [План: GitHub release Codex Analyst Template v1.0.0](2026-08-23-github-release-v1-0-0.md) |
 
 ## Сделано
 

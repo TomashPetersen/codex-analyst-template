@@ -6,7 +6,7 @@ task_key: github-release-v1-0-0
 prompt_ref: prompts/plan-and-deliver.md
 status: in-progress
 current_phase: P4
-updated_at: 2026-08-23T17:18:46Z
+updated_at: 2026-08-23T17:22:45Z
 completed_at: null
 closeout_status: pending
 knowledge_outcome: null
@@ -146,13 +146,13 @@ Deliverable: fresh public clone/bootstrap evidence, retrospective, knowledge out
 ## Resume checkpoint
 
 - Текущая фаза: P4
-- Уже выполнено: P1-P3 завершены; remote main/source/v1.0.0 опубликованы без force; default main; public clone/bootstrap PASS; macOS CI failure локализован до platform gate; подготовлен диагностический retry.
-- Последние успешные проверки: PASS: release profile; remote refs; public DistributionTemplate143; public GeneratedProject145 initialized/report-only main no remote; local platform primitives; diff-check.
+- Уже выполнено: P1-P3 завершены; remote refs опубликованы; public bootstrap PASS; diagnostic commit 6620e6a отправлен; same-process macOS diagnostic подготовлен.
+- Последние успешные проверки: PASS: release profile; remote refs; public DistributionTemplate143; public GeneratedProject145; local platform primitives; source structure152; sanitizer Source.
 - Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; .github/workflows/template-integrity.yml
-- Git checkpoint: v1:3785f63f9627f243b9f8e0698fe650658a5ee860efea67afb9e6143ba4c62aa1
-- Следующее действие: Commit и push source-only CI diagnostic, получить публичную macOS annotation и исправить первопричину.
-- Блокеры: GitHub browser не авторизован для template/About settings; macOS CI требует diagnostic retry.
-- Обновлено: 2026-08-23T17:18:46Z
+- Git checkpoint: v1:a1e092b54e0f543d3e7afcb51d898b37cb3aeda7a4c9e7560f7b78fad2cb94a9
+- Следующее действие: Commit и push same-process diagnostic, прочитать точный текст macOS exception и исправить первопричину.
+- Блокеры: GitHub browser не авторизован для template/About settings; macOS CI требует точной exception annotation.
+- Обновлено: 2026-08-23T17:22:45Z
 
 ## Итог
 

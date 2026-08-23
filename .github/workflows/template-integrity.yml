@@ -34,10 +34,7 @@ jobs:
         shell: pwsh
         run: |
           try {
-            pwsh -NoLogo -NoProfile -File ./scripts/test-platform.ps1
-            if ($LASTEXITCODE -ne 0) {
-              throw "test-platform.ps1 exited with code $LASTEXITCODE"
-            }
+            & ./scripts/test-platform.ps1
           }
           catch {
             $message = $_.Exception.Message -replace '[\r\n]+', ' '
