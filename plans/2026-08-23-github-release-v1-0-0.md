@@ -6,7 +6,7 @@ task_key: github-release-v1-0-0
 prompt_ref: prompts/plan-and-deliver.md
 status: in-progress
 current_phase: P4
-updated_at: 2026-08-23T17:26:11Z
+updated_at: 2026-08-23T17:36:58Z
 completed_at: null
 closeout_status: pending
 knowledge_outcome: null
@@ -146,13 +146,13 @@ Deliverable: fresh public clone/bootstrap evidence, retrospective, knowledge out
 ## Resume checkpoint
 
 - Текущая фаза: P4
-- Уже выполнено: P1-P3 завершены; remote refs/public bootstrap PASS; macOS root cause подтверждена; trusted application symlink теперь разрешается до проверенного конечного target; добавлен fixture.
-- Последние успешные проверки: PASS: PowerShell AST platform files; local platform primitives with trusted symlink fixture; diff-check.
-- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; .github/workflows/template-integrity.yml; scripts/lib/ModelProject.Platform.psm1; scripts/test-platform.ps1
-- Git checkpoint: v1:b65ecda28c2c5f39e5242e19bb82aa804ceac38599b4d1c554d32c9df4c47653
-- Следующее действие: Прогнать source gates, commit/push исправление и подтвердить зеленый Windows/macOS CI.
+- Уже выполнено: P1-P3/public bootstrap PASS; resolver применен и к current PowerShell host; fixture сохраняет проверку конечного target и controlled roots.
+- Последние успешные проверки: PASS: PowerShell AST platform module; local platform primitives with trusted symlink fixture; previous cross-platform bootstrap/source structure/sanitizer.
+- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; scripts/lib/ModelProject.Platform.psm1; scripts/test-platform.ps1; .github/workflows/template-integrity.yml
+- Git checkpoint: v1:a05d82e91fc65fa0195de8ac71cc497541ce99611d6720870398d82d59c26f43
+- Следующее действие: Прогнать source structure, commit/push host resolver и подтвердить зеленый CI matrix.
 - Блокеры: GitHub browser не авторизован для template/About settings.
-- Обновлено: 2026-08-23T17:26:11Z
+- Обновлено: 2026-08-23T17:36:58Z
 
 ## Итог
 

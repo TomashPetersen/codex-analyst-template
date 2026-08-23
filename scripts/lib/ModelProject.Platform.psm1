@@ -196,16 +196,21 @@ function Get-ModelProjectPowerShellHost {
     param([string[]]$ControlledRoots = @())
 
     try {
-        $path = Get-ModelProjectNormalizedFullPath -Path ([System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName)
+        $hostPath = Get-ModelProjectNormalizedFullPath -Path ([System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName)
     }
     catch { throw 'Не удалось определить текущий PowerShell 7 host.' }
-    if ([System.IO.Path]::GetFileName($path) -cnotin @('pwsh', 'pwsh.exe') -or
-        -not (Test-Path -LiteralPath $path -PathType Leaf)) {
+    if ([System.IO.Path]::GetFileName($hostPath) -cnotin @('pwsh', 'pwsh.exe') -or
+        -not (Test-Path -LiteralPath $hostPath -PathType Leaf)) {
         throw 'Для шаблона требуется PowerShell 7 host pwsh.'
     }
-    Assert-ModelProjectNoLinkInFullChain -Path $path
+    $path = Resolve-ModelProjectTrustedApplicationPath -Path $hostPath
+    if ([System.IO.Path]::GetFileName($path) -cnotin @('pwsh', 'pwsh.exe') -or
+        -not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        throw 'Target PowerShell 7 host не прошел проверку имени и типа.'
+    }
     foreach ($controlledRoot in $ControlledRoots) {
-        if (Test-ModelProjectPathWithinRoot -Root $controlledRoot -Path $path -AllowEqual) {
+        if ((Test-ModelProjectPathWithinRoot -Root $controlledRoot -Path $hostPath -AllowEqual) -or
+            (Test-ModelProjectPathWithinRoot -Root $controlledRoot -Path $path -AllowEqual)) {
             throw 'PowerShell host не может находиться внутри управляемого корня.'
         }
     }
