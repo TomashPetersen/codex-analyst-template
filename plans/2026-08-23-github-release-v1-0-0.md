@@ -6,7 +6,7 @@ task_key: github-release-v1-0-0
 prompt_ref: prompts/plan-and-deliver.md
 status: in-progress
 current_phase: P4
-updated_at: 2026-08-23T17:51:12Z
+updated_at: 2026-08-23T18:01:06Z
 completed_at: null
 closeout_status: pending
 knowledge_outcome: null
@@ -146,13 +146,13 @@ Deliverable: fresh public clone/bootstrap evidence, retrospective, knowledge out
 ## Resume checkpoint
 
 - Текущая фаза: P4
-- Уже выполнено: GitHub settings завершены; macOS platform/structure PASS; formal analysis diagnostic annotation подготовлена.
-- Последние успешные проверки: PASS: local verify-analysis SelfTest86; public settings; macOS platform/structure.
-- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; .github/workflows/template-integrity.yml; scripts/verify-analysis.ps1
-- Git checkpoint: v1:5674ac3aed95f2796c42966f24dc0306ae5004cc0264567d2f451eecc7856360
-- Следующее действие: Commit/push formal-analysis diagnostic и прочитать точный macOS exception.
-- Блокеры: macOS verify-analysis failure требует diagnostic retry.
-- Обновлено: 2026-08-23T17:51:12Z
+- Уже выполнено: GitHub settings PASS; macOS platform/structure PASS; verify-analysis filesystem paths переведены на platform-neutral separators без изменения regex/JSON security cases.
+- Последние успешные проверки: PASS: AST verify-analysis; local analysis SelfTest86; diff-check.
+- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; scripts/verify-analysis.ps1; .github/workflows/template-integrity.yml
+- Git checkpoint: v1:8cb143df9b4ef91d8170ece74a92b16181af34b375616d1d4032de6d132f0ab9
+- Следующее действие: Прогнать source structure/sanitizer, commit/push analysis portability fix и подтвердить macOS SelfTest86.
+- Блокеры: нет технического blocker; ожидается повторный CI.
+- Обновлено: 2026-08-23T18:01:06Z
 
 ## Итог
 

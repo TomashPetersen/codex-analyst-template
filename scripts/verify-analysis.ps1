@@ -112,7 +112,7 @@ function Test-BootstrapExactPathCase {
 $trustedScriptPath = [System.IO.Path]::GetFullPath($PSCommandPath)
 $trustedScriptsRoot = [System.IO.Path]::GetFullPath($PSScriptRoot).TrimEnd([char[]]'\/')
 $trustedRepositoryRoot = [System.IO.Path]::GetFullPath((Split-Path -Parent $trustedScriptsRoot)).TrimEnd([char[]]'\/')
-$trustedModulePath = [System.IO.Path]::GetFullPath((Join-Path $trustedScriptsRoot 'lib\ModelProject.Knowledge.psm1'))
+$trustedModulePath = [System.IO.Path]::GetFullPath((Join-Path $trustedScriptsRoot 'lib/ModelProject.Knowledge.psm1'))
 $trustedLibRoot = [System.IO.Path]::GetDirectoryName($trustedModulePath)
 if ([System.IO.Path]::GetFileName($trustedScriptPath) -cne 'verify-analysis.ps1' -or
     -not [System.IO.Path]::GetDirectoryName($trustedScriptPath).Equals($trustedScriptsRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
@@ -432,7 +432,7 @@ function Get-CanonicalFiles {
     param([Parameter(Mandatory = $true)][System.Collections.Generic.List[string]]$Issues, [Parameter(Mandatory = $true)][string]$RepositoryRoot)
     $files = [System.Collections.Generic.List[System.IO.FileInfo]]::new()
     foreach ($owner in @($artifactContracts.Owner | Sort-Object -Unique)) {
-        $directory = Join-Path $RepositoryRoot $owner.Replace('/', '\')
+        $directory = Join-Path $RepositoryRoot $owner.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
         if (-not (Test-Path -LiteralPath $directory -PathType Container)) { Add-AnalysisIssue -Issues $Issues -Code 'missing-canonical-owner' -Path $owner; continue }
         if ($null -ne (Get-ModelProjectReparsePointInFullChain -Root $RepositoryRoot -Path $directory) -or
             -not (Test-ModelProjectExactPathCase -Root $RepositoryRoot -Path $directory)) { Add-AnalysisIssue -Issues $Issues -Code 'unsafe-canonical-owner' -Path $owner; continue }
@@ -445,7 +445,7 @@ function Get-CanonicalFiles {
         }
     }
     foreach ($derived in @('docs/analysis/context', 'docs/analysis/traceability')) {
-        $directory = Join-Path $RepositoryRoot $derived.Replace('/', '\')
+        $directory = Join-Path $RepositoryRoot $derived.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
         if (-not (Test-Path -LiteralPath $directory -PathType Container)) { Add-AnalysisIssue -Issues $Issues -Code 'missing-derived-view-zone' -Path $derived; continue }
         if ($null -ne (Get-ModelProjectReparsePointInFullChain -Root $RepositoryRoot -Path $directory) -or
             -not (Test-ModelProjectExactPathCase -Root $RepositoryRoot -Path $directory)) { Add-AnalysisIssue -Issues $Issues -Code 'unsafe-derived-view-zone' -Path $derived; continue }
@@ -560,7 +560,7 @@ function Test-CanonicalSemantics {
             $decisionRef = "analysis/runs/$analysisRunId/decision.md"
             if (-not $analysisDecisionRefs.Contains($decisionRef)) { Add-AnalysisIssue -Issues $Issues -Code 'analysis-source-without-decision' -Path $path; continue }
             try {
-                $decisionPath = Join-Path $RepositoryRoot $decisionRef.Replace('/', '\')
+                $decisionPath = Join-Path $RepositoryRoot $decisionRef.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
                 $decisionDocument = Read-ClosedFrontMatter -Text (Read-SafeText -RepositoryRoot $RepositoryRoot -Path $decisionPath -MaxBytes $runFileMaxBytes) -Label $decisionRef
                 $decisionData = $decisionDocument.Data
                 if ([string]$decisionData.run_status -cne 'completed' -or [string]$decisionData.decision_outcome -cne 'handoff') { Add-AnalysisIssue -Issues $Issues -Code 'canonical-source-requires-completed-handoff' -Path $path; continue }
@@ -813,7 +813,7 @@ function Test-RunDirectory {
 
 function Test-AnalysisRuns {
     param([Parameter(Mandatory = $true)][System.Collections.Generic.List[string]]$Issues, [Parameter(Mandatory = $true)][string]$RepositoryRoot, $ProjectMode)
-    $runsRoot = Join-Path $RepositoryRoot 'analysis\runs'
+    $runsRoot = Join-Path $RepositoryRoot 'analysis/runs'
     if (-not (Test-Path -LiteralPath $runsRoot -PathType Container)) { Add-AnalysisIssue -Issues $Issues -Code 'missing-analysis-runs' -Path 'analysis/runs'; return }
     if ($null -ne (Get-ModelProjectReparsePointInFullChain -Root $RepositoryRoot -Path $runsRoot)) { Add-AnalysisIssue -Issues $Issues -Code 'reparse-analysis-runs' -Path 'analysis/runs'; return }
     $allEntries = @(Get-ChildItem -LiteralPath $runsRoot -Force)
@@ -872,7 +872,7 @@ function Test-CanonicalReachability {
 function Test-ForbiddenAnalysisTargets {
     param([Parameter(Mandatory = $true)][System.Collections.Generic.List[string]]$Issues, [Parameter(Mandatory = $true)][string]$RepositoryRoot)
     foreach ($zone in @('knowledge/candidates', 'plans', 'retrospectives', 'research/runs', 'docs/decisions')) {
-        $directory = Join-Path $RepositoryRoot $zone.Replace('/', '\'); if (-not (Test-Path -LiteralPath $directory -PathType Container)) { continue }
+        $directory = Join-Path $RepositoryRoot $zone.Replace('/', [System.IO.Path]::DirectorySeparatorChar); if (-not (Test-Path -LiteralPath $directory -PathType Container)) { continue }
         foreach ($file in @(Get-SafeRecursiveMarkdownFiles -Issues $Issues -RepositoryRoot $RepositoryRoot -Directory $directory -RelativeDirectory $zone)) {
             $relative = Get-SafeRepositoryRelativePath -RepositoryRoot $RepositoryRoot -Path $file.FullName
             try {
@@ -1035,7 +1035,7 @@ function Test-ApiContractAttachments {
     )
 
     $relativeZone = 'docs/analysis/contracts'
-    $zone = Join-Path $RepositoryRoot $relativeZone.Replace('/', '\')
+    $zone = Join-Path $RepositoryRoot $relativeZone.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
     if (-not (Test-Path -LiteralPath $zone -PathType Container)) {
         Add-AnalysisIssue -Issues $Issues -Code 'missing-api-contract-zone' -Path $relativeZone
         return
@@ -1147,7 +1147,7 @@ function Invoke-AnalysisVerification {
     param([Parameter(Mandatory = $true)][string]$RepositoryRoot)
     $issues = New-IssueList; $mode = Get-ProjectMode -Issues $issues -RepositoryRoot $RepositoryRoot
     foreach ($required in @('analysis/CONTRACT.md', 'analysis/INDEX.md', 'mastery/analyst/INDEX.md')) {
-        $path = Join-Path $RepositoryRoot $required.Replace('/', '\'); if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { Add-AnalysisIssue -Issues $issues -Code 'missing-analysis-contract-file' -Path $required }
+        $path = Join-Path $RepositoryRoot $required.Replace('/', [System.IO.Path]::DirectorySeparatorChar); if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { Add-AnalysisIssue -Issues $issues -Code 'missing-analysis-contract-file' -Path $required }
     }
     $canonicalFiles = @(Get-CanonicalFiles -Issues $issues -RepositoryRoot $RepositoryRoot)
     $artifacts = @(Read-CanonicalArtifacts -Issues $issues -RepositoryRoot $RepositoryRoot -Files $canonicalFiles)
@@ -1156,13 +1156,13 @@ function Invoke-AnalysisVerification {
     Test-CanonicalReachability -Issues $issues -RepositoryRoot $RepositoryRoot -Artifacts $artifacts
     Test-AnalysisRuns -Issues $issues -RepositoryRoot $RepositoryRoot -ProjectMode $mode
     Test-ForbiddenAnalysisTargets -Issues $issues -RepositoryRoot $RepositoryRoot
-    $runCount = 0; $runRoot = Join-Path $RepositoryRoot 'analysis\runs'; if (Test-Path -LiteralPath $runRoot) { $runCount = @(Get-ChildItem -LiteralPath $runRoot -Directory -Force).Count }
+    $runCount = 0; $runRoot = Join-Path $RepositoryRoot 'analysis/runs'; if (Test-Path -LiteralPath $runRoot) { $runCount = @(Get-ChildItem -LiteralPath $runRoot -Directory -Force).Count }
     return [pscustomobject]@{ Issues=@($issues | Where-Object { $_ -cne '__sentinel__' } | Sort-Object -Unique); ProjectMode=$mode; CanonicalCount=@($artifacts).Count; RunCount=$runCount }
 }
 
 function Write-Utf8FixtureFile {
     param([Parameter(Mandatory = $true)][string]$Base, [Parameter(Mandatory = $true)][string]$Relative, [Parameter(Mandatory = $true)][string]$Content)
-    $path = Join-Path $Base $Relative.Replace('/', '\'); $parent = Split-Path -Parent $path
+    $path = Join-Path $Base $Relative.Replace('/', [System.IO.Path]::DirectorySeparatorChar); $parent = Split-Path -Parent $path
     [System.IO.Directory]::CreateDirectory($parent) | Out-Null; [System.IO.File]::WriteAllText($path, $Content, $utf8NoBom)
 }
 
@@ -1189,14 +1189,14 @@ knowledge_capture_mode: report-only
     Write-Utf8FixtureFile -Base $Base -Relative 'mastery/analyst/requirements-engineering.md' -Content "# Requirements Engineering`n`n## Method`n"
     Write-Utf8FixtureFile -Base $Base -Relative 'mastery/analyst/system-analysis.md' -Content "# System Analysis`n`n## Method`n"
     Write-Utf8FixtureFile -Base $Base -Relative 'docs/analysis/contracts/README.md' -Content "# Contract attachments`n"
-    foreach ($owner in @($artifactContracts.Owner | Sort-Object -Unique)) { [System.IO.Directory]::CreateDirectory((Join-Path $Base $owner.Replace('/', '\'))) | Out-Null }
+    foreach ($owner in @($artifactContracts.Owner | Sort-Object -Unique)) { [System.IO.Directory]::CreateDirectory((Join-Path $Base $owner.Replace('/', [System.IO.Path]::DirectorySeparatorChar))) | Out-Null }
     foreach ($derived in @('docs/analysis/context', 'docs/analysis/traceability')) {
-        [System.IO.Directory]::CreateDirectory((Join-Path $Base $derived.Replace('/', '\'))) | Out-Null
+        [System.IO.Directory]::CreateDirectory((Join-Path $Base $derived.Replace('/', [System.IO.Path]::DirectorySeparatorChar))) | Out-Null
         Write-Utf8FixtureFile -Base $Base -Relative "$derived/README.md" -Content "# View`n"
         Write-Utf8FixtureFile -Base $Base -Relative "$derived/TEMPLATE.md" -Content "# Template`n"
     }
-    [System.IO.Directory]::CreateDirectory((Join-Path $Base 'analysis\runs')) | Out-Null
-    foreach ($zone in @('knowledge/candidates', 'plans', 'retrospectives', 'research/runs', 'docs/decisions')) { [System.IO.Directory]::CreateDirectory((Join-Path $Base $zone.Replace('/', '\'))) | Out-Null }
+    [System.IO.Directory]::CreateDirectory((Join-Path $Base 'analysis/runs')) | Out-Null
+    foreach ($zone in @('knowledge/candidates', 'plans', 'retrospectives', 'research/runs', 'docs/decisions')) { [System.IO.Directory]::CreateDirectory((Join-Path $Base $zone.Replace('/', [System.IO.Path]::DirectorySeparatorChar))) | Out-Null }
 }
 
 function New-SelfTestRun {
@@ -1212,7 +1212,7 @@ function New-SelfTestRun {
         [string[]]$SelectedMethodRefs = @(),
         [string[]]$LocalMethodRefs = @()
     )
-    $runDirectory = Join-Path $Base "analysis\runs\$RunId"; [System.IO.Directory]::CreateDirectory($runDirectory) | Out-Null
+    $runDirectory = Join-Path $Base "analysis/runs/$RunId"; [System.IO.Directory]::CreateDirectory($runDirectory) | Out-Null
     $date = $RunId.Substring(4, 8); $time = $RunId.Substring(13, 6)
     $created = '{0}-{1}-{2}T{3}:{4}:{5}Z' -f $date.Substring(0,4),$date.Substring(4,2),$date.Substring(6,2),$time.Substring(0,2),$time.Substring(2,2),$time.Substring(4,2)
     foreach ($fileName in $runFiles) {
@@ -1358,12 +1358,12 @@ function Invoke-AnalysisSelfTest {
         $result = Invoke-AnalysisVerification -RepositoryRoot $base
         if ($result.Issues.Count -ne 0) { throw 'positive-open-run' }; $passed.Add('positive-open-run') | Out-Null
 
-        $openBriefPath = Join-Path $base "analysis\runs\$runId\brief.md"; $openBriefOriginal = [System.IO.File]::ReadAllText($openBriefPath, $strictUtf8)
+        $openBriefPath = Join-Path $base "analysis/runs/$runId/brief.md"; $openBriefOriginal = [System.IO.File]::ReadAllText($openBriefPath, $strictUtf8)
         [System.IO.File]::WriteAllText($openBriefPath, ($openBriefOriginal -replace 'intent_id: null', 'intent_id: requirements-validation-near-miss'), $utf8NoBom)
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-analysis-intent' -Name 'negative-analysis-intent-near-miss'
         [System.IO.File]::WriteAllText($openBriefPath, $openBriefOriginal, $utf8NoBom); $passed.Add('negative-analysis-intent-near-miss') | Out-Null
 
-        $runDirectory = Join-Path $base "analysis\runs\$runId"; $invalidRunDirectory = Join-Path $base 'analysis\runs\invalid-run-id'
+        $runDirectory = Join-Path $base "analysis/runs/$runId"; $invalidRunDirectory = Join-Path $base 'analysis/runs/invalid-run-id'
         [System.IO.Directory]::Move($runDirectory, $invalidRunDirectory)
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-run-id' -Name 'negative-invalid-run-id'
         [System.IO.Directory]::Move($invalidRunDirectory, $runDirectory); $passed.Add('negative-invalid-run-id') | Out-Null
@@ -1376,16 +1376,16 @@ function Invoke-AnalysisSelfTest {
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^missing-run-orchestration-heading' -Name 'negative-missing-orchestration-heading'
         [System.IO.File]::WriteAllText($partialPath, $partialOriginal, $utf8NoBom); $passed.Add('negative-missing-orchestration-heading') | Out-Null
 
-        $extraPath = Join-Path $base "analysis\runs\$runId\extra.md"; [System.IO.File]::WriteAllText($extraPath, '# extra', $utf8NoBom)
+        $extraPath = Join-Path $base "analysis/runs/$runId/extra.md"; [System.IO.File]::WriteAllText($extraPath, '# extra', $utf8NoBom)
         $result = Invoke-AnalysisVerification -RepositoryRoot $base
         if (@($result.Issues | Where-Object { $_ -match '^invalid-run-' }).Count -eq 0) { throw 'negative-extra-run-entry' }; [System.IO.File]::Delete($extraPath); $passed.Add('negative-extra-run-entry') | Out-Null
 
-        $briefPath = Join-Path $base "analysis\runs\$runId\brief.md"; $briefOriginal = [System.IO.File]::ReadAllText($briefPath, $strictUtf8)
+        $briefPath = Join-Path $base "analysis/runs/$runId/brief.md"; $briefOriginal = [System.IO.File]::ReadAllText($briefPath, $strictUtf8)
         [System.IO.File]::WriteAllText($briefPath, ($briefOriginal -replace 'run_id: "[^"]+"', 'run_id: "RUN-20260815-120000-other-a1b2c3"'), $utf8NoBom)
         $result = Invoke-AnalysisVerification -RepositoryRoot $base
         if (@($result.Issues | Where-Object { $_ -match '^run-folder-frontmatter-mismatch' }).Count -eq 0) { throw 'negative-folder-mismatch' }; [System.IO.File]::WriteAllText($briefPath, $briefOriginal, $utf8NoBom); $passed.Add('negative-folder-mismatch') | Out-Null
 
-        $sourcesPath = Join-Path $base "analysis\runs\$runId\sources.md"; $sourcesOriginal = [System.IO.File]::ReadAllText($sourcesPath, $strictUtf8)
+        $sourcesPath = Join-Path $base "analysis/runs/$runId/sources.md"; $sourcesOriginal = [System.IO.File]::ReadAllText($sourcesPath, $strictUtf8)
         [System.IO.File]::WriteAllText($sourcesPath, ($sourcesOriginal -replace 'prompt_injection_detected: false', 'prompt_injection_detected: maybe'), $utf8NoBom)
         $result = Invoke-AnalysisVerification -RepositoryRoot $base
         if (@($result.Issues | Where-Object { $_ -match '^invalid-prompt-injection-flag' }).Count -eq 0) { throw 'negative-prompt-injection-schema' }; [System.IO.File]::WriteAllText($sourcesPath, $sourcesOriginal, $utf8NoBom); $passed.Add('negative-prompt-injection-schema') | Out-Null
@@ -1396,11 +1396,11 @@ function Invoke-AnalysisSelfTest {
 
         $requirementsMethodRef = 'mastery/analyst/requirements-engineering.md#method'
         $systemMethodRef = 'mastery/analyst/system-analysis.md#method'
-        [System.IO.Directory]::Delete((Join-Path $base "analysis\runs\$runId"), $true); New-SelfTestRun -Base $base -RunId $runId -Status completed -DecisionOutcome no-change -ReviewOutcome pass -TraceabilityOutcome pass -KnowledgeOutcome none -IntentId requirements-validation -SelectedMethodRefs @($requirementsMethodRef)
+        [System.IO.Directory]::Delete((Join-Path $base "analysis/runs/$runId"), $true); New-SelfTestRun -Base $base -RunId $runId -Status completed -DecisionOutcome no-change -ReviewOutcome pass -TraceabilityOutcome pass -KnowledgeOutcome none -IntentId requirements-validation -SelectedMethodRefs @($requirementsMethodRef)
         $result = Invoke-AnalysisVerification -RepositoryRoot $base
         if ($result.Issues.Count -ne 0) { throw 'positive-completed-run' }; $passed.Add('positive-completed-run') | Out-Null
 
-        $completedBriefPath = Join-Path $base "analysis\runs\$runId\brief.md"; $completedBriefOriginal = [System.IO.File]::ReadAllText($completedBriefPath, $strictUtf8)
+        $completedBriefPath = Join-Path $base "analysis/runs/$runId/brief.md"; $completedBriefOriginal = [System.IO.File]::ReadAllText($completedBriefPath, $strictUtf8)
         $twoMethodBrief = $completedBriefOriginal.Replace("  - $requirementsMethodRef", "  - $requirementsMethodRef`n  - $systemMethodRef")
         [System.IO.File]::WriteAllText($completedBriefPath, $twoMethodBrief, $utf8NoBom)
         $result = Invoke-AnalysisVerification -RepositoryRoot $base
@@ -1420,12 +1420,12 @@ function Invoke-AnalysisSelfTest {
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-run-method-selection' -Name 'negative-duplicate-baseline-method'
         [System.IO.File]::WriteAllText($completedBriefPath, $completedBriefOriginal, $utf8NoBom); $passed.Add('negative-duplicate-baseline-method') | Out-Null
 
-        $reviewPath = Join-Path $base "analysis\runs\$runId\review.md"; $reviewOriginal = [System.IO.File]::ReadAllText($reviewPath, $strictUtf8)
+        $reviewPath = Join-Path $base "analysis/runs/$runId/review.md"; $reviewOriginal = [System.IO.File]::ReadAllText($reviewPath, $strictUtf8)
         [System.IO.File]::WriteAllText($reviewPath, ($reviewOriginal -replace 'review_outcome: pass', 'review_outcome: passed'), $utf8NoBom)
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-review-outcome' -Name 'negative-legacy-passed-outcome'
         [System.IO.File]::WriteAllText($reviewPath, $reviewOriginal, $utf8NoBom); $passed.Add('negative-legacy-passed-outcome') | Out-Null
 
-        $decisionPath = Join-Path $base "analysis\runs\$runId\decision.md"; $decisionOriginal = [System.IO.File]::ReadAllText($decisionPath, $strictUtf8)
+        $decisionPath = Join-Path $base "analysis/runs/$runId/decision.md"; $decisionOriginal = [System.IO.File]::ReadAllText($decisionPath, $strictUtf8)
         [System.IO.File]::WriteAllText($decisionPath, ($decisionOriginal -replace 'decision_outcome: no-change', 'decision_outcome: pending'), $utf8NoBom)
         $result = Invoke-AnalysisVerification -RepositoryRoot $base
         if (@($result.Issues | Where-Object { $_ -match '^incomplete-completed-run' }).Count -eq 0) { throw 'negative-incomplete-completed-run' }; [System.IO.File]::WriteAllText($decisionPath, $decisionOriginal, $utf8NoBom); $passed.Add('negative-incomplete-completed-run') | Out-Null
@@ -1434,9 +1434,9 @@ function Invoke-AnalysisSelfTest {
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^terminal-run-without-knowledge-outcome' -Name 'negative-terminal-knowledge-outcome'
         [System.IO.File]::WriteAllText($decisionPath, $decisionOriginal, $utf8NoBom); $passed.Add('negative-terminal-knowledge-outcome') | Out-Null
 
-        $safeRepoRef = Resolve-ModelProjectSafeReference -Root $base -SourcePath (Join-Path $base 'analysis\INDEX.md') -Reference 'PROJECT.md' -ReferenceBase Repository
-        $badRepoRef = Resolve-ModelProjectSafeReference -Root $base -SourcePath (Join-Path $base 'analysis\INDEX.md') -Reference '../PROJECT.md' -ReferenceBase Repository
-        $safeMarkdownRef = Resolve-ModelProjectSafeReference -Root $base -SourcePath (Join-Path $base 'analysis\INDEX.md') -Reference '../PROJECT.md' -ReferenceBase File
+        $safeRepoRef = Resolve-ModelProjectSafeReference -Root $base -SourcePath (Join-Path $base 'analysis/INDEX.md') -Reference 'PROJECT.md' -ReferenceBase Repository
+        $badRepoRef = Resolve-ModelProjectSafeReference -Root $base -SourcePath (Join-Path $base 'analysis/INDEX.md') -Reference '../PROJECT.md' -ReferenceBase Repository
+        $safeMarkdownRef = Resolve-ModelProjectSafeReference -Root $base -SourcePath (Join-Path $base 'analysis/INDEX.md') -Reference '../PROJECT.md' -ReferenceBase File
         if (-not (Test-ReferenceResultValid -Result $safeRepoRef) -or [string]::IsNullOrWhiteSpace([string]$badRepoRef.Error) -or -not (Test-ReferenceResultValid -Result $safeMarkdownRef)) { throw 'reference-base-separation' }
         $passed.Add('reference-base-separation') | Out-Null
 
@@ -1459,9 +1459,9 @@ function Invoke-AnalysisSelfTest {
         $result = Invoke-AnalysisVerification -RepositoryRoot $base
         if ($result.Issues.Count -ne 0) { throw 'positive-approved-canonical-set' }; $passed.Add('positive-approved-canonical-set') | Out-Null
 
-        $apiRelative = 'docs/analysis/contracts/int-0001.openapi.json'; $apiPath = Join-Path $base $apiRelative.Replace('/', '\')
-        $asyncRelative = 'docs/analysis/contracts/int-0001.asyncapi.json'; $asyncPath = Join-Path $base $asyncRelative.Replace('/', '\')
-        $intAttachmentPath = Join-Path $base $intRef.Replace('/', '\'); $intWithoutAttachment = [System.IO.File]::ReadAllText($intAttachmentPath, $strictUtf8)
+        $apiRelative = 'docs/analysis/contracts/int-0001.openapi.json'; $apiPath = Join-Path $base $apiRelative.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
+        $asyncRelative = 'docs/analysis/contracts/int-0001.asyncapi.json'; $asyncPath = Join-Path $base $asyncRelative.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
+        $intAttachmentPath = Join-Path $base $intRef.Replace('/', [System.IO.Path]::DirectorySeparatorChar); $intWithoutAttachment = [System.IO.File]::ReadAllText($intAttachmentPath, $strictUtf8)
         [void](New-SelfTestCanonicalArtifact -Base $base -Id 'INT-0001' -Status approved -RelatedRefs @($dataRef, $sysRef, $apiRelative) -VerificationRefs @('PROJECT.md'))
         Write-Utf8FixtureFile -Base $base -Relative $apiRelative -Content '{"openapi":"3.1.0","info":{"title":"Fixture API","version":"1.0.0"}}'
         $intWithOpenApi = [System.IO.File]::ReadAllText($intAttachmentPath, $strictUtf8)
@@ -1549,7 +1549,7 @@ function Invoke-AnalysisSelfTest {
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-api-contract-owner' -Name 'negative-api-contract-wrong-field'
         [System.IO.File]::WriteAllText($intAttachmentPath, $intWithOpenApi, $utf8NoBom); $passed.Add('negative-api-contract-wrong-field') | Out-Null
 
-        $sysAttachmentPath = Join-Path $base $sysRef.Replace('/', '\'); $sysWithoutAttachment = [System.IO.File]::ReadAllText($sysAttachmentPath, $strictUtf8)
+        $sysAttachmentPath = Join-Path $base $sysRef.Replace('/', [System.IO.Path]::DirectorySeparatorChar); $sysWithoutAttachment = [System.IO.File]::ReadAllText($sysAttachmentPath, $strictUtf8)
         [void](New-SelfTestCanonicalArtifact -Base $base -Id 'SYS-0001' -Status approved -RelatedRefs @($apiRelative) -VerificationRefs @('PROJECT.md'))
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-api-contract-owner' -Name 'negative-second-api-contract-owner'
         [System.IO.File]::WriteAllText($sysAttachmentPath, $sysWithoutAttachment, $utf8NoBom); $passed.Add('negative-second-api-contract-owner') | Out-Null
@@ -1558,13 +1558,13 @@ function Invoke-AnalysisSelfTest {
         $encodedApiRelative = 'docs/analysis/contracts/int-0001%2Eopenapi.json'
         $aliasOwnerRef = New-SelfTestCanonicalArtifact -Base $base -Id 'INT-0002' -Status approved -RelatedRefs @($dataRef, $sysRef, $encodedApiRelative) -VerificationRefs @('PROJECT.md')
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-api-contract-owner' -Name 'negative-percent-encoded-second-owner'
-        [System.IO.File]::Delete((Join-Path $base $aliasOwnerRef.Replace('/', '\'))); [System.IO.File]::WriteAllText($aliasIndexPath, $aliasIndexOriginal, $utf8NoBom); $passed.Add('negative-percent-encoded-second-owner') | Out-Null
+        [System.IO.File]::Delete((Join-Path $base $aliasOwnerRef.Replace('/', [System.IO.Path]::DirectorySeparatorChar))); [System.IO.File]::WriteAllText($aliasIndexPath, $aliasIndexOriginal, $utf8NoBom); $passed.Add('negative-percent-encoded-second-owner') | Out-Null
 
-        $badNamePath = Join-Path $base 'docs\analysis\contracts\int-0001-openapi.json'; [System.IO.File]::WriteAllText($badNamePath, '{"openapi":"3.1.0"}', $utf8NoBom)
+        $badNamePath = Join-Path $base 'docs/analysis/contracts/int-0001-openapi.json'; [System.IO.File]::WriteAllText($badNamePath, '{"openapi":"3.1.0"}', $utf8NoBom)
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-api-contract-filename' -Name 'negative-api-contract-filename'
         [System.IO.File]::Delete($badNamePath); $passed.Add('negative-api-contract-filename') | Out-Null
 
-        $nestedContractPath = Join-Path $base 'docs\analysis\contracts\nested'; [System.IO.Directory]::CreateDirectory($nestedContractPath) | Out-Null
+        $nestedContractPath = Join-Path $base 'docs/analysis/contracts/nested'; [System.IO.Directory]::CreateDirectory($nestedContractPath) | Out-Null
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-api-contract-entry' -Name 'negative-nested-api-contract-entry'
         [System.IO.Directory]::Delete($nestedContractPath); $passed.Add('negative-nested-api-contract-entry') | Out-Null
 
@@ -1583,15 +1583,15 @@ function Invoke-AnalysisSelfTest {
         [System.IO.File]::Delete($apiPath); [System.IO.File]::WriteAllText($intAttachmentPath, $intWithoutAttachment, $utf8NoBom)
 
         $caseDuplicateRef = New-SelfTestCanonicalArtifact -Base $base -Id 'FR-0002' -Status approved -ParentRefs @($br) -AcceptanceRefs @($ac)
-        $caseDuplicatePath = Join-Path $base $caseDuplicateRef.Replace('/', '\'); $caseDuplicateText = [System.IO.File]::ReadAllText($caseDuplicatePath, $strictUtf8)
+        $caseDuplicatePath = Join-Path $base $caseDuplicateRef.Replace('/', [System.IO.Path]::DirectorySeparatorChar); $caseDuplicateText = [System.IO.File]::ReadAllText($caseDuplicatePath, $strictUtf8)
         [System.IO.File]::WriteAllText($caseDuplicatePath, ($caseDuplicateText -replace 'id: FR-0002', 'id: fr-0001'), $utf8NoBom)
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^duplicate-canonical-id' -Name 'negative-case-insensitive-duplicate-id'
         [System.IO.File]::Delete($caseDuplicatePath); $passed.Add('negative-case-insensitive-duplicate-id') | Out-Null
 
-        $frPath = Join-Path $base $fr.Replace('/', '\'); $frOriginal = [System.IO.File]::ReadAllText($frPath, $strictUtf8)
+        $frPath = Join-Path $base $fr.Replace('/', [System.IO.Path]::DirectorySeparatorChar); $frOriginal = [System.IO.File]::ReadAllText($frPath, $strictUtf8)
         $duplicateRef = New-SelfTestCanonicalArtifact -Base $base -Id 'FR-0001' -Slug 'duplicate' -Status approved -ParentRefs @($br) -AcceptanceRefs @($ac)
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^duplicate-canonical-id' -Name 'negative-duplicate-id'
-        [System.IO.File]::Delete((Join-Path $base $duplicateRef.Replace('/', '\'))); $passed.Add('negative-duplicate-id') | Out-Null
+        [System.IO.File]::Delete((Join-Path $base $duplicateRef.Replace('/', [System.IO.Path]::DirectorySeparatorChar))); $passed.Add('negative-duplicate-id') | Out-Null
 
         [System.IO.File]::WriteAllText($frPath, ($frOriginal -replace 'artifact_kind: functional-requirement', 'artifact_kind: system-model'), $utf8NoBom)
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^canonical-kind-owner-mismatch' -Name 'negative-kind-owner-mismatch'
@@ -1601,7 +1601,7 @@ function Invoke-AnalysisSelfTest {
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^canonical-filename-mismatch' -Name 'negative-canonical-filename-mismatch'
         [System.IO.File]::Move($wrongNamePath, $frPath); $passed.Add('negative-canonical-filename-mismatch') | Out-Null
 
-        $wrongOwnerPath = Join-Path $base 'docs\analysis\models\fr-0001-fixture.md'; [System.IO.File]::Move($frPath, $wrongOwnerPath)
+        $wrongOwnerPath = Join-Path $base 'docs/analysis/models/fr-0001-fixture.md'; [System.IO.File]::Move($frPath, $wrongOwnerPath)
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^canonical-kind-owner-mismatch' -Name 'negative-canonical-owner-mismatch'
         [System.IO.File]::Move($wrongOwnerPath, $frPath); $passed.Add('negative-canonical-owner-mismatch') | Out-Null
 
@@ -1649,12 +1649,12 @@ function Invoke-AnalysisSelfTest {
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^approved-without-acceptance-or-verification' -Name 'negative-approved-without-acceptance'
         [System.IO.File]::WriteAllText($frPath, $frOriginal, $utf8NoBom); $passed.Add('negative-approved-without-acceptance') | Out-Null
 
-        $nfrPath = Join-Path $base $nfr.Replace('/', '\'); $nfrOriginal = [System.IO.File]::ReadAllText($nfrPath, $strictUtf8)
+        $nfrPath = Join-Path $base $nfr.Replace('/', [System.IO.Path]::DirectorySeparatorChar); $nfrOriginal = [System.IO.File]::ReadAllText($nfrPath, $strictUtf8)
         [void](New-SelfTestCanonicalArtifact -Base $base -Id 'NFR-0001' -Status approved -ParentRefs @($br) -AcceptanceRefs @($ac) -Body '# Qualitative only')
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^nfr-without-measurable-fit-criterion' -Name 'negative-nfr-fit-criterion'
         [System.IO.File]::WriteAllText($nfrPath, $nfrOriginal, $utf8NoBom); $passed.Add('negative-nfr-fit-criterion') | Out-Null
 
-        $intPath = Join-Path $base $intRef.Replace('/', '\'); $intOriginal = [System.IO.File]::ReadAllText($intPath, $strictUtf8)
+        $intPath = Join-Path $base $intRef.Replace('/', [System.IO.Path]::DirectorySeparatorChar); $intOriginal = [System.IO.File]::ReadAllText($intPath, $strictUtf8)
         [void](New-SelfTestCanonicalArtifact -Base $base -Id 'INT-0001' -Status approved -RelatedRefs @($dataRef) -VerificationRefs @('PROJECT.md'))
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^integration-without-data-or-system' -Name 'negative-integration-relations'
         [System.IO.File]::WriteAllText($intPath, $intOriginal, $utf8NoBom); $passed.Add('negative-integration-relations') | Out-Null
@@ -1666,43 +1666,43 @@ function Invoke-AnalysisSelfTest {
 
         Write-Utf8FixtureFile -Base $base -Relative 'plans/forbidden.md' -Content "---`nartifact_kind: plan`nstatus: in-progress`naffected_canon:`n  - analysis/runs/$runId/decision.md`n---`n# Plan`n"
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^analysis-run-forbidden-as-target' -Name 'negative-analysis-run-target'
-        [System.IO.File]::Delete((Join-Path $base 'plans\forbidden.md')); $passed.Add('negative-analysis-run-target') | Out-Null
+        [System.IO.File]::Delete((Join-Path $base 'plans/forbidden.md')); $passed.Add('negative-analysis-run-target') | Out-Null
 
         Write-Utf8FixtureFile -Base $base -Relative 'research/runs/fixture/decision.md' -Content "# Research decision`n"
         $crResearch = New-SelfTestCanonicalArtifact -Base $base -Id 'CR-0001' -SourceRefs @('research/runs/fixture/decision.md')
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-repo-derived-provenance' -Name 'negative-research-source-repo-derived'
-        [System.IO.File]::Delete((Join-Path $base $crResearch.Replace('/', '\'))); $passed.Add('negative-research-source-repo-derived') | Out-Null
+        [System.IO.File]::Delete((Join-Path $base $crResearch.Replace('/', [System.IO.Path]::DirectorySeparatorChar))); $passed.Add('negative-research-source-repo-derived') | Out-Null
 
         $crExplicit = New-SelfTestCanonicalArtifact -Base $base -Id 'CR-0002' -CaptureBasis 'explicit-user-capture' -ProvenanceRefs @() -SourceRefs @()
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^explicit-capture-without-user-provenance' -Name 'negative-explicit-without-provenance'
-        [System.IO.File]::Delete((Join-Path $base $crExplicit.Replace('/', '\'))); $passed.Add('negative-explicit-without-provenance') | Out-Null
+        [System.IO.File]::Delete((Join-Path $base $crExplicit.Replace('/', [System.IO.Path]::DirectorySeparatorChar))); $passed.Add('negative-explicit-without-provenance') | Out-Null
 
         $crSecret = New-SelfTestCanonicalArtifact -Base $base -Id 'CR-0003' -Body 'api_key=abcdefgh12345678'
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^sensitive-credential-value' -Name 'negative-sensitive-content'
-        [System.IO.File]::Delete((Join-Path $base $crSecret.Replace('/', '\'))); $passed.Add('negative-sensitive-content') | Out-Null
+        [System.IO.File]::Delete((Join-Path $base $crSecret.Replace('/', [System.IO.Path]::DirectorySeparatorChar))); $passed.Add('negative-sensitive-content') | Out-Null
 
         $crCredentialUrl = New-SelfTestCanonicalArtifact -Base $base -Id 'CR-0003' -Slug 'credential-url' -Body 'https://user:secret@example.com/path'
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^sensitive-https-url-userinfo' -Name 'negative-credential-url'
-        [System.IO.File]::Delete((Join-Path $base $crCredentialUrl.Replace('/', '\'))); $passed.Add('negative-credential-url') | Out-Null
+        [System.IO.File]::Delete((Join-Path $base $crCredentialUrl.Replace('/', [System.IO.Path]::DirectorySeparatorChar))); $passed.Add('negative-credential-url') | Out-Null
 
         $crPii = New-SelfTestCanonicalArtifact -Base $base -Id 'CR-0003' -Slug 'pii' -Body 'Contact test@example.com'
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^sensitive-email-or-pii' -Name 'negative-known-pii'
-        [System.IO.File]::Delete((Join-Path $base $crPii.Replace('/', '\'))); $passed.Add('negative-known-pii') | Out-Null
+        [System.IO.File]::Delete((Join-Path $base $crPii.Replace('/', [System.IO.Path]::DirectorySeparatorChar))); $passed.Add('negative-known-pii') | Out-Null
 
         $crSelf = New-SelfTestCanonicalArtifact -Base $base -Id 'CR-0006' -Status approved -SupersedesRef 'CR-0006' -VerificationRefs @('PROJECT.md')
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-supersedes-ref' -Name 'negative-supersedes-self'
-        [System.IO.File]::Delete((Join-Path $base $crSelf.Replace('/', '\'))); $passed.Add('negative-supersedes-self') | Out-Null
+        [System.IO.File]::Delete((Join-Path $base $crSelf.Replace('/', [System.IO.Path]::DirectorySeparatorChar))); $passed.Add('negative-supersedes-self') | Out-Null
 
         $crMissing = New-SelfTestCanonicalArtifact -Base $base -Id 'CR-0006' -Status approved -SupersedesRef 'CR-9999' -VerificationRefs @('PROJECT.md')
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-supersedes-ref' -Name 'negative-supersedes-missing'
-        [System.IO.File]::Delete((Join-Path $base $crMissing.Replace('/', '\'))); $passed.Add('negative-supersedes-missing') | Out-Null
+        [System.IO.File]::Delete((Join-Path $base $crMissing.Replace('/', [System.IO.Path]::DirectorySeparatorChar))); $passed.Add('negative-supersedes-missing') | Out-Null
 
         $crCycleA = New-SelfTestCanonicalArtifact -Base $base -Id 'CR-0004' -Status superseded -SupersedesRef 'CR-0005' -VerificationRefs @('PROJECT.md')
         $crCycleB = New-SelfTestCanonicalArtifact -Base $base -Id 'CR-0005' -Status superseded -SupersedesRef 'CR-0004' -VerificationRefs @('PROJECT.md')
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^supersedes-cycle' -Name 'negative-supersedes-cycle'
-        [System.IO.File]::Delete((Join-Path $base $crCycleA.Replace('/', '\'))); [System.IO.File]::Delete((Join-Path $base $crCycleB.Replace('/', '\'))); $passed.Add('negative-supersedes-cycle') | Out-Null
+        [System.IO.File]::Delete((Join-Path $base $crCycleA.Replace('/', [System.IO.Path]::DirectorySeparatorChar))); [System.IO.File]::Delete((Join-Path $base $crCycleB.Replace('/', [System.IO.Path]::DirectorySeparatorChar))); $passed.Add('negative-supersedes-cycle') | Out-Null
 
-        $runDirectory = Join-Path $base "analysis\runs\$runId"; [System.IO.Directory]::CreateDirectory((Join-Path $runDirectory 'nested')) | Out-Null
+        $runDirectory = Join-Path $base "analysis/runs/$runId"; [System.IO.Directory]::CreateDirectory((Join-Path $runDirectory 'nested')) | Out-Null
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-run-entry' -Name 'negative-nested-run-entry'
         [System.IO.Directory]::Delete((Join-Path $runDirectory 'nested')); $passed.Add('negative-nested-run-entry') | Out-Null
 
@@ -1711,7 +1711,7 @@ function Invoke-AnalysisSelfTest {
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^(missing-or-wrong-case-run-file|unreadable-run-file)' -Name 'negative-wrong-case-run-file'
         [System.IO.File]::Move($wrongCase, $caseTemp); [System.IO.File]::Move($caseTemp, $briefPath); $passed.Add('negative-wrong-case-run-file') | Out-Null
 
-        $reparseRunId = 'RUN-20260815-120001-reparse-run-d4e5f6'; $junctionPath = Join-Path $base "analysis\runs\$reparseRunId"; $junctionTarget = Join-Path ([System.IO.Path]::GetTempPath()) ('model-project-analysis-junction-' + [guid]::NewGuid().ToString('N'))
+        $reparseRunId = 'RUN-20260815-120001-reparse-run-d4e5f6'; $junctionPath = Join-Path $base "analysis/runs/$reparseRunId"; $junctionTarget = Join-Path ([System.IO.Path]::GetTempPath()) ('model-project-analysis-junction-' + [guid]::NewGuid().ToString('N'))
         [System.IO.Directory]::CreateDirectory($junctionTarget) | Out-Null
         try {
             New-Item -ItemType Junction -Path $junctionPath -Target $junctionTarget -Force | Out-Null
