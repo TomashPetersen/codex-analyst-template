@@ -6,7 +6,7 @@ task_key: github-release-v1-0-0
 prompt_ref: prompts/plan-and-deliver.md
 status: in-progress
 current_phase: P4
-updated_at: 2026-08-23T17:42:32Z
+updated_at: 2026-08-23T17:51:12Z
 completed_at: null
 closeout_status: pending
 knowledge_outcome: null
@@ -146,13 +146,13 @@ Deliverable: fresh public clone/bootstrap evidence, retrospective, knowledge out
 ## Resume checkpoint
 
 - Текущая фаза: P4
-- Уже выполнено: P1-P3/public bootstrap PASS; macOS system-temp symlink root cause исправлена через exported filesystem resolver; lock fixture проверяет конечный system temp.
-- Последние успешные проверки: PASS: AST changed files; local platform primitives with trusted app and system temp fixtures.
-- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; scripts/lib/ModelProject.Platform.psm1; scripts/test-platform.ps1; scripts/verify-structure.ps1; scripts/verify-knowledge.ps1; scripts/update-knowledge-graph.ps1
-- Git checkpoint: v1:fa0d8d6956b095abf091657c545e27910775783be41694f0404465b3c5342d6e
-- Следующее действие: Прогнать structure/knowledge gates, commit/push system-temp fix и подтвердить CI matrix.
-- Блокеры: GitHub browser не авторизован для template/About settings; portable fix потребует corrective consumer release после зеленого CI.
-- Обновлено: 2026-08-23T17:42:32Z
+- Уже выполнено: GitHub settings завершены; macOS platform/structure PASS; formal analysis diagnostic annotation подготовлена.
+- Последние успешные проверки: PASS: local verify-analysis SelfTest86; public settings; macOS platform/structure.
+- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; .github/workflows/template-integrity.yml; scripts/verify-analysis.ps1
+- Git checkpoint: v1:5674ac3aed95f2796c42966f24dc0306ae5004cc0264567d2f451eecc7856360
+- Следующее действие: Commit/push formal-analysis diagnostic и прочитать точный macOS exception.
+- Блокеры: macOS verify-analysis failure требует diagnostic retry.
+- Обновлено: 2026-08-23T17:51:12Z
 
 ## Итог
 

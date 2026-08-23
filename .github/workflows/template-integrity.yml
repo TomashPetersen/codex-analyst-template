@@ -52,7 +52,14 @@ jobs:
       - name: Verify formal analysis
         shell: pwsh
         run: |
-          pwsh -NoLogo -NoProfile -File ./scripts/verify-analysis.ps1 -Root . -SelfTest
+          $analysisOutput = & pwsh -NoLogo -NoProfile -File ./scripts/verify-analysis.ps1 -Root . -SelfTest 2>&1 | Out-String
+          if ($LASTEXITCODE -ne 0) {
+            $message = $analysisOutput.Trim() -replace '[\r\n]+', ' | '
+            if ($message.Length -gt 6000) { $message = $message.Substring($message.Length - 6000) }
+            Write-Output "::error title=Verify formal analysis::$message"
+            exit 1
+          }
+          Write-Output $analysisOutput.TrimEnd()
 
       - name: Verify project agents
         shell: pwsh
