@@ -6,7 +6,7 @@ task_key: github-release-v1-0-0
 prompt_ref: prompts/plan-and-deliver.md
 status: in-progress
 current_phase: P4
-updated_at: 2026-08-23T17:36:58Z
+updated_at: 2026-08-23T17:42:32Z
 completed_at: null
 closeout_status: pending
 knowledge_outcome: null
@@ -146,13 +146,13 @@ Deliverable: fresh public clone/bootstrap evidence, retrospective, knowledge out
 ## Resume checkpoint
 
 - Текущая фаза: P4
-- Уже выполнено: P1-P3/public bootstrap PASS; resolver применен и к current PowerShell host; fixture сохраняет проверку конечного target и controlled roots.
-- Последние успешные проверки: PASS: PowerShell AST platform module; local platform primitives with trusted symlink fixture; previous cross-platform bootstrap/source structure/sanitizer.
-- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; scripts/lib/ModelProject.Platform.psm1; scripts/test-platform.ps1; .github/workflows/template-integrity.yml
-- Git checkpoint: v1:a05d82e91fc65fa0195de8ac71cc497541ce99611d6720870398d82d59c26f43
-- Следующее действие: Прогнать source structure, commit/push host resolver и подтвердить зеленый CI matrix.
-- Блокеры: GitHub browser не авторизован для template/About settings.
-- Обновлено: 2026-08-23T17:36:58Z
+- Уже выполнено: P1-P3/public bootstrap PASS; macOS system-temp symlink root cause исправлена через exported filesystem resolver; lock fixture проверяет конечный system temp.
+- Последние успешные проверки: PASS: AST changed files; local platform primitives with trusted app and system temp fixtures.
+- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; scripts/lib/ModelProject.Platform.psm1; scripts/test-platform.ps1; scripts/verify-structure.ps1; scripts/verify-knowledge.ps1; scripts/update-knowledge-graph.ps1
+- Git checkpoint: v1:fa0d8d6956b095abf091657c545e27910775783be41694f0404465b3c5342d6e
+- Следующее действие: Прогнать structure/knowledge gates, commit/push system-temp fix и подтвердить CI matrix.
+- Блокеры: GitHub browser не авторизован для template/About settings; portable fix потребует corrective consumer release после зеленого CI.
+- Обновлено: 2026-08-23T17:42:32Z
 
 ## Итог
 

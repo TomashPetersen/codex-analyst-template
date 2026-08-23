@@ -155,7 +155,9 @@ try {
         }
     }
     finally { Exit-ModelProjectFileLock -Lock $lock }
-    if ($lockPath -notlike (Join-Path ([System.IO.Path]::GetTempPath()) 'model-project-locks/*')) {
+    $resolvedTemp = Resolve-ModelProjectFileSystemLinkPath -Path ([System.IO.Path]::GetTempPath())
+    $expectedLockRoot = Join-Path $resolvedTemp 'model-project-locks'
+    if (-not (Test-ModelProjectPathWithinRoot -Root $expectedLockRoot -Path $lockPath)) {
         throw 'Lock file находится вне system temp.'
     }
     if (Test-Path -LiteralPath $lockPath -PathType Leaf) {

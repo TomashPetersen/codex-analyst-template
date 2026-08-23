@@ -19,7 +19,7 @@ function Get-ModelProjectNormalizedFullPath {
     return $full
 }
 
-function Resolve-ModelProjectTrustedApplicationPath {
+function Resolve-ModelProjectFileSystemLinkPath {
     param([Parameter(Mandatory = $true)][string]$Path)
 
     $resolved = Get-ModelProjectNormalizedFullPath -Path $Path
@@ -169,7 +169,7 @@ function Get-ModelProjectTrustedApplication {
     if ($commandLeaf -cnotin $AllowedLeaves -or -not (Test-Path -LiteralPath $commandPath -PathType Leaf)) {
         throw 'Доверенное приложение не прошло проверку имени и типа.'
     }
-    $path = Resolve-ModelProjectTrustedApplicationPath -Path $commandPath
+    $path = Resolve-ModelProjectFileSystemLinkPath -Path $commandPath
     $resolvedLeaf = [System.IO.Path]::GetFileName($path)
     if ($resolvedLeaf -cnotin $AllowedLeaves -or -not (Test-Path -LiteralPath $path -PathType Leaf)) {
         throw 'Target доверенного приложения не прошел проверку имени и типа.'
@@ -203,7 +203,7 @@ function Get-ModelProjectPowerShellHost {
         -not (Test-Path -LiteralPath $hostPath -PathType Leaf)) {
         throw 'Для шаблона требуется PowerShell 7 host pwsh.'
     }
-    $path = Resolve-ModelProjectTrustedApplicationPath -Path $hostPath
+    $path = Resolve-ModelProjectFileSystemLinkPath -Path $hostPath
     if ([System.IO.Path]::GetFileName($path) -cnotin @('pwsh', 'pwsh.exe') -or
         -not (Test-Path -LiteralPath $path -PathType Leaf)) {
         throw 'Target PowerShell 7 host не прошел проверку имени и типа.'
@@ -334,7 +334,8 @@ function Enter-ModelProjectFileLock {
     $identity = $identityRoot + "`n" + $ResourceKey
     $digest = [System.Security.Cryptography.SHA256]::HashData($script:Utf8NoBom.GetBytes($identity))
     $hash = [Convert]::ToHexString($digest).ToLowerInvariant()
-    $lockDirectory = Get-ModelProjectNormalizedFullPath -Path (Join-Path ([System.IO.Path]::GetTempPath()) 'model-project-locks')
+    $systemTemp = Resolve-ModelProjectFileSystemLinkPath -Path ([System.IO.Path]::GetTempPath())
+    $lockDirectory = Get-ModelProjectNormalizedFullPath -Path (Join-Path $systemTemp 'model-project-locks')
     if (-not (Test-Path -LiteralPath $lockDirectory -PathType Container)) {
         [void][System.IO.Directory]::CreateDirectory($lockDirectory)
     }
@@ -374,6 +375,7 @@ function Exit-ModelProjectFileLock {
 
 Microsoft.PowerShell.Core\Export-ModuleMember -Function @(
     'Get-ModelProjectNormalizedFullPath',
+    'Resolve-ModelProjectFileSystemLinkPath',
     'Test-ModelProjectIsWindows',
     'Test-ModelProjectIsMacOS',
     'Get-ModelProjectNullDevice',

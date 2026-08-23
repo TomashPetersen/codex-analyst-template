@@ -310,7 +310,8 @@ try {
 }
 catch { throw $knowledgeModuleIntegrityError }
 $trustedPlatformExportNames = @(
-    'Get-ModelProjectNormalizedFullPath', 'Test-ModelProjectIsWindows', 'Test-ModelProjectIsMacOS',
+    'Get-ModelProjectNormalizedFullPath', 'Resolve-ModelProjectFileSystemLinkPath',
+    'Test-ModelProjectIsWindows', 'Test-ModelProjectIsMacOS',
     'Get-ModelProjectNullDevice', 'Get-ModelProjectPathComparison', 'Test-ModelProjectPathWithinRoot',
     'Get-ModelProjectLinkInFullChain', 'Assert-ModelProjectNoLinkInFullChain',
     'Get-ModelProjectTrustedApplication', 'Get-ModelProjectGitExecutable', 'Get-ModelProjectPowerShellHost',
