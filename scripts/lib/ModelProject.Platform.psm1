@@ -19,6 +19,32 @@ function Get-ModelProjectNormalizedFullPath {
     return $full
 }
 
+function Resolve-ModelProjectTrustedApplicationPath {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $resolved = Get-ModelProjectNormalizedFullPath -Path $Path
+    $visited = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    for ($hop = 0; $hop -lt 32; $hop++) {
+        if (-not $visited.Add($resolved)) { throw 'Циклическая symlink-цепочка доверенного приложения.' }
+        $linkPath = Get-ModelProjectLinkInFullChain -Path $resolved
+        if ($null -eq $linkPath) { return $resolved }
+        $linkItem = Get-Item -LiteralPath $linkPath -Force
+        try { $targetItem = $linkItem.ResolveLinkTarget($true) }
+        catch { throw 'Не удалось безопасно разрешить symlink доверенного приложения.' }
+        if ($null -eq $targetItem -or [string]::IsNullOrWhiteSpace([string]$targetItem.FullName)) {
+            throw 'Symlink доверенного приложения не имеет разрешимого target.'
+        }
+        $suffix = $resolved.Substring($linkPath.Length).TrimStart(
+            [System.IO.Path]::DirectorySeparatorChar,
+            [System.IO.Path]::AltDirectorySeparatorChar
+        )
+        $resolved = Get-ModelProjectNormalizedFullPath -Path ([string]$targetItem.FullName)
+        if (-not [string]::IsNullOrWhiteSpace($suffix)) { $resolved = Join-Path $resolved $suffix }
+        $resolved = Get-ModelProjectNormalizedFullPath -Path $resolved
+    }
+    throw 'Symlink-цепочка доверенного приложения превышает безопасный лимит.'
+}
+
 function Test-ModelProjectIsWindows {
     return $script:IsWindows
 }
@@ -138,14 +164,19 @@ function Get-ModelProjectTrustedApplication {
     if ($null -eq $command -or [string]::IsNullOrWhiteSpace([string]$command.Source)) {
         throw 'Доверенное приложение не найдено.'
     }
-    $path = Get-ModelProjectNormalizedFullPath -Path ([string]$command.Source)
-    $leaf = [System.IO.Path]::GetFileName($path)
-    if ($leaf -cnotin $AllowedLeaves -or -not (Test-Path -LiteralPath $path -PathType Leaf)) {
+    $commandPath = Get-ModelProjectNormalizedFullPath -Path ([string]$command.Source)
+    $commandLeaf = [System.IO.Path]::GetFileName($commandPath)
+    if ($commandLeaf -cnotin $AllowedLeaves -or -not (Test-Path -LiteralPath $commandPath -PathType Leaf)) {
         throw 'Доверенное приложение не прошло проверку имени и типа.'
     }
-    Assert-ModelProjectNoLinkInFullChain -Path $path
+    $path = Resolve-ModelProjectTrustedApplicationPath -Path $commandPath
+    $resolvedLeaf = [System.IO.Path]::GetFileName($path)
+    if ($resolvedLeaf -cnotin $AllowedLeaves -or -not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        throw 'Target доверенного приложения не прошел проверку имени и типа.'
+    }
     foreach ($controlledRoot in $ControlledRoots) {
-        if (Test-ModelProjectPathWithinRoot -Root $controlledRoot -Path $path -AllowEqual) {
+        if ((Test-ModelProjectPathWithinRoot -Root $controlledRoot -Path $commandPath -AllowEqual) -or
+            (Test-ModelProjectPathWithinRoot -Root $controlledRoot -Path $path -AllowEqual)) {
             throw 'Доверенное приложение не может находиться внутри управляемого корня.'
         }
     }

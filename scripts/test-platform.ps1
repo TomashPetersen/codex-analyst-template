@@ -12,6 +12,7 @@ $tempBase = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimE
 $tempComparison = Get-ModelProjectPathComparison -Path $tempBase
 $fixtureRoot = [System.IO.Path]::GetFullPath((Join-Path $tempBase ('model-project-platform-' + [guid]::NewGuid().ToString('N'))))
 $linkPath = $null
+$trustedAppLinkPath = $null
 $lockPath = $null
 
 function Assert-Blocked {
@@ -84,6 +85,28 @@ try {
 
     $pwsh = Get-ModelProjectPowerShellHost -ControlledRoots @($sourceRoot, $fixtureRoot)
     $git = Get-ModelProjectGitExecutable -ControlledRoots @($sourceRoot, $fixtureRoot)
+    $trustedAppLinkLeaf = 'trusted-' + [System.IO.Path]::GetFileName($pwsh)
+    $trustedAppLinkPath = Join-Path $fixtureRoot $trustedAppLinkLeaf
+    $trustedAppLinkCreated = $false
+    try {
+        [void](New-Item -ItemType SymbolicLink -Path $trustedAppLinkPath -Target $pwsh -ErrorAction Stop)
+        $trustedAppLinkCreated = $true
+    }
+    catch { }
+    if ($trustedAppLinkCreated) {
+        $trustedApp = Get-ModelProjectTrustedApplication `
+            -Names @($trustedAppLinkPath) `
+            -AllowedLeaves @($trustedAppLinkLeaf, [System.IO.Path]::GetFileName($pwsh)) `
+            -ControlledRoots @($sourceRoot)
+        if (([System.IO.Path]::GetFullPath($trustedApp)) -cne ([System.IO.Path]::GetFullPath($pwsh))) {
+            throw 'Trusted application symlink не разрешен до конечного target.'
+        }
+        [System.IO.File]::Delete($trustedAppLinkPath)
+        $trustedAppLinkPath = $null
+    }
+    elseif (-not (Test-ModelProjectIsWindows)) {
+        throw 'Unix platform должна поддерживать trusted application symlink fixture.'
+    }
     $probe = 'argument with spaces "quotes" and \slashes'
     $argumentProbeScript = Join-Path $fixtureRoot 'argument-probe.ps1'
     [System.IO.File]::WriteAllText(
@@ -145,6 +168,9 @@ try {
 finally {
     if ($null -ne $linkPath -and (Test-Path -LiteralPath $linkPath)) {
         try { [System.IO.Directory]::Delete($linkPath, $false) } catch { }
+    }
+    if ($null -ne $trustedAppLinkPath -and (Test-Path -LiteralPath $trustedAppLinkPath)) {
+        try { [System.IO.File]::Delete($trustedAppLinkPath) } catch { }
     }
     if ($null -ne $lockPath -and (Test-Path -LiteralPath $lockPath -PathType Leaf)) {
         try { [System.IO.File]::Delete($lockPath) } catch { }

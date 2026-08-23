@@ -6,7 +6,7 @@ task_key: github-release-v1-0-0
 prompt_ref: prompts/plan-and-deliver.md
 status: in-progress
 current_phase: P4
-updated_at: 2026-08-23T17:22:45Z
+updated_at: 2026-08-23T17:26:11Z
 completed_at: null
 closeout_status: pending
 knowledge_outcome: null
@@ -146,13 +146,13 @@ Deliverable: fresh public clone/bootstrap evidence, retrospective, knowledge out
 ## Resume checkpoint
 
 - Текущая фаза: P4
-- Уже выполнено: P1-P3 завершены; remote refs опубликованы; public bootstrap PASS; diagnostic commit 6620e6a отправлен; same-process macOS diagnostic подготовлен.
-- Последние успешные проверки: PASS: release profile; remote refs; public DistributionTemplate143; public GeneratedProject145; local platform primitives; source structure152; sanitizer Source.
-- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; .github/workflows/template-integrity.yml
-- Git checkpoint: v1:a1e092b54e0f543d3e7afcb51d898b37cb3aeda7a4c9e7560f7b78fad2cb94a9
-- Следующее действие: Commit и push same-process diagnostic, прочитать точный текст macOS exception и исправить первопричину.
-- Блокеры: GitHub browser не авторизован для template/About settings; macOS CI требует точной exception annotation.
-- Обновлено: 2026-08-23T17:22:45Z
+- Уже выполнено: P1-P3 завершены; remote refs/public bootstrap PASS; macOS root cause подтверждена; trusted application symlink теперь разрешается до проверенного конечного target; добавлен fixture.
+- Последние успешные проверки: PASS: PowerShell AST platform files; local platform primitives with trusted symlink fixture; diff-check.
+- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; .github/workflows/template-integrity.yml; scripts/lib/ModelProject.Platform.psm1; scripts/test-platform.ps1
+- Git checkpoint: v1:b65ecda28c2c5f39e5242e19bb82aa804ceac38599b4d1c554d32c9df4c47653
+- Следующее действие: Прогнать source gates, commit/push исправление и подтвердить зеленый Windows/macOS CI.
+- Блокеры: GitHub browser не авторизован для template/About settings.
+- Обновлено: 2026-08-23T17:26:11Z
 
 ## Итог
 

@@ -34,7 +34,9 @@ jobs:
         shell: pwsh
         run: |
           try {
-            & ./scripts/test-platform.ps1
+            $platformOutput = & pwsh -NoLogo -NoProfile -File ./scripts/test-platform.ps1 2>&1 | Out-String
+            if ($LASTEXITCODE -ne 0) { throw $platformOutput.Trim() }
+            Write-Output $platformOutput.TrimEnd()
           }
           catch {
             $message = $_.Exception.Message -replace '[\r\n]+', ' '
