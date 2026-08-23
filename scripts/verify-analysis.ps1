@@ -1346,7 +1346,11 @@ function Invoke-AnalysisSelfTest {
     try {
         New-SelfTestFixture -Base $base
         $result = Invoke-AnalysisVerification -RepositoryRoot $base
-        if ($result.Issues.Count -ne 0) { throw 'positive-empty-generated-project' }; $passed.Add('positive-empty-generated-project') | Out-Null
+        if ($result.Issues.Count -ne 0) {
+            Write-Host ('SELFTEST-ISSUES: ' + [string]::Join(' | ', @($result.Issues)))
+            throw 'positive-empty-generated-project'
+        }
+        $passed.Add('positive-empty-generated-project') | Out-Null
 
         $projectPath = Join-Path $base 'PROJECT.md'; $projectOriginal = [System.IO.File]::ReadAllText($projectPath, $strictUtf8)
         $templateProject = $projectOriginal.Replace('repository_kind: generated-project', 'repository_kind: template-source').Replace('project_status: initialized', 'project_status: template').Replace('knowledge_capture_mode: report-only', 'knowledge_capture_mode: disabled')
