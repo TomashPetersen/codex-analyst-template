@@ -1,0 +1,4 @@
+interface:
+  display_name: "Исследование стартапов"
+  short_description: "Доказательное исследование ниш и IT-проектов"
+  default_prompt: "Используй $startup-researcher для доказательного исследования с проверяемыми evidence и разрешенными baseline/local methods."

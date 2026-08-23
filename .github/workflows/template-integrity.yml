@@ -1,0 +1,96 @@
+name: Template integrity
+
+on:
+  push:
+    branches:
+      - source
+  pull_request:
+    branches:
+      - source
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-gates:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-latest
+          - macos-latest
+
+    steps:
+      - name: Checkout source with tags
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify platform primitives
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/test-platform.ps1
+
+      - name: Verify source structure
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/verify-structure.ps1 -Root . -Mode TemplateSource
+
+      - name: Verify formal analysis
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/verify-analysis.ps1 -Root . -SelfTest
+
+      - name: Verify project agents
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/verify-codex-agents.ps1 -Root . -SelfTest
+
+      - name: Verify Plan v2 lifecycle
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/test-plan-lifecycle.ps1
+
+      - name: Verify canon and graph
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/test-canon-graph.ps1
+
+      - name: Verify Mastery v2
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/test-mastery-v2.ps1
+
+      - name: Verify consumer boundary
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/test-analyst-consumer-boundary.ps1
+
+      - name: Verify sanitization
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/verify-template-sanitization.ps1 -Root . -Scope Source
+
+      - name: Verify local and GitHub bootstrap
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/test-cross-platform-bootstrap.ps1
+
+      - name: Verify tagged distribution roundtrip
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/test-github-template-distribution.ps1
+
+      - name: Verify semantic knowledge fixtures
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/verify-knowledge.ps1 -Root . -SelfTest
+
+      - name: Verify privacy and RAW fixtures
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/test-knowledge-privacy.ps1

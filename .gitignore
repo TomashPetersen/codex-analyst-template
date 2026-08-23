@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+tmp/
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+.codex/*
+!.codex/config.toml
+!.codex/agents/
+!.codex/agents/*.toml
+.agents/skills/bulletproof/
+.agents/skills/frontend-design/
