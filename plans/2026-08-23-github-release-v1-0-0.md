@@ -5,8 +5,8 @@ plan_id: PLAN-20260823-github-release-v1-0-0
 task_key: github-release-v1-0-0
 prompt_ref: prompts/plan-and-deliver.md
 status: in-progress
-current_phase: P2
-updated_at: 2026-08-23T16:53:58Z
+current_phase: P4
+updated_at: 2026-08-23T17:18:46Z
 completed_at: null
 closeout_status: pending
 knowledge_outcome: null
@@ -79,7 +79,7 @@ Deliverable: active Plan v2, exact remote identity, source-only registration и 
 - [x] Выбрать порядок source commit/tag -> consumer build -> `main` first push -> `source`/tag -> post-release closeout.
 - [x] Зарегистрировать plan в source-only manifest и maintenance graph.
 
-## Фаза P2 - [WIP] Source release candidate
+## Фаза P2 - [x] Source release candidate
 
 Цель: получить clean tracked source commit и immutable release tag после полного локального профиля.
 
@@ -90,10 +90,10 @@ Deliverable: branch `source`, source release commit и annotated tag `v1.0.0`.
 Задачи:
 
 - [x] Выполнить AST, diff, structure, analysis, agents, plans, canon, mastery, knowledge, privacy, bootstrap и distribution suites.
-- [ ] Создать branch `source`, настроить exact origin и выполнить первый source commit без broad add.
-- [ ] Создать и проверить annotated tag `v1.0.0`.
+- [x] Создать branch `source`, настроить exact origin и выполнить первый source commit без broad add.
+- [x] Создать и проверить annotated tag `v1.0.0`.
 
-## Фаза P3 - [ ] Consumer main
+## Фаза P3 - [x] Consumer main
 
 Цель: собрать и независимо проверить GitHub Template payload из tagged source.
 
@@ -103,11 +103,11 @@ Deliverable: временный clean Git repository с unrelated branch `main` 
 
 Задачи:
 
-- [ ] Собрать payload trusted builder в точный temporary destination.
-- [ ] Проверить descriptor, hashes, sanitizer, boundary и independent URL-first bootstrap.
-- [ ] Создать consumer root commit на `main` без source history.
+- [x] Собрать payload trusted builder в точный temporary destination.
+- [x] Проверить descriptor, hashes, sanitizer, boundary и independent URL-first bootstrap.
+- [x] Создать consumer root commit на `main` без source history.
 
-## Фаза P4 - [ ] GitHub publication
+## Фаза P4 - [WIP] GitHub publication
 
 Цель: опубликовать refs и repository settings без force или скрытого external write.
 
@@ -117,8 +117,8 @@ Deliverable: публичные `main`, `source`, `v1.0.0`, default `main`, temp
 
 Задачи:
 
-- [ ] Повторно подтвердить пустой remote и отправить consumer `main` первым.
-- [ ] Отправить source branch и immutable tag без force.
+- [x] Повторно подтвердить пустой remote и отправить consumer `main` первым.
+- [x] Отправить source branch и immutable tag без force.
 - [ ] Настроить default branch, GitHub Template и About через авторизованный интерфейс.
 - [ ] Дождаться и проверить GitHub Actions Windows/macOS.
 
@@ -145,14 +145,14 @@ Deliverable: fresh public clone/bootstrap evidence, retrospective, knowledge out
 
 ## Resume checkpoint
 
-- Текущая фаза: P2
-- Уже выполнено: P1 завершена; P2 полный локальный release profile завершен, source inventory exact 209=185 portable+24 source-only.
-- Последние успешные проверки: PASS: AST37; diff209; analysis86; agents5; plan lifecycle; canon/graph; Mastery v2; consumer185; cross-platform bootstrap; distribution14; knowledge self-test; privacy37; sanitizer209; structure152.
-- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; .template-manifest.json; TEMPLATE.md; scripts/; .github/workflows/template-integrity.yml
-- Git checkpoint: v1:ddd603cfae0eeb1e4b37cf1241d03ca0b903b889894591bbec3b935cc2598532
-- Следующее действие: Создать локальный source branch, exact origin, manifest-owned initial commit и annotated tag v1.0.0.
-- Блокеры: нет
-- Обновлено: 2026-08-23T16:53:58Z
+- Текущая фаза: P4
+- Уже выполнено: P1-P3 завершены; remote main/source/v1.0.0 опубликованы без force; default main; public clone/bootstrap PASS; macOS CI failure локализован до platform gate; подготовлен диагностический retry.
+- Последние успешные проверки: PASS: release profile; remote refs; public DistributionTemplate143; public GeneratedProject145 initialized/report-only main no remote; local platform primitives; diff-check.
+- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; .github/workflows/template-integrity.yml
+- Git checkpoint: v1:3785f63f9627f243b9f8e0698fe650658a5ee860efea67afb9e6143ba4c62aa1
+- Следующее действие: Commit и push source-only CI diagnostic, получить публичную macOS annotation и исправить первопричину.
+- Блокеры: GitHub browser не авторизован для template/About settings; macOS CI требует diagnostic retry.
+- Обновлено: 2026-08-23T17:18:46Z
 
 ## Итог
 

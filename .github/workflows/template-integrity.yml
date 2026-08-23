@@ -26,14 +26,24 @@ jobs:
 
     steps:
       - name: Checkout source with tags
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Verify platform primitives
         shell: pwsh
         run: |
-          pwsh -NoLogo -NoProfile -File ./scripts/test-platform.ps1
+          try {
+            pwsh -NoLogo -NoProfile -File ./scripts/test-platform.ps1
+            if ($LASTEXITCODE -ne 0) {
+              throw "test-platform.ps1 exited with code $LASTEXITCODE"
+            }
+          }
+          catch {
+            $message = $_.Exception.Message -replace '[\r\n]+', ' '
+            Write-Output "::error title=Verify platform primitives::$message"
+            throw
+          }
 
       - name: Verify source structure
         shell: pwsh
