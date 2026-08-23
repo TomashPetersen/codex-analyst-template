@@ -1,0 +1,4 @@
+interface:
+  display_name: "Доставка проекта"
+  short_description: "Реализация через сохраняемый Plan v2 и checkpoints"
+  default_prompt: "Используй $project-delivery для значимой реализации через один tracked plan, фазовые проверки, resume checkpoint и knowledge closeout."

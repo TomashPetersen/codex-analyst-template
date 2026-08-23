@@ -1,0 +1,4 @@
+interface:
+  display_name: "Куратор знаний"
+  short_description: "Closeout, обучаемые методы и граф project-local знаний"
+  default_prompt: "Используй $knowledge-curator для анализа pre-task diff, разрешенного project-local knowledge closeout, method candidates и обновления derived knowledge graph."

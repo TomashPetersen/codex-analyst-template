@@ -1,0 +1,747 @@
+{
+  "schema_version": 1,
+  "distribution_kind": "github-template",
+  "template_version": "1.0.0",
+  "source_tag": "v1.0.0",
+  "source_commit": "9441c78fbe6c88e3e010800f930f2c1640ce6334",
+  "template_repository_url": "https://github.com/TomashPetersen/codex-analyst-template",
+  "built_at": "2026-08-23T20:55:04+04:00",
+  "payload_sha256": [
+    {
+      "path": ".agents/skills/it-analysis/agents/openai.yaml",
+      "sha256": "aca18e6625fd4cdb7a84051438d7de9d971b61a5b5cb0791d7abec2e9221cde6"
+    },
+    {
+      "path": ".agents/skills/it-analysis/assets/run-template/analysis.md",
+      "sha256": "2fdaaa4b3d2a414900eb186c21533ae3a32911f1b4502ef2b85f9d5932a655a1"
+    },
+    {
+      "path": ".agents/skills/it-analysis/assets/run-template/brief.md",
+      "sha256": "2a59331e459cf45569c63fd4f3037c75c43d6885445cd4c105ab73b6f478cd4a"
+    },
+    {
+      "path": ".agents/skills/it-analysis/assets/run-template/decision.md",
+      "sha256": "471a7a1e9e545543643aed38e1677edc38f3ef4468403cbe0b32714c398b3861"
+    },
+    {
+      "path": ".agents/skills/it-analysis/assets/run-template/models.md",
+      "sha256": "a4a04b946f4ed97a7976373f4f721845f330a63ea0851f995b9c4611921d41c5"
+    },
+    {
+      "path": ".agents/skills/it-analysis/assets/run-template/requirements.md",
+      "sha256": "cca501be31f039214444c862eb90c4d70576577fca9104c196a7e9ae97fb854f"
+    },
+    {
+      "path": ".agents/skills/it-analysis/assets/run-template/review.md",
+      "sha256": "33d465a1e49a18323e3ffe29b37bad4b3b318f4a55260379f95f4c9505c282d8"
+    },
+    {
+      "path": ".agents/skills/it-analysis/assets/run-template/sources.md",
+      "sha256": "5dc85a7d72c7d8e96800fa1e6740b15996123749a72dbede856dfe7a048a7e72"
+    },
+    {
+      "path": ".agents/skills/it-analysis/assets/run-template/traceability.md",
+      "sha256": "eaa18c78da3b9bf219bb214943b98c3b2ce8abd2f093874e69426b6d62fa3511"
+    },
+    {
+      "path": ".agents/skills/it-analysis/references/artifact-contracts.md",
+      "sha256": "a39796de38142f6a2b815f2abc23f15e7277f769e72a0b73ee805738ed67650f"
+    },
+    {
+      "path": ".agents/skills/it-analysis/references/orchestration.md",
+      "sha256": "4c9d35bd4484a1fb1f1de35d19d4bf7661b37ed77f0226ecc616a5dde3134fef"
+    },
+    {
+      "path": ".agents/skills/it-analysis/references/sources-and-safety.md",
+      "sha256": "8ec8e05ef2a831da8ffa350c0ac8fdf34dda499657dc2a3add3223ee27485c1d"
+    },
+    {
+      "path": ".agents/skills/it-analysis/references/traceability.md",
+      "sha256": "e1ac6e7798695786600ffeadde2475660ccd2c4f9df4d0ea51524f6ad36cab9e"
+    },
+    {
+      "path": ".agents/skills/it-analysis/SKILL.md",
+      "sha256": "eb45c06a605c4128ea7dcff7902d06e6daef600e7a6d197170be1929374c0c6f"
+    },
+    {
+      "path": ".agents/skills/knowledge-curator/agents/openai.yaml",
+      "sha256": "5d4d6b0a8b7004e3549ffbebf45f802c70c0582d36a6244449729ba661f75462"
+    },
+    {
+      "path": ".agents/skills/knowledge-curator/SKILL.md",
+      "sha256": "968a6b8fb9f8773438e63c6f09076c175fda9488676fab8a4d36819ec401b027"
+    },
+    {
+      "path": ".agents/skills/project-delivery/agents/openai.yaml",
+      "sha256": "2bf2c07e87b9fe352d1f789de5cc535ba13a2a275c51863f5b56449f3199a507"
+    },
+    {
+      "path": ".agents/skills/project-delivery/SKILL.md",
+      "sha256": "81c3ab25c0dab96efa3cfc162ffed536a2e6d5de78e274477c55e3ed07541b36"
+    },
+    {
+      "path": ".agents/skills/startup-researcher/agents/openai.yaml",
+      "sha256": "fd6d53754486eb22a6f87833c748bc318a7ef67b6cbe1a0049f5a25a9f03461e"
+    },
+    {
+      "path": ".agents/skills/startup-researcher/assets/run-template/brief.md",
+      "sha256": "c73093205b4b99eb30e6f805275436dcfe26758d6105cfd72d78504d28d4a1fb"
+    },
+    {
+      "path": ".agents/skills/startup-researcher/assets/run-template/candidates.md",
+      "sha256": "0a8b05ed6997541c1442a1e235d6e8ff468eb61fca2285067e3bde2e0ec437c0"
+    },
+    {
+      "path": ".agents/skills/startup-researcher/assets/run-template/decision.md",
+      "sha256": "9d699b5b62acbd9a08064dd167c8bf2cc536f16732db663a6e845f777de5b9b8"
+    },
+    {
+      "path": ".agents/skills/startup-researcher/assets/run-template/evidence.jsonl",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": ".agents/skills/startup-researcher/assets/run-template/queries.md",
+      "sha256": "df0534a3b576557201fc8ad2d045dc4c0077b72e9c78a22c2f7260642d63c776"
+    },
+    {
+      "path": ".agents/skills/startup-researcher/assets/run-template/red-team.md",
+      "sha256": "9873e54519fe89f8fc0bcd4c40c615d34a6dcf591f95628a8c53da57bd64d2b2"
+    },
+    {
+      "path": ".agents/skills/startup-researcher/references/decisions-and-promotion.md",
+      "sha256": "82f16c9c2fc46a5a2ff4aaa12972a37e948716a73d3e5fcb38faabc4fade8054"
+    },
+    {
+      "path": ".agents/skills/startup-researcher/references/evidence-and-deduplication.md",
+      "sha256": "65eccebb72503390bf808406e8ee3e1411542cf7ad941f4d4862d4b25953684a"
+    },
+    {
+      "path": ".agents/skills/startup-researcher/references/sources-and-safety.md",
+      "sha256": "4ab495d4499712fa38572e69f6ae5559b0b7c28308acc5b1a709ceac531bb623"
+    },
+    {
+      "path": ".agents/skills/startup-researcher/references/workflow.md",
+      "sha256": "22c20e5a701745420d09193fd16667324a2046ca8b771c4acf45cbb1e897b2bb"
+    },
+    {
+      "path": ".agents/skills/startup-researcher/SKILL.md",
+      "sha256": "250ce2fad0c0391f9fc2ca6da666c3a5fc4526be51a7ef36fb184dd709744691"
+    },
+    {
+      "path": ".codex/agents/analysis_red_team.toml",
+      "sha256": "5fb34e012b6e43cea902ec601b6bde13d1bc99e42a2d360c26bdcd7fa67745d0"
+    },
+    {
+      "path": ".codex/agents/analysis_reviewer.toml",
+      "sha256": "81aa3daf3f3516979527f557fd125a65566da5f3ce7c8ecad60a051d4c900c78"
+    },
+    {
+      "path": ".codex/agents/business_analyst.toml",
+      "sha256": "6e59c941b94151c87647ce62eb4c9fb70b50b0e01e0928e1514ae4666b7f156b"
+    },
+    {
+      "path": ".codex/agents/requirements_analyst.toml",
+      "sha256": "5304e0c9b2311778ac7405c1c9ff58453f3b9b8652afc51b6d43e863e220d34c"
+    },
+    {
+      "path": ".codex/agents/system_analyst.toml",
+      "sha256": "f0785f656db0e0cfa111d6e03a48658e7d0bd0acaadadd6e6f7926a38a89fea0"
+    },
+    {
+      "path": ".codex/config.toml",
+      "sha256": "f7535335476f613e129fcffce94c45111523c5ad75dacdf6d44c64f5f2e809dd"
+    },
+    {
+      "path": ".gitattributes",
+      "sha256": "e9da4cdf51d7b3de01bf598b67ec13abc751263dd8f5f93d1c8e5610fe40fc3f"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "f84882a65fd8d7eec1f7f88056d09d632d08c94581eda5c828dc72a0a2a976ed"
+    },
+    {
+      "path": ".template-manifest.json",
+      "sha256": "194ed9639a0b716accbecb1f2bb9992070831be626c10d0b9a62e27cdf065406"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "3cc3697b02b944b96dd0be84ea187c9933313f9d3f6cfc18262bf05da657f48a"
+    },
+    {
+      "path": "ai-clone/CORE.md",
+      "sha256": "4f2a0352ad835c13243cbed23e28ed0819e1ee0523ce2c33f508c739680adb36"
+    },
+    {
+      "path": "ai-clone/INDEX.md",
+      "sha256": "fe038f1e68b0f235c7d18bb2362b93ad5fd43fd85923bb9f6a2c5a3e84e03ec8"
+    },
+    {
+      "path": "analysis/CONTRACT.md",
+      "sha256": "07b776220da6bb84fc0c29fe0e3127abd24c8a659f21b3a23a93734a0f8b777b"
+    },
+    {
+      "path": "analysis/INDEX.md",
+      "sha256": "f58d7456a10dd155825d9360e2e620f2d35e92c80961eaae8f4ed19a250d1e14"
+    },
+    {
+      "path": "analysis/runs/.gitkeep",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "business/analysis/capabilities/README.md",
+      "sha256": "ed46c0f767e39d7f7f7c378134f14bf311a5f2d7311477e2babe97d20f73412b"
+    },
+    {
+      "path": "business/analysis/capabilities/TEMPLATE.md",
+      "sha256": "15909ffcae58855ea66793cd949fb002577cc642ae2ba28492c1baff18aac29f"
+    },
+    {
+      "path": "business/analysis/INDEX.md",
+      "sha256": "6cb201141d8ff04f144e04e920635882ed32adb0354b6f691820a84d1da959b7"
+    },
+    {
+      "path": "business/analysis/processes/README.md",
+      "sha256": "a7caafcf21bafc00f20752a2b2cf8db822974b855f7bba4d25dfddf82f15ac6e"
+    },
+    {
+      "path": "business/analysis/processes/TEMPLATE.md",
+      "sha256": "cb576da5f4ffb04f582582d99ea776769cf6bf8699abaa9ae97dee5b01999e2d"
+    },
+    {
+      "path": "business/analysis/requirements/README.md",
+      "sha256": "5efd3e6a433d73fdc430714af37e08026edbd3dfeab1e0cb48d44a1f23a917d6"
+    },
+    {
+      "path": "business/analysis/requirements/TEMPLATE.md",
+      "sha256": "5db7b9e2c01ebbce2e8e1437ce72eca772736b1408f0777e48a53b351b544808"
+    },
+    {
+      "path": "business/analysis/rules/README.md",
+      "sha256": "711bec0385b6357439cd7be64c5dcd92cf59da5cdef62fb5e080cb591638a296"
+    },
+    {
+      "path": "business/analysis/rules/TEMPLATE.md",
+      "sha256": "4a623a8c164b5637d033f696459378b46e664623b3140c65e74961010cce6b76"
+    },
+    {
+      "path": "business/analysis/stakeholders/README.md",
+      "sha256": "5e529e967bec610351065d32482ec7334d01d21175d3453afb61fe6c758aa4b6"
+    },
+    {
+      "path": "business/analysis/stakeholders/TEMPLATE.md",
+      "sha256": "b72d359f82ab2e56e74e7a592ce585970c8a57b99a5d100d930bb30636d69397"
+    },
+    {
+      "path": "business/architecture.md",
+      "sha256": "5923b92c64fd754a00d293bfebbb8ba22434cc640cdcf3c0a033afd6bbd0244a"
+    },
+    {
+      "path": "business/assets/README.md",
+      "sha256": "f07c0bb2662eaafde48f91e3c07a0562d3f182e1268d200cb2dbd743c4172bee"
+    },
+    {
+      "path": "business/go-to-market.md",
+      "sha256": "52b0858676889c750d072942350e9221aa4a25caee9a75d59a98e2ed8da6bf38"
+    },
+    {
+      "path": "business/goals-and-metrics.md",
+      "sha256": "19cb61706d65f37dcb6125e180d676766f9cd901365bdb96a47733827e0d9dcc"
+    },
+    {
+      "path": "business/INDEX.md",
+      "sha256": "a4e5b23966a154db7bac042dfe1776517cabbf3e209f1d54694b858fb973e06c"
+    },
+    {
+      "path": "business/model-and-economics.md",
+      "sha256": "d18461d263aa4eeff1deb447405ea8d6d6e725b8951a0017b99c85500dd29867"
+    },
+    {
+      "path": "business/overview.md",
+      "sha256": "cc8c732bbc6a2554d096c373bda1be4d064e3fcb9bda18557d1c0a4549565e7c"
+    },
+    {
+      "path": "CODEX-INSTALL-PROMPT.md",
+      "sha256": "4b9675d3ed98a2d3e6fe36892d5bed0ac9afa7f58f9dc8f0e89ea861d9366fe2"
+    },
+    {
+      "path": "docs/analysis/changes/README.md",
+      "sha256": "ea4e68b6faf518902404d90e3206b9ffc893873be47a732599d4db89b5be1cf3"
+    },
+    {
+      "path": "docs/analysis/changes/TEMPLATE.md",
+      "sha256": "252575856405524fd761ccb6dc4ba6badb61a7c1a6532587ce2f45b62d7d3f71"
+    },
+    {
+      "path": "docs/analysis/context/README.md",
+      "sha256": "bdc2adbaa82cc217f6fdea93c21ddb4a400c2ec4822137de5e7132d8d8a2eaba"
+    },
+    {
+      "path": "docs/analysis/context/TEMPLATE.md",
+      "sha256": "a567a31024bc55fb08dda0a46c56725029fa6c61e1a3688c9fce46a2869c2220"
+    },
+    {
+      "path": "docs/analysis/contracts/README.md",
+      "sha256": "7ee29bf9655eec2537b40d069b4a1adab29479e768a6e7d58ef1b7c5c15c1812"
+    },
+    {
+      "path": "docs/analysis/INDEX.md",
+      "sha256": "7ebabe0339d7f6ae3931fd1c3e372cf9b2f1c5b5c557efa887366b9ea7c610c8"
+    },
+    {
+      "path": "docs/analysis/models/README.md",
+      "sha256": "cb5db9d6c707b5bb5cb5fbb11e7930264b5e2f9232a0971240b4e8334e4b0d7b"
+    },
+    {
+      "path": "docs/analysis/models/TEMPLATE.md",
+      "sha256": "2ca02912db220c49050a9fa57cd44218c608e3c09fe623ed35429fa6d4e70cf4"
+    },
+    {
+      "path": "docs/analysis/requirements/README.md",
+      "sha256": "fceffac88a9eca545ac02c81c31f238a322d992fe5a7cf887d89b8ec6a26dec2"
+    },
+    {
+      "path": "docs/analysis/requirements/TEMPLATE.md",
+      "sha256": "e1ad8c3adf112d98a1e5136298da77eea51a772330dffd8e6eb7abf293bd8220"
+    },
+    {
+      "path": "docs/analysis/reviews/README.md",
+      "sha256": "73e4d5e80cf9a142d51453b647830fa1ce99dca5309d5a1a259850cdfa944310"
+    },
+    {
+      "path": "docs/analysis/reviews/TEMPLATE.md",
+      "sha256": "b16d237be08ad9a0397c2462cc1eb27bb3e3d858797d0822e3e8d00b2aec18e3"
+    },
+    {
+      "path": "docs/analysis/specifications/README.md",
+      "sha256": "a0efa5e04c295e15613839ae0705d6ed203de1f047772e401a5eec5cb54a0d69"
+    },
+    {
+      "path": "docs/analysis/specifications/TEMPLATE.md",
+      "sha256": "0a11a93593d1668ec5af706ef07c8fed717229b313e5feae378cdf4a07703bf7"
+    },
+    {
+      "path": "docs/analysis/traceability/README.md",
+      "sha256": "f1eb6f9d09eebd4b152cdaebda7a8cb4dbf7cf12b4247f454ebf92408b277e60"
+    },
+    {
+      "path": "docs/analysis/traceability/TEMPLATE.md",
+      "sha256": "362158dd9f737d5789c8a2606d3017d0a72bf159b37efc3bd557dc038bf4c431"
+    },
+    {
+      "path": "docs/architecture/INDEX.md",
+      "sha256": "7ef4046039b5595f6a012e2233831851af959e50a8adfe8dd550a34925cdad36"
+    },
+    {
+      "path": "docs/architecture/overview.md",
+      "sha256": "827cf6c7ec785b12991c80e4ff6d77975fe774a8bee03dfcb9e68243e6a5b877"
+    },
+    {
+      "path": "docs/codebase/INDEX.md",
+      "sha256": "88a51ec59828de5c9674b85af1cace7698578a2096b8f97cf524d6187da4e6d0"
+    },
+    {
+      "path": "docs/codebase/overview.md",
+      "sha256": "93a7ace62d4b885924b0c93d2592bed8104978de9ec4d863d6fb6729d4bc64bc"
+    },
+    {
+      "path": "docs/decisions/README.md",
+      "sha256": "4de8d98cb04c77fa266a76485e2c7758d0caf78a3e3021a64c5165ee9e53dc2b"
+    },
+    {
+      "path": "docs/decisions/TEMPLATE.md",
+      "sha256": "97cddf6ec08ef4e1fdf18ffd965b18196fe93c901dc28c0a1404c0c24638e898"
+    },
+    {
+      "path": "docs/INDEX.md",
+      "sha256": "6cc15dad74173e12a422b8e02e8cafd5dda71e2064a11bb828ca71289050432a"
+    },
+    {
+      "path": "idea/deep-research.md",
+      "sha256": "4360805836ef19c0377e0c3c0364f8cdad052bc5820ce6d778319d071432c2f0"
+    },
+    {
+      "path": "idea/INDEX.md",
+      "sha256": "1e1f540158f38cdb7e68e3838d8027e7e27d1531ebe1d4b6c03e27eee74b72b8"
+    },
+    {
+      "path": "idea/mvp.md",
+      "sha256": "6c5ae847ebe31a71e5e5b5582d00b988119f181095d19f9a306914db8c5b2730"
+    },
+    {
+      "path": "idea/principles.md",
+      "sha256": "84f60907ea7b70678d6a84deced237a42f47703b34b711a966b5b82ac15fa502"
+    },
+    {
+      "path": "idea/proof-of-value.md",
+      "sha256": "65791b9a2948688521d8d57500bf71d9fe01b6b9a00fd539207b5c35e14e768b"
+    },
+    {
+      "path": "idea/references.md",
+      "sha256": "5ce8690894bd471e1796b24a3287b34f593792f3f3db65dea3c6f169d824d65e"
+    },
+    {
+      "path": "idea/risks.md",
+      "sha256": "84bc9f2cbc0c1cfc527e645058dee4d8d01082c5a1a9f82239bcb9e473f3205f"
+    },
+    {
+      "path": "idea/superidea.md",
+      "sha256": "3f6cfbb9ec5f4b52a1623bda0ddddbdbcc22d69a257ab6cbb8a7e30f2431cbdd"
+    },
+    {
+      "path": "idea/vision.md",
+      "sha256": "8cac40f25506a848795bc8b2f1b19138092996930e6ca856ac604bae34d76c2c"
+    },
+    {
+      "path": "idea/why-now.md",
+      "sha256": "71ec837b87b6daa6d06e2ace0664c564ccf383044c114f5eb4dcc7415c06ef64"
+    },
+    {
+      "path": "inbox/raw/README.md",
+      "sha256": "e05153c917f08565b79e34f3c8f83b3eaf674ead34c500de6570356521a1184a"
+    },
+    {
+      "path": "inbox/raw/TEMPLATE.md",
+      "sha256": "195f09d36b5347633fd66ec2a1e1fe40ffd5019ef3d5e68241fd60e17938bf00"
+    },
+    {
+      "path": "inbox/README.md",
+      "sha256": "0de030d0b7d8c0dfdc42366050d400667bba7b992e2a97bdf47903cf1c3c8eb3"
+    },
+    {
+      "path": "INDEX.md",
+      "sha256": "7f8b4c44dd79e8041c7cb1bffb9aa73427134d1883b341bf93ed4552e66693ca"
+    },
+    {
+      "path": "knowledge/candidates/TEMPLATE.md",
+      "sha256": "feca2243e76da76dc463dbba8315fcf6c6eb749fc262fff081197d3203e8f3b2"
+    },
+    {
+      "path": "knowledge/graph/INDEX.md",
+      "sha256": "cdca129f6ebed46b27a4cc2783baf81282360ff904f457fa21b7a2deb24fa42b"
+    },
+    {
+      "path": "knowledge/INDEX.md",
+      "sha256": "34a299c19ab4c766c6875d382b10f83e94c8dbbf34707be2a68d5666b3ffb939"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "6cbbbbd9de445c224f1711f787bec34abe7ae0ed8898d3fa20101ad48e59a884"
+    },
+    {
+      "path": "mastery/analyst/business-analysis.md",
+      "sha256": "6ee83301f5f1f1cbb08cde44865e0836fb6ba486eb6c8e2bcb0c488e175bf384"
+    },
+    {
+      "path": "mastery/analyst/data-and-integration-analysis.md",
+      "sha256": "f0b53f526d5683ae698e3e414ffd5144e70d48e8f81b27473e516123cdf2c1cb"
+    },
+    {
+      "path": "mastery/analyst/INDEX.md",
+      "sha256": "892e4c931c171b8bee5626fca06484c56180737f739cd152c89cff0bc3b70296"
+    },
+    {
+      "path": "mastery/analyst/nfr-and-quality-attributes.md",
+      "sha256": "9889ade9ac49c84d2f0f4bc83d34a57c970f5200688917e0f5c1ea731c22b810"
+    },
+    {
+      "path": "mastery/analyst/process-and-use-case-modeling.md",
+      "sha256": "2b048433c720ad9ac5ec75d0b00aa2ca3b2d415c897bb1749eb1b9b0e1c8ec60"
+    },
+    {
+      "path": "mastery/analyst/requirements-engineering.md",
+      "sha256": "9123f342a3b7f5d5724efc1b79797e207d49e9b7fda4a4249f6ea1adfad7dabb"
+    },
+    {
+      "path": "mastery/analyst/specification-writing.md",
+      "sha256": "d4bfd2df9ad600b6170d84f3c7c443a9c9c83d3a5e497537085f57f07f9e702d"
+    },
+    {
+      "path": "mastery/analyst/system-analysis.md",
+      "sha256": "fed6e49ac0363d8cf43457354a13fa781201f0924801c81222841a5aa2b37eab"
+    },
+    {
+      "path": "mastery/analyst/traceability-and-change-impact.md",
+      "sha256": "28ae58fbddd9fd0cf50870edfc87ac7292acccc30688f9096fcea48ba86f24ea"
+    },
+    {
+      "path": "mastery/INDEX.md",
+      "sha256": "0c3584de3cc94db4b0888b0e238229489ab3084d98e5272d76b7dfda8ee9a06a"
+    },
+    {
+      "path": "mastery/INTENTS.json",
+      "sha256": "9c482c193072b9e9b7443a0264f2ee7cab678d7a12d914ebef02bb54aafee2fd"
+    },
+    {
+      "path": "mastery/local/INDEX.md",
+      "sha256": "80c1f304734bd6063a10c956062f4d949ba8ec04f9e7f07c921580dc18cd32ad"
+    },
+    {
+      "path": "mastery/local/TEMPLATE.md",
+      "sha256": "133b1d30b0f38e9ca5ad76636a950da6ebeb091de6b606793de9517d91a105f7"
+    },
+    {
+      "path": "mastery/researcher/alberto-savoia.md",
+      "sha256": "37bdd00c2d614ca4591d3aeb8f29748be69f324c7ce3ece34f19e7eaa749a74b"
+    },
+    {
+      "path": "mastery/researcher/bill-aulet.md",
+      "sha256": "85be8f338b812d50e7ff25788597e108995cb8f6ea0c0b050e05c4c0b7aaab8a"
+    },
+    {
+      "path": "mastery/researcher/INDEX.md",
+      "sha256": "373c09cabadf2571e1b853794fd02443789cc220ae3452667194d334aff288a1"
+    },
+    {
+      "path": "mastery/researcher/john-mullins.md",
+      "sha256": "e5e66dfe8a4095afbe91571136078168edf01a5f370561d16f354094c1b62ad6"
+    },
+    {
+      "path": "mastery/researcher/rob-fitzpatrick.md",
+      "sha256": "7c167b163dc03f69116c5aa513d5e1996cba4be2004f3fe3af7785464a8ce349"
+    },
+    {
+      "path": "mastery/researcher/steve-blank.md",
+      "sha256": "05b7ff2d513edcf1088a7c4c8fbeb9352b151bbfa6c348a94956dc2b93281606"
+    },
+    {
+      "path": "plans/INDEX.md",
+      "sha256": "7cfed34693b0cbf2c5cf017a3bf77bbbf35b7cfd3afe1466ea830ee04d3457b8"
+    },
+    {
+      "path": "plans/README.md",
+      "sha256": "84cb241826a269a3c2f042b51bcb6c580be34bacceffa20dd8519980f2ba7370"
+    },
+    {
+      "path": "plans/TEMPLATE.md",
+      "sha256": "83bbc5e6744e0f82d9553c5108b497141a85bc59651f6b6abde03c3f7abb9a4b"
+    },
+    {
+      "path": "product/capabilities.md",
+      "sha256": "988d8e79a4867522d6ae3d853f71f3d52ad49c2531ae20cd5ad86c569d8dbd48"
+    },
+    {
+      "path": "product/experience.md",
+      "sha256": "90ae3e03c5810b5d1820f05f56044b7cfa314c548ba408cf9d1d6367b160ab43"
+    },
+    {
+      "path": "product/glossary.md",
+      "sha256": "91cd2b12af6a74b2ac8f9c2480f9f27f97a7b4e544504550cd4b282f45d5108e"
+    },
+    {
+      "path": "product/INDEX.md",
+      "sha256": "205cad9d83a0c683885b0c3b8f22f5bffaab7c6011301faf073361bca21dc24d"
+    },
+    {
+      "path": "product/overview.md",
+      "sha256": "f1020b8dbf364469493c018f85d1bfe087704b225180bd7598c42e80ff031b44"
+    },
+    {
+      "path": "product/users-and-jobs.md",
+      "sha256": "0e1633cefbcb99663933182448f88bdced3cee6e59589353ef11a704a5b602df"
+    },
+    {
+      "path": "PROJECT.md",
+      "sha256": "7830c864076b172aa14e62afa95e8c1a3e89c9bc8215e15a0879b108d623d188"
+    },
+    {
+      "path": "prompts/ai-clone-interview.md",
+      "sha256": "206a8580bc1174df75725745e162a084e334666d63c49a2826c257a152cd691c"
+    },
+    {
+      "path": "prompts/analysis-handoff.md",
+      "sha256": "6cc77200f2c672bf3c9c386b1146339595ff821f87585b6502a49a8b8ca82cfe"
+    },
+    {
+      "path": "prompts/analysis-program.md",
+      "sha256": "34f9c84d70129e76f97c9af094ab48361f125a831a6111c4c502f088f147e686"
+    },
+    {
+      "path": "prompts/analysis-review.md",
+      "sha256": "846dc259b6ebbdce548ef7e53badf61e891dfc6b0a9053e13ee46f48061271e1"
+    },
+    {
+      "path": "prompts/analysis-run.md",
+      "sha256": "44a94ec1a6e2c4f2d0200aedf500f2a1c2c7fdd0d98250ccd607e4161d92bdba"
+    },
+    {
+      "path": "prompts/architecture-change.md",
+      "sha256": "3b3cac506a5b8086c381571c2a61a5219a7110b65221c0bbd4fb4c79dc12f06c"
+    },
+    {
+      "path": "prompts/architecture-codebase-inventory.md",
+      "sha256": "741d154ec33c30936a8d4c8a2ba3d63716168c83782b90108cd4ddd2a3ab0d63"
+    },
+    {
+      "path": "prompts/business-architecture-interview.md",
+      "sha256": "9c2363d923758362275872d19b4188350b753d6de074b1c23bdc4a19522350fd"
+    },
+    {
+      "path": "prompts/continue-plan.md",
+      "sha256": "24e2ee2899e0148380c94dfabc2ab42961b0ca0aa22763d92ebbebf70c8c1464"
+    },
+    {
+      "path": "prompts/create-mastery.md",
+      "sha256": "53f68608473d6ae9eba108c033fa2fa5e5c74fd627bb3010ccf6949cee09b595"
+    },
+    {
+      "path": "prompts/feature-bugfix-delivery.md",
+      "sha256": "4bda60d906d197bb8c10b941eb9f47067080c338c42228d037f85b5f28799f2a"
+    },
+    {
+      "path": "prompts/idea-validation.md",
+      "sha256": "1da5c3aa084482dc3837d3e1f0def8eeb4f34e7f504b1b373fc7cc153eece9a0"
+    },
+    {
+      "path": "prompts/knowledge-promotion.md",
+      "sha256": "bd5711575a4c2637b95f1e39fa10106b15b7bc79445d27a594192884774319c1"
+    },
+    {
+      "path": "prompts/plan-and-deliver.md",
+      "sha256": "95bdb6b99e8bfb2ca3ca7dbbd5c4a88576f0da2d317cd6582068c8b8b6aa0ac2"
+    },
+    {
+      "path": "prompts/plan-closeout.md",
+      "sha256": "2be36766057325d0fa342ecb768797f97d034d2a2dea92dc1bbd44f0ca1f6116"
+    },
+    {
+      "path": "prompts/product-interview.md",
+      "sha256": "c75d47f30b39fdd24e358e8479832270e51eff25b41cbd519a3dcfc0e5b58bb9"
+    },
+    {
+      "path": "prompts/project-passport.md",
+      "sha256": "a6aa05e74e284888b07a9387e685d80fa82332c1e117cba8235a27f729a98aeb"
+    },
+    {
+      "path": "prompts/read-only-review.md",
+      "sha256": "52318bd947c45a188b6a0f4cd2aa397d53d8737583fcf10c83faca201d265eb2"
+    },
+    {
+      "path": "prompts/README.md",
+      "sha256": "95a1dd768acf805d0eff5e33fe713edf9744ad29e213d26d08d834dd6088d73b"
+    },
+    {
+      "path": "prompts/research-run.md",
+      "sha256": "8a2b42835fc92cecf3cdd48891c75ceb861eead42735afc9364a4d6fbf103dbe"
+    },
+    {
+      "path": "README.md",
+      "sha256": "29a387abed2fb39b0de8be162c169480214925e767e886dd8f3faa9f5df3cf36"
+    },
+    {
+      "path": "research/INDEX.md",
+      "sha256": "ca0f40744147d1758f23e68991f5871156433635ebd265a241591aac6be753ce"
+    },
+    {
+      "path": "research/runs/.gitkeep",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "retrospectives/README.md",
+      "sha256": "75f02098017f21c958cb80570f95f629d3c7385ece7163a97c75094cd7c3c0f7"
+    },
+    {
+      "path": "retrospectives/TEMPLATE.md",
+      "sha256": "d14599fb855a02b4d120bacbfe10a9876a830a117686c413ef8e900156023398"
+    },
+    {
+      "path": "scripts/assert-plan-resume.ps1",
+      "sha256": "ce02e5c07faef313a580a49930471b5601ebc56b85174f13febcc8d85d99a803"
+    },
+    {
+      "path": "scripts/initialize-project.ps1",
+      "sha256": "4cd21905dc726f03bf124ba5b1b2ec2f5c1bead7e0d25d70e24dd90e632d9da6"
+    },
+    {
+      "path": "scripts/lib/ModelProject.Knowledge.psm1",
+      "sha256": "3782792be76ee2ec172dcf3f256b8edbbe3b07f98e936e27dc64593ec76c8998"
+    },
+    {
+      "path": "scripts/lib/ModelProject.Mastery.psm1",
+      "sha256": "b5ae4a2562315e82d8e0b1895e64c0fc3e9d91cae5b3fd896f0d12f596bf71cc"
+    },
+    {
+      "path": "scripts/lib/ModelProject.Plan.psm1",
+      "sha256": "60e7f6b8b5e60779c48558b9f580cdfe224acb15b28dd1c901c3c2b68b3ef78b"
+    },
+    {
+      "path": "scripts/lib/ModelProject.Platform.psm1",
+      "sha256": "9028dfc7f996bb2c86db86af10aebc68aec6611599b69545ce2b946dad9944bd"
+    },
+    {
+      "path": "scripts/new-analysis-run.ps1",
+      "sha256": "826053c1c71d53909cff6a225acd8977cb983a00110530a4fb7fff19537e3590"
+    },
+    {
+      "path": "scripts/new-knowledge-candidate.ps1",
+      "sha256": "03083a789d125c2e81e4f12b17a58de9181a757d55dfaef0b5663df3b66c86f0"
+    },
+    {
+      "path": "scripts/new-mastery.ps1",
+      "sha256": "ce4e22b07b60806f8848f21489bd40c795404e9fb7b4d613d1ef0060b52e9a32"
+    },
+    {
+      "path": "scripts/new-plan.ps1",
+      "sha256": "7fcf656eeaa955c3e30658e781dbf6fd1b0bebac6cbceab28be5a65f5448ee51"
+    },
+    {
+      "path": "scripts/new-project.ps1",
+      "sha256": "eeb98d912e3a0321a8c9e37836457678ac630092b94d71da1a6c6be2b10a0b8c"
+    },
+    {
+      "path": "scripts/README.md",
+      "sha256": "56e04f351ab38613746c9f99b071c2ccc78a9468e75de1e7c9cb60626af570c9"
+    },
+    {
+      "path": "scripts/set-plan-status.ps1",
+      "sha256": "68baec2f2bce6f0ff5aa2cc9f05dfb6eec1e5751139080a4e37acaa9705ed97b"
+    },
+    {
+      "path": "scripts/update-knowledge-graph.ps1",
+      "sha256": "e28fd41505f7b701d3b95712e57b5b8cb14abee7809cf96633ee830d4055208c"
+    },
+    {
+      "path": "scripts/update-mastery-index.ps1",
+      "sha256": "523c7994108b2b87dd3fd084751c7a9d02f7b9ada5db14a1d3a159f7b8243f75"
+    },
+    {
+      "path": "scripts/update-plan-checkpoint.ps1",
+      "sha256": "4093c4a89e350090060f2f844a3c4548d837718970dbdcbb6fb3d088ad7c28e6"
+    },
+    {
+      "path": "scripts/update-plan-index.ps1",
+      "sha256": "ebcbd9a2cdd691244fb619ff0b6398b4d6ba4eb4f97087284d85c91ec53080f1"
+    },
+    {
+      "path": "scripts/verify-analysis.ps1",
+      "sha256": "49458765ee52407a5c8bb1e3278fbc3e06736bad5fb3b803d182b8985fb9c1ba"
+    },
+    {
+      "path": "scripts/verify-canon.ps1",
+      "sha256": "f3db539b164fe27adbac5d31c84a4c7c6338d58b238c7c1d0ebb3cfe4250a71b"
+    },
+    {
+      "path": "scripts/verify-codex-agents.ps1",
+      "sha256": "957e2d0898ca58d93e19616a77f0a3ee432c3b9abdcc765ce89cf9ecbc78923f"
+    },
+    {
+      "path": "scripts/verify-knowledge.ps1",
+      "sha256": "6546935e7d5fef3b0c88c6be0756821de367d7729b7d26d11ea118104374483d"
+    },
+    {
+      "path": "scripts/verify-plans.ps1",
+      "sha256": "37f2d93a072b5dc6fc3acccda767fbabe863f0fbc9b112b10cf7f330b8ed20df"
+    },
+    {
+      "path": "scripts/verify-structure.ps1",
+      "sha256": "0b1e895529c3530789a78484881faf459d6feec6e7f379556ab9014490d7bee4"
+    },
+    {
+      "path": "scripts/verify-template-sanitization.ps1",
+      "sha256": "25360ee0cf087d991f9bdce44f37a8464419f6e835b3abe8141e170624ef3b26"
+    },
+    {
+      "path": "THIRD-PARTY-NOTICES.md",
+      "sha256": "3aa469b4822d4b9415704c06c24e1d5e4569f4e4a60f3f1a83f7ac3849879204"
+    }
+  ]
+}
