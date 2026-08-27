@@ -6,7 +6,7 @@ task_key: github-release-v1-0-0
 prompt_ref: prompts/plan-and-deliver.md
 status: in-progress
 current_phase: P4
-updated_at: 2026-08-23T18:06:40Z
+updated_at: 2026-08-27T15:50:11Z
 completed_at: null
 closeout_status: pending
 knowledge_outcome: null
@@ -146,13 +146,13 @@ Deliverable: fresh public clone/bootstrap evidence, retrospective, knowledge out
 ## Resume checkpoint
 
 - Текущая фаза: P4
-- Уже выполнено: MacOS analysis positive fixture failure подтвержден; failure-only SELFTEST-ISSUES diagnostic подготовлен без вывода repository data.
-- Последние успешные проверки: PASS: AST verify-analysis; previous local SelfTest86; diff-check.
-- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; scripts/verify-analysis.ps1
-- Git checkpoint: v1:a7c58b15a70f13e4c3a21374d4de6525da79092ab48acce14e02e70c55ae9917
-- Следующее действие: Commit/push safe issue diagnostic и прочитать macOS findings.
-- Блокеры: macOS positive fixture issues требуют diagnostic retry.
-- Обновлено: 2026-08-23T18:06:40Z
+- Уже выполнено: Resume checkpoint подтвержден; verify-analysis использует проверенный physical temp resolver из Platform module; Windows reparse fixture сохраняет Junction, Unix использует SymbolicLink.
+- Последние успешные проверки: PASS: AST; analysis SelfTest86; analysis report canon0/runs0/issues0; platform primitives; sanitizer Source; TemplateSource structure152; diff-check.
+- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; scripts/verify-analysis.ps1; scripts/lib/ModelProject.Platform.psm1; .github/workflows/template-integrity.yml
+- Git checkpoint: v1:75e10e9ffc5bb228710903f481f21f8001af112fec084ac7c8869d4daa28528b
+- Следующее действие: Commit/push analysis physical-temp fix в source и проверить полный Windows/macOS CI matrix.
+- Блокеры: До green macOS CI corrective v1.0.1 и consumer main не выпускаются.
+- Обновлено: 2026-08-27T15:50:11Z
 
 ## Итог
 

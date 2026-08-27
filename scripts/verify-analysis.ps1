@@ -113,18 +113,46 @@ $trustedScriptPath = [System.IO.Path]::GetFullPath($PSCommandPath)
 $trustedScriptsRoot = [System.IO.Path]::GetFullPath($PSScriptRoot).TrimEnd([char[]]'\/')
 $trustedRepositoryRoot = [System.IO.Path]::GetFullPath((Split-Path -Parent $trustedScriptsRoot)).TrimEnd([char[]]'\/')
 $trustedModulePath = [System.IO.Path]::GetFullPath((Join-Path $trustedScriptsRoot 'lib/ModelProject.Knowledge.psm1'))
+$trustedPlatformModulePath = [System.IO.Path]::GetFullPath((Join-Path $trustedScriptsRoot 'lib/ModelProject.Platform.psm1'))
 $trustedLibRoot = [System.IO.Path]::GetDirectoryName($trustedModulePath)
 if ([System.IO.Path]::GetFileName($trustedScriptPath) -cne 'verify-analysis.ps1' -or
     -not [System.IO.Path]::GetDirectoryName($trustedScriptPath).Equals($trustedScriptsRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
     throw 'Analysis verifier path integrity check failed.'
 }
-if (-not (Test-Path -LiteralPath $trustedModulePath -PathType Leaf)) { throw 'Trusted analysis verifier module is missing.' }
+if (-not (Test-Path -LiteralPath $trustedModulePath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $trustedPlatformModulePath -PathType Leaf)) {
+    throw 'Trusted analysis verifier module is missing.'
+}
 if ($null -ne (Get-BootstrapReparsePointInFullChain -AbsolutePath $trustedScriptPath) -or
     $null -ne (Get-BootstrapReparsePointInFullChain -AbsolutePath $trustedModulePath) -or
+    $null -ne (Get-BootstrapReparsePointInFullChain -AbsolutePath $trustedPlatformModulePath) -or
     -not (Test-BootstrapExactPathCase -AbsolutePath $trustedScriptPath) -or
     -not (Test-BootstrapExactPathCase -AbsolutePath $trustedLibRoot) -or
-    -not (Test-BootstrapExactPathCase -AbsolutePath $trustedModulePath)) {
+    -not (Test-BootstrapExactPathCase -AbsolutePath $trustedModulePath) -or
+    -not (Test-BootstrapExactPathCase -AbsolutePath $trustedPlatformModulePath)) {
     throw 'Trusted analysis verifier path or helper module failed bootstrap integrity check.'
+}
+$trustedPlatformModule = Import-Module -Name $trustedPlatformModulePath -Scope Local -Force -PassThru -ErrorAction Stop
+$trustedPlatformResolverName = 'Resolve-ModelProjectFileSystemLinkPath'
+$trustedPlatformComparisonName = 'Get-ModelProjectPathComparison'
+$script:analysisResolvePhysicalPath = $trustedPlatformModule.ExportedCommands[$trustedPlatformResolverName]
+$script:analysisGetPathComparison = $trustedPlatformModule.ExportedCommands[$trustedPlatformComparisonName]
+if ($null -eq $trustedPlatformModule -or
+    $null -eq $script:analysisResolvePhysicalPath -or
+    $null -eq $script:analysisGetPathComparison -or
+    $script:analysisResolvePhysicalPath.CommandType -ne [System.Management.Automation.CommandTypes]::Function -or
+    $script:analysisGetPathComparison.CommandType -ne [System.Management.Automation.CommandTypes]::Function -or
+    $null -eq $script:analysisResolvePhysicalPath.Module -or
+    $null -eq $script:analysisGetPathComparison.Module -or
+    -not [System.IO.Path]::GetFullPath([string]$script:analysisResolvePhysicalPath.Module.Path).Equals(
+        $trustedPlatformModulePath,
+        [System.StringComparison]::OrdinalIgnoreCase
+    ) -or
+    -not [System.IO.Path]::GetFullPath([string]$script:analysisGetPathComparison.Module.Path).Equals(
+        $trustedPlatformModulePath,
+        [System.StringComparison]::OrdinalIgnoreCase
+    )) {
+    throw 'Trusted platform resolver failed load-origin check.'
 }
 $trustedModule = Import-Module -Name $trustedModulePath -Scope Local -Force -PassThru -ErrorAction Stop
 if ($null -eq $trustedModule -or
@@ -1336,13 +1364,15 @@ function Assert-SelfTestFinding {
 function Remove-OwnedSelfTestRoot {
     param([Parameter(Mandatory = $true)][string]$Path)
     $full = [System.IO.Path]::GetFullPath($Path).TrimEnd([char[]]'\/'); $leaf = [System.IO.Path]::GetFileName($full); $parent = [System.IO.Path]::GetDirectoryName($full)
-    $temp = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd([char[]]'\/')
-    if (-not $parent.Equals($temp, [System.StringComparison]::OrdinalIgnoreCase) -or $leaf -cnotmatch '^model-project-analysis-selftest-[0-9a-f]{32}$') { throw 'Refusing to remove unowned self-test path.' }
+    $temp = [System.IO.Path]::GetFullPath((& $script:analysisResolvePhysicalPath -Path ([System.IO.Path]::GetTempPath())).TrimEnd([char[]]'\/'))
+    $comparison = & $script:analysisGetPathComparison -Path $temp
+    if (-not $parent.Equals($temp, $comparison) -or $leaf -cnotmatch '^model-project-analysis-selftest-[0-9a-f]{32}$') { throw 'Refusing to remove unowned self-test path.' }
     if (Test-Path -LiteralPath $full) { [System.IO.Directory]::Delete($full, $true) }
 }
 
 function Invoke-AnalysisSelfTest {
-    $base = Join-Path ([System.IO.Path]::GetTempPath()) ("model-project-analysis-selftest-" + [guid]::NewGuid().ToString('N')); $passed = [System.Collections.Generic.List[string]]::new()
+    $physicalTemp = & $script:analysisResolvePhysicalPath -Path ([System.IO.Path]::GetTempPath())
+    $base = Join-Path $physicalTemp ("model-project-analysis-selftest-" + [guid]::NewGuid().ToString('N')); $passed = [System.Collections.Generic.List[string]]::new()
     try {
         New-SelfTestFixture -Base $base
         $result = Invoke-AnalysisVerification -RepositoryRoot $base
@@ -1715,10 +1745,11 @@ function Invoke-AnalysisSelfTest {
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^(missing-or-wrong-case-run-file|unreadable-run-file)' -Name 'negative-wrong-case-run-file'
         [System.IO.File]::Move($wrongCase, $caseTemp); [System.IO.File]::Move($caseTemp, $briefPath); $passed.Add('negative-wrong-case-run-file') | Out-Null
 
-        $reparseRunId = 'RUN-20260815-120001-reparse-run-d4e5f6'; $junctionPath = Join-Path $base "analysis/runs/$reparseRunId"; $junctionTarget = Join-Path ([System.IO.Path]::GetTempPath()) ('model-project-analysis-junction-' + [guid]::NewGuid().ToString('N'))
+        $reparseRunId = 'RUN-20260815-120001-reparse-run-d4e5f6'; $junctionPath = Join-Path $base "analysis/runs/$reparseRunId"; $junctionTarget = Join-Path $physicalTemp ('model-project-analysis-junction-' + [guid]::NewGuid().ToString('N'))
         [System.IO.Directory]::CreateDirectory($junctionTarget) | Out-Null
         try {
-            New-Item -ItemType Junction -Path $junctionPath -Target $junctionTarget -Force | Out-Null
+            $reparseItemType = if ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::Windows)) { 'Junction' } else { 'SymbolicLink' }
+            New-Item -ItemType $reparseItemType -Path $junctionPath -Target $junctionTarget -Force | Out-Null
             $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^reparse-run' -Name 'negative-reparse-run'
             $passed.Add('negative-reparse-run') | Out-Null
         }
