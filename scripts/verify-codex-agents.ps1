@@ -53,6 +53,27 @@ function Get-ReparsePointInChain {
     return $null
 }
 
+$trustedAgentScriptsRoot = [System.IO.Path]::GetFullPath($PSScriptRoot).TrimEnd([char[]]'\/')
+$trustedAgentPlatformPath = [System.IO.Path]::GetFullPath((Join-Path $trustedAgentScriptsRoot 'lib/ModelProject.Platform.psm1'))
+if (-not (Test-Path -LiteralPath $trustedAgentPlatformPath -PathType Leaf) -or
+    $null -ne (Get-ReparsePointInChain -Path $trustedAgentPlatformPath)) {
+    throw 'Trusted Codex agent platform module failed integrity check.'
+}
+$trustedAgentPlatform = Import-Module -Name $trustedAgentPlatformPath -Scope Local -Force -PassThru -ErrorAction Stop
+$script:agentResolvePhysicalPath = $trustedAgentPlatform.ExportedCommands['Resolve-ModelProjectFileSystemLinkPath']
+$script:agentGetPathComparison = $trustedAgentPlatform.ExportedCommands['Get-ModelProjectPathComparison']
+foreach ($trustedAgentCommand in @($script:agentResolvePhysicalPath, $script:agentGetPathComparison)) {
+    if ($null -eq $trustedAgentCommand -or
+        $trustedAgentCommand.CommandType -ne [System.Management.Automation.CommandTypes]::Function -or
+        $null -eq $trustedAgentCommand.Module -or
+        -not [System.IO.Path]::GetFullPath([string]$trustedAgentCommand.Module.Path).Equals(
+            $trustedAgentPlatformPath,
+            [System.StringComparison]::OrdinalIgnoreCase
+        )) {
+        throw 'Trusted Codex agent platform command failed origin check.'
+    }
+}
+
 function Test-AgentDocument {
     param(
         [Parameter(Mandatory = $true)][string]$Path,
@@ -127,10 +148,15 @@ function Invoke-CodexAgentVerification {
 }
 
 function Invoke-SelfTest {
-    $base = Join-Path ([System.IO.Path]::GetTempPath()) ('codex-agent-selftest-' + [guid]::NewGuid().ToString('N'))
-    $tempBase = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
+    $tempBase = [System.IO.Path]::GetFullPath((& $script:agentResolvePhysicalPath -Path ([System.IO.Path]::GetTempPath()))).TrimEnd([char[]]'\/')
+    $tempComparison = & $script:agentGetPathComparison -Path $tempBase
+    $base = Join-Path $tempBase ('codex-agent-selftest-' + [guid]::NewGuid().ToString('N'))
     $baseFull = [System.IO.Path]::GetFullPath($base)
-    if (-not $baseFull.StartsWith($tempBase, [System.StringComparison]::OrdinalIgnoreCase)) { throw 'unsafe-selftest-path' }
+    $tempPrefix = $tempBase + [System.IO.Path]::DirectorySeparatorChar
+    if (-not $baseFull.StartsWith($tempPrefix, $tempComparison) -or
+        [System.IO.Path]::GetFileName($baseFull) -cnotmatch '^codex-agent-selftest-[0-9a-f]{32}$') {
+        throw 'unsafe-selftest-path'
+    }
     New-Item -ItemType Directory -Path $baseFull | Out-Null
     try {
         Copy-Item -LiteralPath (Join-Path (Get-CodexAgentRoot -CandidateRoot $Root) '.codex') -Destination $baseFull -Recurse
@@ -139,28 +165,28 @@ function Invoke-SelfTest {
         if ($result.Issues.Count -ne 0 -or $result.AgentCount -ne 5) { throw 'positive-fixture-failed' }
         $passed.Add('positive-contract') | Out-Null
 
-        $businessPath = Join-Path $baseFull '.codex\agents\business_analyst.toml'
+        $businessPath = Join-Path $baseFull '.codex/agents/business_analyst.toml'
         $originalBusiness = [System.IO.File]::ReadAllText($businessPath, $utf8NoBom)
         [System.IO.File]::WriteAllText($businessPath, ($originalBusiness + "model = `"example`"`n"), $utf8NoBom)
         if ((Invoke-CodexAgentVerification -RepositoryRoot $baseFull).Issues -notcontains 'business_analyst:forbidden-capability') { throw 'model-fixture-failed' }
         [System.IO.File]::WriteAllText($businessPath, $originalBusiness, $utf8NoBom)
         $passed.Add('negative-model') | Out-Null
 
-        $systemPath = Join-Path $baseFull '.codex\agents\system_analyst.toml'
+        $systemPath = Join-Path $baseFull '.codex/agents/system_analyst.toml'
         $originalSystem = [System.IO.File]::ReadAllText($systemPath, $utf8NoBom)
         [System.IO.File]::WriteAllText($systemPath, $originalSystem.Replace('sandbox_mode = "read-only"', 'sandbox_mode = "workspace-write"'), $utf8NoBom)
         if ((Invoke-CodexAgentVerification -RepositoryRoot $baseFull).Issues -notcontains 'system_analyst:not-read-only') { throw 'sandbox-fixture-failed' }
         [System.IO.File]::WriteAllText($systemPath, $originalSystem, $utf8NoBom)
         $passed.Add('negative-sandbox') | Out-Null
 
-        $configPath = Join-Path $baseFull '.codex\config.toml'
+        $configPath = Join-Path $baseFull '.codex/config.toml'
         $originalConfig = [System.IO.File]::ReadAllText($configPath, $utf8NoBom)
         [System.IO.File]::WriteAllText($configPath, $originalConfig.Replace(' = 3', ' = 4'), $utf8NoBom)
         if ((Invoke-CodexAgentVerification -RepositoryRoot $baseFull).Issues -notcontains 'invalid-codex-config') { throw 'concurrency-fixture-failed' }
         [System.IO.File]::WriteAllText($configPath, $originalConfig, $utf8NoBom)
         $passed.Add('negative-concurrency') | Out-Null
 
-        [System.IO.File]::WriteAllText((Join-Path $baseFull '.codex\agents\extra.toml'), 'name = "extra"', $utf8NoBom)
+        [System.IO.File]::WriteAllText((Join-Path $baseFull '.codex/agents/extra.toml'), 'name = "extra"', $utf8NoBom)
         if ((Invoke-CodexAgentVerification -RepositoryRoot $baseFull).Issues -notcontains 'agent-inventory-mismatch') { throw 'inventory-fixture-failed' }
         $passed.Add('negative-inventory') | Out-Null
         Write-Host "PASS: codex agents self-test ($($passed.Count) scenarios)."
@@ -168,7 +194,10 @@ function Invoke-SelfTest {
     finally {
         if (Test-Path -LiteralPath $baseFull) {
             $resolved = [System.IO.Path]::GetFullPath((Resolve-Path -LiteralPath $baseFull).Path)
-            if (-not $resolved.StartsWith($tempBase, [System.StringComparison]::OrdinalIgnoreCase)) { throw 'unsafe-selftest-cleanup' }
+            if (-not $resolved.StartsWith($tempPrefix, $tempComparison) -or
+                [System.IO.Path]::GetFileName($resolved) -cnotmatch '^codex-agent-selftest-[0-9a-f]{32}$') {
+                throw 'unsafe-selftest-cleanup'
+            }
             Remove-Item -LiteralPath $resolved -Recurse -Force
         }
     }

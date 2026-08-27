@@ -6,7 +6,7 @@ task_key: github-release-v1-0-0
 prompt_ref: prompts/plan-and-deliver.md
 status: in-progress
 current_phase: P4
-updated_at: 2026-08-27T15:50:11Z
+updated_at: 2026-08-27T16:03:56Z
 completed_at: null
 closeout_status: pending
 knowledge_outcome: null
@@ -146,13 +146,13 @@ Deliverable: fresh public clone/bootstrap evidence, retrospective, knowledge out
 ## Resume checkpoint
 
 - Текущая фаза: P4
-- Уже выполнено: Resume checkpoint подтвержден; verify-analysis использует проверенный physical temp resolver из Platform module; Windows reparse fixture сохраняет Junction, Unix использует SymbolicLink.
-- Последние успешные проверки: PASS: AST; analysis SelfTest86; analysis report canon0/runs0/issues0; platform primitives; sanitizer Source; TemplateSource structure152; diff-check.
-- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; scripts/verify-analysis.ps1; scripts/lib/ModelProject.Platform.psm1; .github/workflows/template-integrity.yml
-- Git checkpoint: v1:75e10e9ffc5bb228710903f481f21f8001af112fec084ac7c8869d4daa28528b
-- Следующее действие: Commit/push analysis physical-temp fix в source и проверить полный Windows/macOS CI matrix.
-- Блокеры: До green macOS CI corrective v1.0.1 и consumer main не выпускаются.
-- Обновлено: 2026-08-27T15:50:11Z
+- Уже выполнено: MacOS formal analysis PASS подтвержден run 33090042700; Codex agents self-test переведен на physical temp resolver и platform-neutral fixture paths с bounded cleanup.
+- Последние успешные проверки: PASS: agents SelfTest5/report; sanitizer Source; consumer boundary portable185; TemplateSource structure152; diff-check.
+- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; scripts/verify-codex-agents.ps1; scripts/lib/ModelProject.Platform.psm1; .github/workflows/template-integrity.yml
+- Git checkpoint: v1:c6dcbdb54363e05cf83668fe0172b25b9b1c91bfa601750d3a1fc519daa7af0b
+- Следующее действие: Commit/push project agents portability fix и продолжить полный Windows/macOS CI matrix.
+- Блокеры: До полного green macOS matrix corrective v1.0.1 и consumer main не выпускаются.
+- Обновлено: 2026-08-27T16:03:56Z
 
 ## Итог
 
