@@ -310,7 +310,8 @@ try {
 }
 catch { throw $knowledgeModuleIntegrityError }
 $trustedPlatformExportNames = @(
-    'Get-ModelProjectNormalizedFullPath', 'Test-ModelProjectIsWindows', 'Test-ModelProjectIsMacOS',
+    'Get-ModelProjectNormalizedFullPath', 'Resolve-ModelProjectFileSystemLinkPath',
+    'Test-ModelProjectIsWindows', 'Test-ModelProjectIsMacOS',
     'Get-ModelProjectNullDevice', 'Get-ModelProjectPathComparison', 'Test-ModelProjectPathWithinRoot',
     'Get-ModelProjectLinkInFullChain', 'Assert-ModelProjectNoLinkInFullChain',
     'Get-ModelProjectTrustedApplication', 'Get-ModelProjectGitExecutable', 'Get-ModelProjectPowerShellHost',
@@ -343,6 +344,8 @@ $script:mppGetGitExecutable = $trustedPlatformCommands['Get-ModelProjectGitExecu
 $script:mppGetPowerShellHost = $trustedPlatformCommands['Get-ModelProjectPowerShellHost']
 $script:mppGetNullDevice = $trustedPlatformCommands['Get-ModelProjectNullDevice']
 $script:mppGetPathComparison = $trustedPlatformCommands['Get-ModelProjectPathComparison']
+$script:mppResolveFileSystemLinkPath = $trustedPlatformCommands['Resolve-ModelProjectFileSystemLinkPath']
+$script:mppIsWindows = $trustedPlatformCommands['Test-ModelProjectIsWindows']
 $script:mppSetGitEnvironment = $trustedPlatformCommands['Set-ModelProjectSanitizedGitEnvironment']
 $script:nullDevice = & $script:mppGetNullDevice
 $script:pathComparison = & $script:mppGetPathComparison -Path $trustedKnowledgeScriptsRoot
@@ -5044,11 +5047,13 @@ function Assert-GeneratorCliRejectIsRedacted {
 }
 
 function Invoke-SelfTests {
-    $temporaryBase = [System.IO.Path]::GetFullPath((Join-Path ([System.IO.Path]::GetTempPath()) ('knowledge-selftest-' + [guid]::NewGuid().ToString('N'))))
-    $expectedPrefix = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd([char[]]'\/') +
+    $physicalTemp = [System.IO.Path]::GetFullPath((& $script:mppResolveFileSystemLinkPath -Path ([System.IO.Path]::GetTempPath()))).TrimEnd([char[]]'\/')
+    $temporaryBase = [System.IO.Path]::GetFullPath((Join-Path $physicalTemp ('knowledge-selftest-' + [guid]::NewGuid().ToString('N'))))
+    $expectedPrefix = $physicalTemp +
         [System.IO.Path]::DirectorySeparatorChar +
         'knowledge-selftest-'
-    $temporaryComparison = & $script:mppGetPathComparison -Path ([System.IO.Path]::GetTempPath())
+    $temporaryComparison = & $script:mppGetPathComparison -Path $physicalTemp
+    $reparseItemType = if (& $script:mppIsWindows) { 'Junction' } else { 'SymbolicLink' }
     if (-not $temporaryBase.StartsWith($expectedPrefix, $temporaryComparison)) {
         throw "Небезопасный self-test path: $temporaryBase"
     }
@@ -5181,7 +5186,7 @@ knowledge_capture_mode: report-only
         $reparseRoot = Join-Path $temporaryBase 'reparse-root'
         New-Item -ItemType Directory -Path $reparseTarget | Out-Null
         try {
-            New-Item -ItemType Junction -Path $reparseRoot -Target $reparseTarget | Out-Null
+            New-Item -ItemType $reparseItemType -Path $reparseRoot -Target $reparseTarget | Out-Null
             $reparseVerification = Invoke-KnowledgeVerification $reparseRoot
             Assert-SelfTestIssueSet -Result $reparseVerification -AllowedPatterns @(
                 '^Корень репозитория.*reparse point'
@@ -6661,7 +6666,7 @@ related: []
         New-Item -ItemType Directory -Path $childTarget | Out-Null
         Write-FixtureFile -Base $childTarget -Relative 'source.md' -Content "# Child source`n"
         try {
-            New-Item -ItemType Junction -Path $childJunction -Target $childTarget | Out-Null
+            New-Item -ItemType $reparseItemType -Path $childJunction -Target $childTarget | Out-Null
             $script:currentIssues = [System.Collections.Generic.List[string]]::new()
             $script:textReadPaths = [System.Collections.Generic.HashSet[string]]::new($script:pathComparer)
             $script:textReadCorpusBytes = [long]0

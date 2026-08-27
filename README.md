@@ -149,7 +149,7 @@ Source-only regression scripts и GitHub Actions дополнительно пр
 
 ## Release boundary
 
-Source подготовлен для ветки `source`, производной consumer-ветки `main` и release tag `v1.0.0`. Commit, tag, push, переключение default branch и публикация GitHub выполняются только по отдельной прямой команде.
+Актуальный consumer release - `v1.0.1`. Неизменяемый tag `v1.0.0` сохраняет исходный выпуск, а `main` строится из корректирующего source tag `v1.0.1` с кроссплатформенными CI fixes. Любой следующий commit, tag, push или GitHub write требует новой прямой команды.
 
 Навигация: [INDEX.md](INDEX.md), [AGENTS.md](AGENTS.md), [prompts](prompts/README.md).
 

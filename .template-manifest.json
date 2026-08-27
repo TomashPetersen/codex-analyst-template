@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "template_version": "1.0.0",
+  "template_version": "1.0.1",
   "portable_files": [
     ".agents/skills/it-analysis/agents/openai.yaml",
     ".agents/skills/it-analysis/assets/run-template/analysis.md",

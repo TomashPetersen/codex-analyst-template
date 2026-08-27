@@ -19,6 +19,32 @@ function Get-ModelProjectNormalizedFullPath {
     return $full
 }
 
+function Resolve-ModelProjectFileSystemLinkPath {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $resolved = Get-ModelProjectNormalizedFullPath -Path $Path
+    $visited = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    for ($hop = 0; $hop -lt 32; $hop++) {
+        if (-not $visited.Add($resolved)) { throw 'Циклическая symlink-цепочка доверенного приложения.' }
+        $linkPath = Get-ModelProjectLinkInFullChain -Path $resolved
+        if ($null -eq $linkPath) { return $resolved }
+        $linkItem = Get-Item -LiteralPath $linkPath -Force
+        try { $targetItem = $linkItem.ResolveLinkTarget($true) }
+        catch { throw 'Не удалось безопасно разрешить symlink доверенного приложения.' }
+        if ($null -eq $targetItem -or [string]::IsNullOrWhiteSpace([string]$targetItem.FullName)) {
+            throw 'Symlink доверенного приложения не имеет разрешимого target.'
+        }
+        $suffix = $resolved.Substring($linkPath.Length).TrimStart(
+            [System.IO.Path]::DirectorySeparatorChar,
+            [System.IO.Path]::AltDirectorySeparatorChar
+        )
+        $resolved = Get-ModelProjectNormalizedFullPath -Path ([string]$targetItem.FullName)
+        if (-not [string]::IsNullOrWhiteSpace($suffix)) { $resolved = Join-Path $resolved $suffix }
+        $resolved = Get-ModelProjectNormalizedFullPath -Path $resolved
+    }
+    throw 'Symlink-цепочка доверенного приложения превышает безопасный лимит.'
+}
+
 function Test-ModelProjectIsWindows {
     return $script:IsWindows
 }
@@ -138,14 +164,19 @@ function Get-ModelProjectTrustedApplication {
     if ($null -eq $command -or [string]::IsNullOrWhiteSpace([string]$command.Source)) {
         throw 'Доверенное приложение не найдено.'
     }
-    $path = Get-ModelProjectNormalizedFullPath -Path ([string]$command.Source)
-    $leaf = [System.IO.Path]::GetFileName($path)
-    if ($leaf -cnotin $AllowedLeaves -or -not (Test-Path -LiteralPath $path -PathType Leaf)) {
+    $commandPath = Get-ModelProjectNormalizedFullPath -Path ([string]$command.Source)
+    $commandLeaf = [System.IO.Path]::GetFileName($commandPath)
+    if ($commandLeaf -cnotin $AllowedLeaves -or -not (Test-Path -LiteralPath $commandPath -PathType Leaf)) {
         throw 'Доверенное приложение не прошло проверку имени и типа.'
     }
-    Assert-ModelProjectNoLinkInFullChain -Path $path
+    $path = Resolve-ModelProjectFileSystemLinkPath -Path $commandPath
+    $resolvedLeaf = [System.IO.Path]::GetFileName($path)
+    if ($resolvedLeaf -cnotin $AllowedLeaves -or -not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        throw 'Target доверенного приложения не прошел проверку имени и типа.'
+    }
     foreach ($controlledRoot in $ControlledRoots) {
-        if (Test-ModelProjectPathWithinRoot -Root $controlledRoot -Path $path -AllowEqual) {
+        if ((Test-ModelProjectPathWithinRoot -Root $controlledRoot -Path $commandPath -AllowEqual) -or
+            (Test-ModelProjectPathWithinRoot -Root $controlledRoot -Path $path -AllowEqual)) {
             throw 'Доверенное приложение не может находиться внутри управляемого корня.'
         }
     }
@@ -165,16 +196,21 @@ function Get-ModelProjectPowerShellHost {
     param([string[]]$ControlledRoots = @())
 
     try {
-        $path = Get-ModelProjectNormalizedFullPath -Path ([System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName)
+        $hostPath = Get-ModelProjectNormalizedFullPath -Path ([System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName)
     }
     catch { throw 'Не удалось определить текущий PowerShell 7 host.' }
-    if ([System.IO.Path]::GetFileName($path) -cnotin @('pwsh', 'pwsh.exe') -or
-        -not (Test-Path -LiteralPath $path -PathType Leaf)) {
+    if ([System.IO.Path]::GetFileName($hostPath) -cnotin @('pwsh', 'pwsh.exe') -or
+        -not (Test-Path -LiteralPath $hostPath -PathType Leaf)) {
         throw 'Для шаблона требуется PowerShell 7 host pwsh.'
     }
-    Assert-ModelProjectNoLinkInFullChain -Path $path
+    $path = Resolve-ModelProjectFileSystemLinkPath -Path $hostPath
+    if ([System.IO.Path]::GetFileName($path) -cnotin @('pwsh', 'pwsh.exe') -or
+        -not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        throw 'Target PowerShell 7 host не прошел проверку имени и типа.'
+    }
     foreach ($controlledRoot in $ControlledRoots) {
-        if (Test-ModelProjectPathWithinRoot -Root $controlledRoot -Path $path -AllowEqual) {
+        if ((Test-ModelProjectPathWithinRoot -Root $controlledRoot -Path $hostPath -AllowEqual) -or
+            (Test-ModelProjectPathWithinRoot -Root $controlledRoot -Path $path -AllowEqual)) {
             throw 'PowerShell host не может находиться внутри управляемого корня.'
         }
     }
@@ -298,7 +334,8 @@ function Enter-ModelProjectFileLock {
     $identity = $identityRoot + "`n" + $ResourceKey
     $digest = [System.Security.Cryptography.SHA256]::HashData($script:Utf8NoBom.GetBytes($identity))
     $hash = [Convert]::ToHexString($digest).ToLowerInvariant()
-    $lockDirectory = Get-ModelProjectNormalizedFullPath -Path (Join-Path ([System.IO.Path]::GetTempPath()) 'model-project-locks')
+    $systemTemp = Resolve-ModelProjectFileSystemLinkPath -Path ([System.IO.Path]::GetTempPath())
+    $lockDirectory = Get-ModelProjectNormalizedFullPath -Path (Join-Path $systemTemp 'model-project-locks')
     if (-not (Test-Path -LiteralPath $lockDirectory -PathType Container)) {
         [void][System.IO.Directory]::CreateDirectory($lockDirectory)
     }
@@ -338,6 +375,7 @@ function Exit-ModelProjectFileLock {
 
 Microsoft.PowerShell.Core\Export-ModuleMember -Function @(
     'Get-ModelProjectNormalizedFullPath',
+    'Resolve-ModelProjectFileSystemLinkPath',
     'Test-ModelProjectIsWindows',
     'Test-ModelProjectIsMacOS',
     'Get-ModelProjectNullDevice',

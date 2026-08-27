@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
   "distribution_kind": "github-template",
-  "template_version": "1.0.0",
-  "source_tag": "v1.0.0",
-  "source_commit": "9441c78fbe6c88e3e010800f930f2c1640ce6334",
+  "template_version": "1.0.1",
+  "source_tag": "v1.0.1",
+  "source_commit": "52c736ec0a8f00dd5a6f51aaef0e71e1bb39af33",
   "template_repository_url": "https://github.com/TomashPetersen/codex-analyst-template",
-  "built_at": "2026-08-23T20:55:04+04:00",
+  "built_at": "2026-08-27T22:32:43+04:00",
   "payload_sha256": [
     {
       "path": ".agents/skills/it-analysis/agents/openai.yaml",
@@ -161,7 +161,7 @@
     },
     {
       "path": ".template-manifest.json",
-      "sha256": "194ed9639a0b716accbecb1f2bb9992070831be626c10d0b9a62e27cdf065406"
+      "sha256": "cbccf912a21b6fa5e3bb5de1a8b84ce0fdce3323c6064e503a5da22e14eb26f5"
     },
     {
       "path": "AGENTS.md",
@@ -625,7 +625,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "29a387abed2fb39b0de8be162c169480214925e767e886dd8f3faa9f5df3cf36"
+      "sha256": "64958a99a1f53be7595750509130db7927788b4b15392a2415a373876b193e26"
     },
     {
       "path": "research/INDEX.md",
@@ -665,7 +665,7 @@
     },
     {
       "path": "scripts/lib/ModelProject.Platform.psm1",
-      "sha256": "9028dfc7f996bb2c86db86af10aebc68aec6611599b69545ce2b946dad9944bd"
+      "sha256": "c85f5ea2342fdd2f7f75d670d35be1ec942a1bce6cdbad22645beb17ef001cd9"
     },
     {
       "path": "scripts/new-analysis-run.ps1",
@@ -697,7 +697,7 @@
     },
     {
       "path": "scripts/update-knowledge-graph.ps1",
-      "sha256": "e28fd41505f7b701d3b95712e57b5b8cb14abee7809cf96633ee830d4055208c"
+      "sha256": "8d42f1f25ebedd05d1b40e60f2231bd40c6af43c7257b8651b6015414b51136e"
     },
     {
       "path": "scripts/update-mastery-index.ps1",
@@ -713,7 +713,7 @@
     },
     {
       "path": "scripts/verify-analysis.ps1",
-      "sha256": "49458765ee52407a5c8bb1e3278fbc3e06736bad5fb3b803d182b8985fb9c1ba"
+      "sha256": "a7c8c8c02fad7ef3adcf2c69530da2cf3d0c2f97530dbe29760f86a523dd233c"
     },
     {
       "path": "scripts/verify-canon.ps1",
@@ -721,11 +721,11 @@
     },
     {
       "path": "scripts/verify-codex-agents.ps1",
-      "sha256": "957e2d0898ca58d93e19616a77f0a3ee432c3b9abdcc765ce89cf9ecbc78923f"
+      "sha256": "86898366e374c459b6cea742251ac30b8020a50436ec788ec5252e7b6f660551"
     },
     {
       "path": "scripts/verify-knowledge.ps1",
-      "sha256": "6546935e7d5fef3b0c88c6be0756821de367d7729b7d26d11ea118104374483d"
+      "sha256": "02f09a0f7b6069c17e3068336d960c996e7553f680242bb5dddac2340237559c"
     },
     {
       "path": "scripts/verify-plans.ps1",
@@ -733,7 +733,7 @@
     },
     {
       "path": "scripts/verify-structure.ps1",
-      "sha256": "0b1e895529c3530789a78484881faf459d6feec6e7f379556ab9014490d7bee4"
+      "sha256": "8621a62d18737e7299832bf1569f23c5d05f3e90ac0ebcc8a1fd7b20da05955c"
     },
     {
       "path": "scripts/verify-template-sanitization.ps1",
