@@ -1,5 +1,12 @@
 # История шаблона
 
+## 1.0.1 - 2026-08-27
+
+- Нормализованы physical system temp roots для hosted macOS fixtures без ослабления reparse-point gates.
+- Reparse fixtures semantic knowledge gate используют Junction на Windows и SymbolicLink на macOS.
+- Полная GitHub Actions matrix подтверждена на Windows и macOS до корректирующего tag.
+- `v1.0.0` сохранен неизменным; consumer `main` пересобирается только из tagged source `v1.0.1`.
+
 ## 1.0.0 - 2026-08-20
 
 - Создан публично-безопасный Codex Analyst Template для системного и бизнес-анализа.

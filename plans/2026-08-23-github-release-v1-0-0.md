@@ -6,7 +6,7 @@ task_key: github-release-v1-0-0
 prompt_ref: prompts/plan-and-deliver.md
 status: in-progress
 current_phase: P4
-updated_at: 2026-08-27T17:02:15Z
+updated_at: 2026-08-27T18:32:15Z
 completed_at: null
 closeout_status: pending
 knowledge_outcome: null
@@ -16,11 +16,11 @@ affected_canon: []
 blocked_reason: null
 ---
 
-# План: GitHub release Codex Analyst Template v1.0.0
+# План: GitHub release Codex Analyst Template v1.0.0 и corrective v1.0.1
 
 ## Цель
 
-Опубликовать проверенный Codex Analyst Template v1.0.0 в пустом публичном repository `https://github.com/TomashPetersen/codex-analyst-template` с source branch, производной consumer branch `main`, immutable tag, GitHub Template metadata и подтвержденной установкой по реальному URL.
+Опубликовать проверенный Codex Analyst Template в публичном repository `https://github.com/TomashPetersen/codex-analyst-template` с source branch, производной consumer branch `main`, неизменяемым исходным tag `v1.0.0`, корректирующим tag `v1.0.1`, GitHub Template metadata и подтвержденной установкой по реальному URL.
 
 ## Границы
 
@@ -29,7 +29,8 @@ blocked_reason: null
 - создать точную tracked source history из текущего no-HEAD snapshot;
 - выполнить полный локальный release profile до tag и push;
 - создать branch `source`, tag `v1.0.0` и производную unrelated branch `main` только из portable payload;
-- отправить `main`, `source` и tag в указанный пустой GitHub repository без force push;
+- сохранить `v1.0.0` неизменным, выпустить corrective tag `v1.0.1` после green hosted matrix и пересобрать `main` из него;
+- отправить `main`, `source` и tags в указанный GitHub repository без force push;
 - сделать `main` default branch, включить GitHub Template и установить нейтральное About description;
 - проверить публичный clone, URL-first bootstrap и GitHub Actions;
 - завершить release retrospective, knowledge closeout и terminal Plan v2 в отдельном post-release source commit.
@@ -46,10 +47,10 @@ blocked_reason: null
 
 1. Target repository существует, публичен, пуст до первого push и совпадает с exact GitHub identity `TomashPetersen/codex-analyst-template`.
 2. Source release commit находится на branch `source`, включает точный manifest inventory и проходит полный профиль из `TEMPLATE.md`.
-3. Annotated tag `v1.0.0` указывает на exact source release commit и после создания не изменяется.
-4. Builder создает consumer payload из source tag, descriptor содержит правильные source commit, tag, repository URL и SHA-256 portable-файлов.
+3. Annotated tag `v1.0.0` продолжает указывать на исходный source release commit; annotated tag `v1.0.1` указывает на exact corrective source release commit; оба tag неизменяемы.
+4. Builder создает consumer payload из source tag `v1.0.1`, descriptor содержит правильные source commit, tag, repository URL и SHA-256 portable-файлов.
 5. Remote `main` имеет отдельный root commit и содержит только consumer payload: 185 portable-файлов, `distribution-template + template + disabled`, без source-only paths.
-6. Remote содержит `main`, `source` и `refs/tags/v1.0.0`; default branch равна `main`, repository включен как GitHub Template, About description содержит URL-first инструкцию.
+6. Remote содержит `main`, `source`, `refs/tags/v1.0.0` и `refs/tags/v1.0.1`; default branch равна `main`, repository включен как GitHub Template, About description содержит URL-first инструкцию.
 7. GitHub Actions source matrix для Windows и macOS завершается успешно либо выпуск блокируется с точной внешней причиной без ослабления gates.
 8. Fresh public clone `main` и URL-first `new-project.ps1` создают независимый `generated-project + initialized + report-only`, Git `main` без remote и зеленый structure gate.
 9. Финальный sanitizer, privacy, knowledge, diff и inventory audit не обнаруживает secrets, PII, source-only leakage или незаявленные файлы.
@@ -57,7 +58,7 @@ blocked_reason: null
 
 ## Риски, безопасность и откат
 
-- External write ограничен exact repository URL, branches `main` и `source`, tag `v1.0.0`, About и template setting.
+- External write ограничен exact repository URL, branches `main` и `source`, tags `v1.0.0` и `v1.0.1`, About и template setting.
 - GitHub repository проверяется пустым до первого push; любое неожиданное remote ref блокирует публикацию.
 - `main` строится только trusted builder из exact source tag и не копируется вручную.
 - Push выполняется без `--force`; partial remote state исправляется только добавлением недостающих refs или settings, без переписывания опубликованных commits.
@@ -107,11 +108,11 @@ Deliverable: временный clean Git repository с unrelated branch `main` 
 - [x] Проверить descriptor, hashes, sanitizer, boundary и independent URL-first bootstrap.
 - [x] Создать consumer root commit на `main` без source history.
 
-## Фаза P4 - [WIP] GitHub publication
+## Фаза P4 - [WIP] GitHub publication и corrective release
 
 Цель: опубликовать refs и repository settings без force или скрытого external write.
 
-Deliverable: публичные `main`, `source`, `v1.0.0`, default `main`, template flag и About.
+Deliverable: публичные `main`, `source`, неизменяемые `v1.0.0` и `v1.0.1`, default `main`, template flag и About.
 
 Сделано, когда: remote refs и settings подтверждены независимо, а GitHub Actions source matrix зеленая.
 
@@ -119,8 +120,10 @@ Deliverable: публичные `main`, `source`, `v1.0.0`, default `main`, temp
 
 - [x] Повторно подтвердить пустой remote и отправить consumer `main` первым.
 - [x] Отправить source branch и immutable tag без force.
-- [ ] Настроить default branch, GitHub Template и About через авторизованный интерфейс.
-- [ ] Дождаться и проверить GitHub Actions Windows/macOS.
+- [x] Настроить default branch, GitHub Template и About через авторизованный интерфейс.
+- [x] Дождаться и проверить GitHub Actions Windows/macOS для corrective source commit `45320ee`.
+- [ ] Обновить release contract и создать annotated tag `v1.0.1` после полного локального gate.
+- [ ] Пересобрать consumer payload из `v1.0.1`, проверить и обновить remote `main` без force.
 
 ## Фаза P5 - [ ] Public smoke и closeout
 
@@ -146,13 +149,13 @@ Deliverable: fresh public clone/bootstrap evidence, retrospective, knowledge out
 ## Resume checkpoint
 
 - Текущая фаза: P4
-- Уже выполнено: Шесть remaining CI harnesses переведены на physical temp; verify-knowledge использует trusted resolver и platform-specific reparse fixture; все focused regression gates зеленые.
-- Последние успешные проверки: PASS: AST 6 harnesses; Mastery v2; consumer boundary portable185; cross-platform bootstrap; distribution14; knowledge self-test; privacy37; sanitizer Source; TemplateSource152; Plan v2; diff-check.
-- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; plans/INDEX.md; scripts/test-mastery-v2.ps1; scripts/test-analyst-consumer-boundary.ps1; scripts/test-cross-platform-bootstrap.ps1; scripts/test-github-template-distribution.ps1; scripts/verify-knowledge.ps1; scripts/test-knowledge-privacy.ps1; scripts/lib/ModelProject.Platform.psm1
-- Git checkpoint: v1:b416daeeb312aea01e63c40bf6046c5ed1b43b65ba563db1feb3c29d5daf7a5e
-- Следующее действие: Review exact diff, commit/push consolidated fixture portability fix и дождаться full green Windows/macOS CI.
-- Блокеры: Corrective v1.0.1 и consumer main ожидают полного green CI.
-- Обновлено: 2026-08-27T17:02:15Z
+- Уже выполнено: Release contract обновлен до v1.0.1 с immutable v1.0.0; полный локальный pre-tag профиль завершен зеленым.
+- Последние успешные проверки: PASS: TemplateSource152; analysis86; agents5; Plan lifecycle; canon/graph; Mastery; consumer185; bootstrap; distribution14; knowledge self-test; privacy37; sanitizer Source; Plan v2; diff-check; hosted run33096366313 Windows/macOS success.
+- Точные рабочие paths: .template-manifest.json; TEMPLATE-DISTRIBUTION.json; README.md; TEMPLATE.md; TEMPLATE-CHANGELOG.md; plans/2026-08-23-github-release-v1-0-0.md; plans/INDEX.md
+- Git checkpoint: v1:b0555fe0f727e6db1c4314c4ce9c9194d2801c6824b883a0df84566813d5940b
+- Следующее действие: Review exact release diff, commit source release contract, create annotated v1.0.1 и построить consumer payload из exact tag.
+- Блокеры: нет
+- Обновлено: 2026-08-27T18:32:15Z
 
 ## Итог
 

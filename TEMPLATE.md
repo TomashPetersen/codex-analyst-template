@@ -2,12 +2,13 @@
 
 Этот файл существует только в ветке source и не входит в consumer payload.
 
-## Контракт версии 1.0.0
+## Контракт версии 1.0.1
 
 - публичное имя: Codex Analyst Template;
 - source branch: `source`;
 - производная GitHub Template branch: `main`;
-- release tag: `v1.0.0`;
+- текущий release tag: `v1.0.1`;
+- исходный tag `v1.0.0` неизменяем;
 - Windows 10/11 является основной платформой;
 - macOS проверяется PowerShell 7 и CI;
 - Linux не входит в v1.
@@ -50,7 +51,7 @@ Builder требует чистый tracked source tag, совпадение ver
 ```powershell
 pwsh -NoProfile -File ./scripts/build-github-template.ps1 `
   -Destination <EMPTY_LOCAL_DIRECTORY> `
-  -SourceTag v1.0.0 `
+  -SourceTag v1.0.1 `
   -TemplateRepositoryUrl https://github.com/<OWNER>/<REPOSITORY>
 ```
 
