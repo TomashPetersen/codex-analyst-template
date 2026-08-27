@@ -7,7 +7,7 @@ $sourceRoot = if ([string]::IsNullOrWhiteSpace($Root)) { Split-Path -Parent $PSS
 Import-Module (Join-Path $sourceRoot 'scripts/lib/ModelProject.Platform.psm1') -Force
 $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $pwshPath = (Get-Process -Id $PID).Path
-$tempBase = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd([char[]]'\/')
+$tempBase = [System.IO.Path]::GetFullPath((Resolve-ModelProjectFileSystemLinkPath -Path ([System.IO.Path]::GetTempPath()))).TrimEnd([char[]]'\/')
 $tempComparison = Get-ModelProjectPathComparison -Path $tempBase
 $fixtureRoot = [System.IO.Path]::GetFullPath((Join-Path $tempBase ('codex-analyst-consumer-' + [guid]::NewGuid().ToString('N'))))
 $generatedRoot = $fixtureRoot + '-generated'

@@ -12,7 +12,7 @@ else {
 Import-Module (Join-Path $sourceRoot 'scripts/lib/ModelProject.Platform.psm1') -Force
 $pwshPath = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
 $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-$tempBase = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd([char[]]'\/')
+$tempBase = [System.IO.Path]::GetFullPath((Resolve-ModelProjectFileSystemLinkPath -Path ([System.IO.Path]::GetTempPath()))).TrimEnd([char[]]'\/')
 $tempComparison = Get-ModelProjectPathComparison -Path $tempBase
 $fixtureRoot = [System.IO.Path]::GetFullPath((Join-Path $tempBase ('model-project-mastery-v2-' + [guid]::NewGuid().ToString('N'))))
 

@@ -6,7 +6,7 @@ task_key: github-release-v1-0-0
 prompt_ref: prompts/plan-and-deliver.md
 status: in-progress
 current_phase: P4
-updated_at: 2026-08-27T16:24:48Z
+updated_at: 2026-08-27T17:02:15Z
 completed_at: null
 closeout_status: pending
 knowledge_outcome: null
@@ -146,13 +146,13 @@ Deliverable: fresh public clone/bootstrap evidence, retrospective, knowledge out
 ## Resume checkpoint
 
 - Текущая фаза: P4
-- Уже выполнено: MacOS failed log доказал logical /var reparse; canon fixture переведен на physical temp resolver; focused local gates зеленые.
-- Последние успешные проверки: PASS: AST canon fixture; canon/graph fixtures; Plan v2 contract; sanitizer Source; TemplateSource structure 152; diff-check.
-- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; plans/INDEX.md; scripts/test-canon-graph.ps1; scripts/lib/ModelProject.Platform.psm1
-- Git checkpoint: v1:00a8f61b9574a6538f7c0d417940064986662932d941cfbb022f3bd42fd0b329
-- Следующее действие: Commit/push canon fixture portability fix и продолжить полный Windows/macOS CI matrix.
-- Блокеры: До полного green Windows/macOS matrix corrective v1.0.1 и consumer main не выпускаются.
-- Обновлено: 2026-08-27T16:24:48Z
+- Уже выполнено: Шесть remaining CI harnesses переведены на physical temp; verify-knowledge использует trusted resolver и platform-specific reparse fixture; все focused regression gates зеленые.
+- Последние успешные проверки: PASS: AST 6 harnesses; Mastery v2; consumer boundary portable185; cross-platform bootstrap; distribution14; knowledge self-test; privacy37; sanitizer Source; TemplateSource152; Plan v2; diff-check.
+- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; plans/INDEX.md; scripts/test-mastery-v2.ps1; scripts/test-analyst-consumer-boundary.ps1; scripts/test-cross-platform-bootstrap.ps1; scripts/test-github-template-distribution.ps1; scripts/verify-knowledge.ps1; scripts/test-knowledge-privacy.ps1; scripts/lib/ModelProject.Platform.psm1
+- Git checkpoint: v1:b416daeeb312aea01e63c40bf6046c5ed1b43b65ba563db1feb3c29d5daf7a5e
+- Следующее действие: Review exact diff, commit/push consolidated fixture portability fix и дождаться full green Windows/macOS CI.
+- Блокеры: Corrective v1.0.1 и consumer main ожидают полного green CI.
+- Обновлено: 2026-08-27T17:02:15Z
 
 ## Итог
 

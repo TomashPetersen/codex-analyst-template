@@ -7,10 +7,11 @@ $repositoryRoot = (Resolve-Path -LiteralPath (Split-Path -Parent $PSScriptRoot))
 $platformPath = Join-Path $PSScriptRoot 'lib/ModelProject.Platform.psm1'
 Import-Module $platformPath -Force
 $nullDevice = Get-ModelProjectNullDevice
-$pathComparison = Get-ModelProjectPathComparison -Path ([System.IO.Path]::GetTempPath())
+$temporaryBase = [System.IO.Path]::GetFullPath((Resolve-ModelProjectFileSystemLinkPath -Path ([System.IO.Path]::GetTempPath()))).TrimEnd([char[]]'\/')
+$pathComparison = Get-ModelProjectPathComparison -Path $temporaryBase
 $manifestPath = Join-Path $repositoryRoot '.template-manifest.json'
 $temporaryPrefix = 'ModelProjectDistributionHarness-'
-$temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ($temporaryPrefix + [guid]::NewGuid().ToString('N'))
+$temporaryRoot = Join-Path $temporaryBase ($temporaryPrefix + [guid]::NewGuid().ToString('N'))
 $templateUrl = 'https://github.com/example/model-project-template'
 $newRepositoryUrl = 'https://github.com/example/new-product'
 $sourceTag = $null
@@ -21,9 +22,8 @@ function Assert-TemporaryRoot {
     param([Parameter(Mandatory = $true)][string]$Path)
 
     $fullPath = [System.IO.Path]::GetFullPath($Path).TrimEnd([char[]]'\/')
-    $systemTemp = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd([char[]]'\/')
     $leaf = [System.IO.Path]::GetFileName($fullPath)
-    if (-not $fullPath.StartsWith($systemTemp + [System.IO.Path]::DirectorySeparatorChar, $pathComparison) -or
+    if (-not $fullPath.StartsWith($temporaryBase + [System.IO.Path]::DirectorySeparatorChar, $pathComparison) -or
         -not $leaf.StartsWith($temporaryPrefix, [System.StringComparison]::Ordinal)) {
         throw 'Disposable harness root не прошел safety gate.'
     }

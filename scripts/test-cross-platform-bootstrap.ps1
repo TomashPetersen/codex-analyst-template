@@ -12,7 +12,7 @@ else {
 $platformPath = Join-Path $sourceRoot 'scripts/lib/ModelProject.Platform.psm1'
 Import-Module $platformPath -Force
 $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-$tempBase = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd([char[]]'\/')
+$tempBase = [System.IO.Path]::GetFullPath((Resolve-ModelProjectFileSystemLinkPath -Path ([System.IO.Path]::GetTempPath()))).TrimEnd([char[]]'\/')
 $tempComparison = Get-ModelProjectPathComparison -Path $tempBase
 $fixtureRoot = [System.IO.Path]::GetFullPath(
     (Join-Path $tempBase ('model-project-bootstrap-' + [guid]::NewGuid().ToString('N')))
