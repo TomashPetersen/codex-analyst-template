@@ -5,11 +5,16 @@ Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
 $sourceRoot = if ([string]::IsNullOrWhiteSpace($Root)) { Split-Path -Parent $PSScriptRoot } else { [System.IO.Path]::GetFullPath($Root) }
 Import-Module (Join-Path $sourceRoot 'scripts/lib/ModelProject.Platform.psm1') -Force
-$pwshPath = (Get-Process -Id $PID).Path
+$pwshPath = Get-ModelProjectPowerShellHost -ControlledRoots @($sourceRoot)
 $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-$tempRoot = [System.IO.Path]::GetFullPath((Join-Path ([System.IO.Path]::GetTempPath()) ('model-project-plan-fixture-' + [guid]::NewGuid().ToString('N'))))
-$tempBase = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
+$tempBase = [System.IO.Path]::GetFullPath((Resolve-ModelProjectFileSystemLinkPath -Path ([System.IO.Path]::GetTempPath()))).TrimEnd([char[]]'\/')
+$tempRoot = [System.IO.Path]::GetFullPath((Join-Path $tempBase ('model-project-plan-fixture-' + [guid]::NewGuid().ToString('N'))))
 $tempComparison = Get-ModelProjectPathComparison -Path $tempBase
+$tempPrefix = $tempBase + [System.IO.Path]::DirectorySeparatorChar
+if (-not $tempRoot.StartsWith($tempPrefix, $tempComparison) -or
+    [System.IO.Path]::GetFileName($tempRoot) -cnotmatch '^model-project-plan-fixture-[0-9a-f]{32}$') {
+    throw 'Unsafe fixture root.'
+}
 
 function Write-FixtureText {
     param([string]$Path, [string]$Content)
@@ -162,7 +167,10 @@ plan_policy: none
 }
 finally {
     if (Test-Path -LiteralPath $tempRoot) {
-        if (-not $tempRoot.StartsWith($tempBase, $tempComparison)) { throw 'Unsafe fixture cleanup target.' }
+        if (-not $tempRoot.StartsWith($tempPrefix, $tempComparison) -or
+            [System.IO.Path]::GetFileName($tempRoot) -cnotmatch '^model-project-plan-fixture-[0-9a-f]{32}$') {
+            throw 'Unsafe fixture cleanup target.'
+        }
         Remove-Item -LiteralPath $tempRoot -Recurse -Force
     }
 }
