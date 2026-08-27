@@ -6,7 +6,7 @@ task_key: github-release-v1-0-0
 prompt_ref: prompts/plan-and-deliver.md
 status: in-progress
 current_phase: P4
-updated_at: 2026-08-27T16:13:29Z
+updated_at: 2026-08-27T16:24:48Z
 completed_at: null
 closeout_status: pending
 knowledge_outcome: null
@@ -146,13 +146,13 @@ Deliverable: fresh public clone/bootstrap evidence, retrospective, knowledge out
 ## Resume checkpoint
 
 - Текущая фаза: P4
-- Уже выполнено: MacOS agents gate PASS подтвержден; Plan v2 lifecycle fixture переведен на physical temp resolver, trusted PowerShell host и bounded cleanup.
-- Последние успешные проверки: PASS: AST plan lifecycle; lifecycle/dedup/prompt/index/resume fixtures; Plan v2 contract; sanitizer Source; TemplateSource structure152; diff-check.
-- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; scripts/test-plan-lifecycle.ps1; scripts/lib/ModelProject.Platform.psm1
-- Git checkpoint: v1:c0378907b289068dd1fe8e8654166596be67cdaa1ed49a1c5ad7feaf8dee670e
-- Следующее действие: Commit/push Plan lifecycle portability fix и продолжить полный Windows/macOS CI matrix.
-- Блокеры: До полного green macOS matrix corrective v1.0.1 и consumer main не выпускаются.
-- Обновлено: 2026-08-27T16:13:29Z
+- Уже выполнено: MacOS failed log доказал logical /var reparse; canon fixture переведен на physical temp resolver; focused local gates зеленые.
+- Последние успешные проверки: PASS: AST canon fixture; canon/graph fixtures; Plan v2 contract; sanitizer Source; TemplateSource structure 152; diff-check.
+- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; plans/INDEX.md; scripts/test-canon-graph.ps1; scripts/lib/ModelProject.Platform.psm1
+- Git checkpoint: v1:00a8f61b9574a6538f7c0d417940064986662932d941cfbb022f3bd42fd0b329
+- Следующее действие: Commit/push canon fixture portability fix и продолжить полный Windows/macOS CI matrix.
+- Блокеры: До полного green Windows/macOS matrix corrective v1.0.1 и consumer main не выпускаются.
+- Обновлено: 2026-08-27T16:24:48Z
 
 ## Итог
 

@@ -7,7 +7,7 @@ $sourceRoot = if ([string]::IsNullOrWhiteSpace($Root)) { Split-Path -Parent $PSS
 Import-Module (Join-Path $sourceRoot 'scripts/lib/ModelProject.Platform.psm1') -Force
 $pwshPath = (Get-Process -Id $PID).Path
 $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-$tempBase = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd([char[]]'\/')
+$tempBase = [System.IO.Path]::GetFullPath((Resolve-ModelProjectFileSystemLinkPath -Path ([System.IO.Path]::GetTempPath()))).TrimEnd([char[]]'\/')
 $tempComparison = Get-ModelProjectPathComparison -Path $tempBase
 $fixtureRoot = [System.IO.Path]::GetFullPath((Join-Path $tempBase ('model-project-canon-fixture-' + [guid]::NewGuid().ToString('N'))))
 
