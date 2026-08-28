@@ -4,15 +4,22 @@ plan_contract_version: 2
 plan_id: PLAN-20260823-github-release-v1-0-0
 task_key: github-release-v1-0-0
 prompt_ref: prompts/plan-and-deliver.md
-status: in-progress
-current_phase: P4
-updated_at: 2026-08-27T18:32:15Z
-completed_at: null
-closeout_status: pending
-knowledge_outcome: null
+status: complete
+current_phase: null
+updated_at: 2026-08-28T07:23:08Z
+completed_at: 2026-08-28T07:23:08Z
+closeout_status: complete
+knowledge_outcome: none
 candidate_ids: []
-result_refs: []
-affected_canon: []
+result_refs:
+  - TEMPLATE-CHANGELOG.md
+  - retrospectives/2026-08-28_11-20_github-release-v1-0-1.md
+affected_canon:
+  - .template-manifest.json
+  - README.md
+  - TEMPLATE-DISTRIBUTION.json
+  - TEMPLATE.md
+  - TEMPLATE-CHANGELOG.md
 blocked_reason: null
 ---
 
@@ -108,7 +115,7 @@ Deliverable: временный clean Git repository с unrelated branch `main` 
 - [x] Проверить descriptor, hashes, sanitizer, boundary и independent URL-first bootstrap.
 - [x] Создать consumer root commit на `main` без source history.
 
-## Фаза P4 - [WIP] GitHub publication и corrective release
+## Фаза P4 - [x] GitHub publication и corrective release
 
 Цель: опубликовать refs и repository settings без force или скрытого external write.
 
@@ -122,10 +129,10 @@ Deliverable: публичные `main`, `source`, неизменяемые `v1.0
 - [x] Отправить source branch и immutable tag без force.
 - [x] Настроить default branch, GitHub Template и About через авторизованный интерфейс.
 - [x] Дождаться и проверить GitHub Actions Windows/macOS для corrective source commit `45320ee`.
-- [ ] Обновить release contract и создать annotated tag `v1.0.1` после полного локального gate.
-- [ ] Пересобрать consumer payload из `v1.0.1`, проверить и обновить remote `main` без force.
+- [x] Обновить release contract и создать annotated tag `v1.0.1` после полного локального gate.
+- [x] Пересобрать consumer payload из `v1.0.1`, проверить и обновить remote `main` без force.
 
-## Фаза P5 - [ ] Public smoke и closeout
+## Фаза P5 - [x] Public smoke и closeout
 
 Цель: доказать реальный пользовательский путь и терминально закрыть выпуск.
 
@@ -135,12 +142,19 @@ Deliverable: fresh public clone/bootstrap evidence, retrospective, knowledge out
 
 Задачи:
 
-- [ ] Выполнить fresh clone `main` и URL-first bootstrap во временных каталогах.
-- [ ] Провести acceptance, impact и security review фактических remote refs/settings.
-- [ ] Создать retrospective и knowledge closeout.
-- [ ] Завершить plan, выполнить post-release source commit и push.
+- [x] Выполнить fresh clone `main` и URL-first bootstrap во временных каталогах.
+- [x] Провести acceptance, impact и security review фактических remote refs/settings.
+- [x] Создать retrospective и knowledge closeout.
+- [x] Завершить plan, выполнить post-release source commit и push.
 
 ## Проверки
+
+- Полный локальный pre-tag профиль - PASS: TemplateSource 152, analysis 86, agents 5, Plan lifecycle, canon/graph, Mastery, consumer boundary 185, bootstrap, distribution 14, knowledge self-test, privacy 37 и sanitizer Source.
+- Hosted GitHub Actions run `33096366313` для corrective commit `45320ee` - Windows и macOS PASS.
+- Hosted GitHub Actions run `33104745676` для release commit `52c736e` - Windows и macOS PASS.
+- Remote refs/settings - PASS: `source` на `52c736e`, consumer `main` на `cd7b01a`, `v1.0.0` на `9441c78`, `v1.0.1` на `52c736e`, default `main`, template flag и About.
+- Fresh public `main` - PASS: DistributionTemplate, sanitizer 185 и URL-first bootstrap в независимый `generated-project + initialized + report-only`, Git `main`, remotes 0.
+- Final plan, knowledge, graph, privacy, structure, inventory и diff gates выполняются перед post-release source commit; failure блокирует push.
 
 ## Связанные решения
 
@@ -148,19 +162,19 @@ Deliverable: fresh public clone/bootstrap evidence, retrospective, knowledge out
 
 ## Resume checkpoint
 
-- Текущая фаза: P4
-- Уже выполнено: Release contract обновлен до v1.0.1 с immutable v1.0.0; полный локальный pre-tag профиль завершен зеленым.
-- Последние успешные проверки: PASS: TemplateSource152; analysis86; agents5; Plan lifecycle; canon/graph; Mastery; consumer185; bootstrap; distribution14; knowledge self-test; privacy37; sanitizer Source; Plan v2; diff-check; hosted run33096366313 Windows/macOS success.
-- Точные рабочие paths: .template-manifest.json; TEMPLATE-DISTRIBUTION.json; README.md; TEMPLATE.md; TEMPLATE-CHANGELOG.md; plans/2026-08-23-github-release-v1-0-0.md; plans/INDEX.md
-- Git checkpoint: v1:b0555fe0f727e6db1c4314c4ce9c9194d2801c6824b883a0df84566813d5940b
-- Следующее действие: Review exact release diff, commit source release contract, create annotated v1.0.1 и построить consumer payload из exact tag.
+- Текущая фаза: нет - план завершен
+- Уже выполнено: P4 завершена: v1.0.1 опубликован, consumer main пересобран, remote refs/settings подтверждены, Actions run33104745676 success на Windows и macOS; public clone и URL-first smoke PASS.
+- Последние успешные проверки: PASS: run33104745676; remote refs/settings; public main DistributionTemplate и sanitizer185; GeneratedProject initialized report-only, branch main, remotes0; hosted run33096366313.
+- Точные рабочие paths: plans/2026-08-23-github-release-v1-0-0.md; plans/INDEX.md; retrospectives/2026-08-28_11-20_github-release-v1-0-1.md; .template-manifest.json; TEMPLATE.md
+- Git checkpoint: v1:53aa1ebe89a214beeaca02a19b99aa2b3a1d3fd795c19f8338dd74e7ec3232b1
+- Следующее действие: нет - plan terminal; follow-up требует новый plan_id
 - Блокеры: нет
-- Обновлено: 2026-08-27T18:32:15Z
+- Обновлено: 2026-08-28T07:23:08Z
 
 ## Итог
 
-- Реализовано целиком:
-- Что осталось:
-- Коммиты:
+- Реализовано целиком: публичный Codex Analyst Template, source/consumer release model, immutable `v1.0.0`, corrective `v1.0.1`, GitHub Template settings, URL-first установка, hosted Windows/macOS CI и fresh public smoke.
+- Что осталось: только обычное сопровождение через новые Plan v2; в этом plan незакрытых release-действий нет.
+- Коммиты: source release `52c736e`; consumer main `cd7b01a`; terminal plan и retrospective закрепляются post-release source closeout commit.
 
 Перед `complete` закрой criteria и фазы, заполни проверки, итог, `result_refs`, closeout и финальный knowledge outcome. Не дублируй остальные machine fields в body.
