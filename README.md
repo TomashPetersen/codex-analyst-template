@@ -44,9 +44,9 @@ Codex не должен превращать canonical clone в проект н�
 
 - ровно четыре переносимых workflow: `it-analysis`, `project-delivery`, `knowledge-curator`, `startup-researcher`;
 - пять project-scoped read-only ролей в `.codex/agents/`;
-- один восьмифайловый analysis run с single-writer synthesis, Reviewer и Red Team;
+- один восьмифайловый analysis run для бизнес-, системного и solution-анализа с single-writer synthesis, Reviewer и Red Team;
 - канон бизнес-анализа в `business/analysis/` и системного анализа в `docs/analysis/`;
-- Analyst и Researcher Mastery, Local Mastery через разрешенный candidate lifecycle;
+- Analyst Mastery с BA, RE, process/decision, NFR и solution-architecture profiles, Researcher Mastery и Local Mastery через разрешенный candidate lifecycle;
 - Plan v2 с Resume checkpoint;
 - knowledge candidates, backlinks и детерминированный graph;
 - GitHub distribution и bootstrap для Windows 10/11 и macOS через PowerShell 7.

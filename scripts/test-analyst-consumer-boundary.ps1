@@ -61,6 +61,15 @@ try {
 
     $required = @(
         '.agents/skills/it-analysis/SKILL.md',
+        '.agents/skills/it-analysis/agents/openai.yaml',
+        '.agents/skills/it-analysis/assets/run-template/analysis.md',
+        '.agents/skills/it-analysis/assets/run-template/brief.md',
+        '.agents/skills/it-analysis/assets/run-template/decision.md',
+        '.agents/skills/it-analysis/assets/run-template/models.md',
+        '.agents/skills/it-analysis/assets/run-template/requirements.md',
+        '.agents/skills/it-analysis/assets/run-template/review.md',
+        '.agents/skills/it-analysis/assets/run-template/sources.md',
+        '.agents/skills/it-analysis/assets/run-template/traceability.md',
         '.agents/skills/knowledge-curator/SKILL.md',
         '.agents/skills/project-delivery/SKILL.md',
         '.agents/skills/startup-researcher/SKILL.md',
@@ -74,7 +83,9 @@ try {
         'analysis/runs/.gitkeep',
         'business/analysis/INDEX.md',
         'docs/analysis/INDEX.md',
+        'mastery/INTENTS.json',
         'mastery/analyst/INDEX.md',
+        'mastery/analyst/solution-architecture.md',
         'prompts/analysis-run.md',
         'prompts/analysis-program.md',
         'prompts/analysis-review.md',
@@ -91,6 +102,44 @@ try {
     foreach ($sourceOnly in @($manifest.source_only_paths)) {
         if ($actual -ccontains [string]$sourceOnly) { throw "Consumer содержит source-only path: $sourceOnly" }
     }
+
+    $semanticSourceOnly = @(
+        'scripts/test-it-analysis-semantics.ps1',
+        'tests/fixtures/it-analysis-semantics/intake-guards.json',
+        'tests/fixtures/it-analysis-semantics/intent-matrix.json'
+    )
+    foreach ($relative in $semanticSourceOnly) {
+        if (@($manifest.source_only_paths) -cnotcontains $relative) {
+            throw "Semantic eval path не зарегистрирован как source-only: $relative"
+        }
+        if ($portable -ccontains $relative -or $actual -ccontains $relative) {
+            throw "Consumer содержит semantic eval corpus path: $relative"
+        }
+    }
+    if (@($actual | Where-Object { $_.StartsWith('tests/fixtures/it-analysis-semantics/', [System.StringComparison]::Ordinal) }).Count -gt 0) {
+        throw 'Consumer содержит source-only semantic fixture subtree.'
+    }
+
+    $expectedRunAssets = @(
+        '.agents/skills/it-analysis/assets/run-template/analysis.md',
+        '.agents/skills/it-analysis/assets/run-template/brief.md',
+        '.agents/skills/it-analysis/assets/run-template/decision.md',
+        '.agents/skills/it-analysis/assets/run-template/models.md',
+        '.agents/skills/it-analysis/assets/run-template/requirements.md',
+        '.agents/skills/it-analysis/assets/run-template/review.md',
+        '.agents/skills/it-analysis/assets/run-template/sources.md',
+        '.agents/skills/it-analysis/assets/run-template/traceability.md'
+    )
+    $actualRunAssets = @($actual | Where-Object { $_.StartsWith('.agents/skills/it-analysis/assets/run-template/', [System.StringComparison]::Ordinal) } | Sort-Object)
+    if (@(Compare-Object -ReferenceObject $expectedRunAssets -DifferenceObject $actualRunAssets -CaseSensitive).Count -gt 0) {
+        throw 'Consumer потерял exact eight-file it-analysis run asset inventory.'
+    }
+
+    $skillUi = [System.IO.File]::ReadAllText((Join-Path $fixtureRoot '.agents/skills/it-analysis/agents/openai.yaml'))
+    if ($skillUi -match '(?im)^\s*(?:dependencies|mcp_servers|mcp|connectors|tools|tool_calls|requires|requirements)\s*:') {
+        throw 'Consumer it-analysis skill UI содержит MCP/tool dependency configuration.'
+    }
+    [void](Invoke-ChildScript -Script (Join-Path $fixtureRoot 'scripts/verify-codex-agents.ps1') -Arguments @('-Root', $fixtureRoot))
 
     $consumerReadme = [System.IO.File]::ReadAllText((Join-Path $fixtureRoot 'README.md'))
     $shortInstallCommand = 'Установи этот шаблон на мой компьютер по ссылке <URL>. Сначала прочитай README.md и выполни раздел «URL-first контракт для Codex».'
@@ -173,6 +222,11 @@ try {
     foreach ($sourceOnly in @($manifest.source_only_paths)) {
         if (Test-Path -LiteralPath (Join-Path $generatedRoot ([string]$sourceOnly))) {
             throw "URL-first generated project содержит source-only path: $sourceOnly"
+        }
+    }
+    foreach ($relative in $semanticSourceOnly) {
+        if (Test-Path -LiteralPath (Join-Path $generatedRoot $relative)) {
+            throw "URL-first generated project содержит semantic eval corpus path: $relative"
         }
     }
     $originText = [System.IO.File]::ReadAllText((Join-Path $generatedRoot 'TEMPLATE-ORIGIN.md'))

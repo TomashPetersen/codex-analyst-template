@@ -61,6 +61,18 @@ jobs:
           }
           Write-Output $analysisOutput.TrimEnd()
 
+      - name: Verify IT analysis semantic contracts
+        shell: pwsh
+        run: |
+          $semanticOutput = & pwsh -NoLogo -NoProfile -File ./scripts/test-it-analysis-semantics.ps1 -Root . -SelfTest 2>&1 | Out-String
+          if ($LASTEXITCODE -ne 0) {
+            $message = $semanticOutput.Trim() -replace '[\r\n]+', ' | '
+            if ($message.Length -gt 6000) { $message = $message.Substring($message.Length - 6000) }
+            Write-Output "::error title=Verify IT analysis semantic contracts::$message"
+            exit 1
+          }
+          Write-Output $semanticOutput.TrimEnd()
+
       - name: Verify project agents
         shell: pwsh
         run: |

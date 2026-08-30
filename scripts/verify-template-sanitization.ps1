@@ -19,6 +19,11 @@ function Convert-CharacterCodes {
     return -join @($Codes | ForEach-Object { [char]$_ })
 }
 
+function Get-AllowedThirdPartyGitCommit {
+    # Split the public commit so this sanitizer does not allowlist its own source file.
+    return ('02c6b27d4c942c9685c3' + '94cf85416c87151ebeac')
+}
+
 function Get-ProjectTraceTerms {
     return @(
         (Convert-CharacterCodes -Codes @(1040,1056,1052,32,1059,1087,1088,1072,1074,1083,1103,1102,1097,1077,1075,1086))
@@ -139,6 +144,9 @@ function Invoke-SanitizationScan {
             }
             catch { }
         }
+        if ($relative -cin @('THIRD-PARTY-NOTICES.md', 'TEMPLATE-THIRD-PARTY-NOTICES.md', 'mastery/analyst/solution-architecture.md')) {
+            $scanText = $scanText.Replace((Get-AllowedThirdPartyGitCommit), '{{THIRD_PARTY_COMMIT}}')
+        }
         $probe = $pathProbe + "`n" + $scanText
 
         foreach ($term in $traceTerms) {
@@ -193,6 +201,31 @@ function Invoke-SelfTest {
         if ($clean.Findings.Count -ne 0) { throw 'positive-selftest-failed' }
         $passed = [System.Collections.Generic.List[string]]::new()
         $passed.Add('positive') | Out-Null
+
+        $thirdPartyNotice = Join-Path $base 'THIRD-PARTY-NOTICES.md'
+        [System.IO.File]::WriteAllText($thirdPartyNotice, (Get-AllowedThirdPartyGitCommit), $utf8NoBom)
+        $allowedThirdParty = Invoke-SanitizationScan -RepositoryRoot $base -SelectedScope Source
+        if (@($allowedThirdParty.Findings | Where-Object { $_ -like 'literal-git-sha *' }).Count -ne 0) { throw 'third-party-commit-allowlist-failed' }
+        $passed.Add('third-party-commit-allowlist') | Out-Null
+
+        $renamedThirdPartyNotice = Join-Path $base 'TEMPLATE-THIRD-PARTY-NOTICES.md'
+        [System.IO.File]::WriteAllText($renamedThirdPartyNotice, (Get-AllowedThirdPartyGitCommit), $utf8NoBom)
+        $allowedRenamedThirdParty = Invoke-SanitizationScan -RepositoryRoot $base -SelectedScope Source
+        if (@($allowedRenamedThirdParty.Findings | Where-Object { $_ -like 'literal-git-sha *' }).Count -ne 0) { throw 'renamed-third-party-commit-allowlist-failed' }
+        Remove-Item -LiteralPath $renamedThirdPartyNotice -Force
+        $passed.Add('renamed-third-party-commit-allowlist') | Out-Null
+
+        [System.IO.File]::WriteAllText($thirdPartyNotice, ('a' * 40), $utf8NoBom)
+        $randomThirdParty = Invoke-SanitizationScan -RepositoryRoot $base -SelectedScope Source
+        if (@($randomThirdParty.Findings | Where-Object { $_ -like 'literal-git-sha *' }).Count -eq 0) { throw 'third-party-random-commit-selftest-failed' }
+        Remove-Item -LiteralPath $thirdPartyNotice -Force
+        $passed.Add('third-party-random-commit') | Out-Null
+
+        [System.IO.File]::WriteAllText((Join-Path $base 'fixture.md'), (Get-AllowedThirdPartyGitCommit), $utf8NoBom)
+        $wrongPathCommit = Invoke-SanitizationScan -RepositoryRoot $base -SelectedScope Source
+        if (@($wrongPathCommit.Findings | Where-Object { $_ -like 'literal-git-sha *' }).Count -eq 0) { throw 'third-party-wrong-path-selftest-failed' }
+        Remove-Item -LiteralPath (Join-Path $base 'fixture.md') -Force
+        $passed.Add('third-party-wrong-path') | Out-Null
 
         $cases = @(
             @{ Name='project-trace'; Value=(Get-ProjectTraceTerms)[0] },

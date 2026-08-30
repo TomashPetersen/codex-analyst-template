@@ -1,4 +1,4 @@
 interface:
   display_name: "IT-анализ"
-  short_description: "Оркестрация бизнес- и системного анализа с памятью"
+  short_description: "Бизнес-, системный и solution-анализ с traceability"
   default_prompt: "Используй $it-analysis: создай проверяемый run, оркестрируй до трех read-only специалистов, выполни независимые review и red team, обеспечь traceability, разрешенный handoff и knowledge closeout с обновлением графа."

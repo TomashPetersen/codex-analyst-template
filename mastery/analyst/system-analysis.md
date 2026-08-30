@@ -10,7 +10,7 @@
 - existing code, interfaces и operational constraints;
 - data, privacy и security context.
 
-## Метод
+## Method
 
 1. Определить system-of-interest и внешние зависимости.
 2. Построить context, state и sequence views с refs.

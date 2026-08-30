@@ -22,10 +22,26 @@ review_due: YYYY-MM-DD
 
 # RULE-0001 - Название
 
-## Нормативная формулировка и scope
+## Atomic normative statement и scope
 
-## Source и rationale
+Зафиксируй subject, obligation/prohibition/permission, object и observable outcome. Не объединяй независимые rules в одну формулировку.
 
-## Conditions и exceptions
+## Source, authority, effective context и rationale
 
-## Enforcement, verification и impact
+## Conditions, exceptions, precedence и conflict resolution
+
+## DMN-aligned decision semantics
+
+Если применимо, укажи inputs, decision, output, linked `RULE-*` и подтвержденную conflict policy как semantic subset без заявления DMN conformance.
+
+## Enforcement, violations, error/recovery behavior и impact
+
+## Relations: BP, BR, UC/FR/NFR и dependencies
+
+## Acceptance и factual verification evidence
+
+Approved `RULE-*` имеет минимум один `AC-*` в `acceptance_refs`. Фактический результат выполнения критерия хранится отдельно в `verification_refs` связанного `AC-*`.
+
+## Requirements verification, stakeholder validation и approval
+
+`decision_refs` связывает rule с `REV-*`; review или validation не заменяет `approval_ref`.

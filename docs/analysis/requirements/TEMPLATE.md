@@ -24,16 +24,51 @@ review_due: YYYY-MM-DD
 
 Выбери ровно один kind: UC, FR, NFR или AC, затем синхронно измени `artifact_kind`, ID, filename и применимые разделы.
 
-## Statement, source, rationale и parents
+## Common: statement, source, rationale, glossary terms и parents
 
-## UC: goal, actors, trigger, preconditions, main/alternate/error flows, postconditions и business rules
+Разделяй atomic statements, используй один термин для одного понятия и связывай `parent_refs` с business need, rule или subject requirement. Неизвестное не заменяй допущением.
 
-## FR: shall behavior, trigger, inputs, outputs, state change, rules и failure behavior
+## Common: representation choice, priority scheme и decision owner
 
-## NFR: quality attribute, context, metric, threshold, unit, measurement и test condition
+Зафиксируй, почему выбран UC, FR, NFR или AC. Priority требует названной scheme, rationale и decision owner.
 
-## AC: Given/When/Then или deterministic pass condition, test data и observable result
+## UC: goal, actors, trigger, preconditions и success postconditions
 
-## Conflicts, assumptions и unresolved questions
+## UC: main, alternate, negative, boundary, error и recovery flows
 
-## Acceptance и verification refs
+Свяжи каждый применимый branch с `RULE-*`, observable result и postcondition.
+
+## FR: shall behavior, trigger, inputs, outputs, state change и RULE refs
+
+## FR: negative, boundary, error, timeout, retry и recovery behavior
+
+## NFR: quality scenario
+
+- Source:
+- Stimulus:
+- Environment:
+- Affected artifact:
+- Response:
+- Response measure with threshold and unit:
+- Priority and decision owner:
+- Verification method and test condition:
+
+Не изобретай threshold. Неметричный response measure не является проверяемым quality scenario.
+
+## AC: deterministic condition и observable result
+
+Используй Given/When/Then или эквивалентное deterministic pass condition. Укажи test data, positive, negative, boundary, error и recovery examples, когда они применимы.
+
+## AC: subject parents и execution evidence
+
+Approved `AC-*` связан через `parent_refs` минимум с одним `BR-*`, `RULE-*`, `UC-*`, `FR-*` или `NFR-*`; фактический результат исполнения находится в `verification_refs`.
+
+## Normalization findings, conflicts, assumptions и unresolved questions
+
+## Requirements verification result и evidence
+
+## Stakeholder validation result и evidence
+
+## Decision refs и approval separation
+
+`decision_refs` связывает artifact с `REV-*`, `verification_refs` хранит фактические test/check evidence, а `approval_ref` остается единственной approval authority.

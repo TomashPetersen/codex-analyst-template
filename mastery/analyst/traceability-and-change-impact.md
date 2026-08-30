@@ -10,7 +10,7 @@
 - proposed change и affected scope;
 - verification, decisions и unresolved conflicts.
 
-## Метод
+## Method
 
 1. Построить directed graph от source до review.
 2. Найти missing parent, acceptance, verification и decision edges.

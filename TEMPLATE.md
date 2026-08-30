@@ -2,12 +2,14 @@
 
 Этот файл существует только в ветке source и не входит в consumer payload.
 
-## Контракт версии 1.0.1
+## Контракт candidate 1.1.0 - Unreleased
 
 - публичное имя: Codex Analyst Template;
 - source branch: `source`;
 - производная GitHub Template branch: `main`;
-- текущий release tag: `v1.0.1`;
+- локальная candidate version: `1.1.0`;
+- текущий опубликованный release tag: `v1.0.1`;
+- consumer `main` не обновляется до отдельной release-команды;
 - исходный tag `v1.0.0` неизменяем;
 - Windows 10/11 является основной платформой;
 - macOS проверяется PowerShell 7 и CI;
@@ -36,27 +38,29 @@ Consumer строится только по `portable_files` из `.template-man
 ```powershell
 pwsh -NoProfile -File ./scripts/verify-structure.ps1 -Mode TemplateSource
 pwsh -NoProfile -File ./scripts/verify-analysis.ps1 -SelfTest
+pwsh -NoProfile -File ./scripts/test-it-analysis-semantics.ps1 -SelfTest
 pwsh -NoProfile -File ./scripts/verify-codex-agents.ps1 -SelfTest
 pwsh -NoProfile -File ./scripts/test-plan-lifecycle.ps1
 pwsh -NoProfile -File ./scripts/test-canon-graph.ps1
 pwsh -NoProfile -File ./scripts/test-mastery-v2.ps1
+pwsh -NoProfile -File ./scripts/test-knowledge-mastery.ps1
 pwsh -NoProfile -File ./scripts/test-analyst-consumer-boundary.ps1
 pwsh -NoProfile -File ./scripts/test-cross-platform-bootstrap.ps1
 pwsh -NoProfile -File ./scripts/test-github-template-distribution.ps1
 pwsh -NoProfile -File ./scripts/verify-template-sanitization.ps1 -Scope Source
 ```
 
-Builder требует чистый tracked source tag, совпадение version contract и GitHub identity origin:
+Builder запускается только после отдельного release-разрешения. Тогда он требует чистый tracked source tag `v1.1.0`, совпадение version contract и GitHub identity origin:
 
 ```powershell
 pwsh -NoProfile -File ./scripts/build-github-template.ps1 `
   -Destination <EMPTY_LOCAL_DIRECTORY> `
-  -SourceTag v1.0.1 `
+  -SourceTag v1.1.0 `
   -TemplateRepositoryUrl https://github.com/<OWNER>/<REPOSITORY>
 ```
 
 ## Release gate
 
-Commit, tag, push, перенос consumer payload в `main`, смена default branch и публикация GitHub не выполняются без отдельной прямой команды. Неизменяемый source tag создается только после полного локального и CI-профиля. Ошибка любого gate блокирует release, но не разрешает ослаблять manifest или sanitizer.
+Commit, tag, push, перенос consumer payload в `main`, смена default branch и публикация GitHub не выполняются без отдельной прямой команды. Эта версия остается локальным unreleased candidate. Неизменяемый source tag создается только после полного локального и CI-профиля. Ошибка любого gate блокирует release, но не разрешает ослаблять manifest или sanitizer.
 
-Source-only история этой версии: [архитектурное решение шаблона](docs/decisions/2026-08-20-codex-analyst-template-v1.md), [решение URL-first установки](docs/decisions/2026-08-22-url-first-codex-install.md), [план шаблона](plans/2026-08-20-codex-analyst-template-v1.md), [план URL-first установки](plans/2026-08-22-url-first-codex-install.md), [план GitHub release](plans/2026-08-23-github-release-v1-0-0.md), [ретроспектива шаблона](retrospectives/2026-08-21_19-27_codex-analyst-template-v1.md), [ретроспектива URL-first установки](retrospectives/2026-08-22_14-55_url-first-codex-install.md), [ретроспектива GitHub release](retrospectives/2026-08-28_11-20_github-release-v1-0-1.md), [changelog](TEMPLATE-CHANGELOG.md).
+Source-only история этой версии: [архитектурное решение шаблона](docs/decisions/2026-08-20-codex-analyst-template-v1.md), [решение URL-first установки](docs/decisions/2026-08-22-url-first-codex-install.md), [план шаблона](plans/2026-08-20-codex-analyst-template-v1.md), [план URL-first установки](plans/2026-08-22-url-first-codex-install.md), [план GitHub release](plans/2026-08-23-github-release-v1-0-0.md), [план усиления IT Analysis 1.1.0](plans/2026-08-29-it-analysis-v1-1.md), [план фиксации IT Analysis 1.1.0 в GitHub source](plans/2026-08-30-publish-it-analysis-v1-1-source.md), [ретроспектива шаблона](retrospectives/2026-08-21_19-27_codex-analyst-template-v1.md), [ретроспектива URL-first установки](retrospectives/2026-08-22_14-55_url-first-codex-install.md), [ретроспектива GitHub release](retrospectives/2026-08-28_11-20_github-release-v1-0-1.md), [changelog](TEMPLATE-CHANGELOG.md).

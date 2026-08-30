@@ -106,6 +106,34 @@ function Test-AgentDocument {
             break
         }
     }
+    if ($ExpectedName -ceq 'system_analyst' -and
+        $instructions.IndexOf('mastery/analyst/solution-architecture.md#method', [System.StringComparison]::Ordinal) -lt 0) {
+        $Issues.Add('system_analyst:missing-solution-method-ref') | Out-Null
+    }
+}
+
+function Test-ItAnalysisSkillUi {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][System.Collections.Generic.List[string]]$Issues
+    )
+
+    try { $text = Read-StrictText -Path $Path } catch { $Issues.Add("it-analysis-openai:$($_.Exception.Message)") | Out-Null; return }
+    if ($text -match '(?im)^\s*(?:dependencies|mcp_servers|mcp|connectors|tools|tool_calls|requires|requirements)\s*:') {
+        $Issues.Add('it-analysis-openai:forbidden-capability') | Out-Null
+    }
+    $match = [regex]::Match(
+        $text,
+        '\Ainterface:\n  display_name: "(?<display>[^"\r\n]{1,80})"\n  short_description: "(?<short>[^"\r\n]{1,160})"\n  default_prompt: "(?<prompt>[^"\r\n]{1,1024})"\n?\z',
+        [System.Text.RegularExpressions.RegexOptions]::CultureInvariant
+    )
+    if (-not $match.Success) {
+        $Issues.Add('it-analysis-openai:invalid-schema') | Out-Null
+        return
+    }
+    if ($match.Groups['display'].Value -cne 'IT-анализ') {
+        $Issues.Add('it-analysis-openai:display-name-mismatch') | Out-Null
+    }
 }
 
 function Invoke-CodexAgentVerification {
@@ -115,6 +143,7 @@ function Invoke-CodexAgentVerification {
     $codexRoot = Join-Path $RepositoryRoot '.codex'
     $configPath = Join-Path $codexRoot 'config.toml'
     $agentsRoot = Join-Path $codexRoot 'agents'
+    $skillUiPath = Join-Path $RepositoryRoot '.agents/skills/it-analysis/agents/openai.yaml'
     foreach ($path in @($codexRoot, $configPath, $agentsRoot)) {
         if (-not (Test-Path -LiteralPath $path)) { $issues.Add('missing-codex-contract') | Out-Null; continue }
         if ($null -ne (Get-ReparsePointInChain -Path $path)) { $issues.Add('codex-reparse-point') | Out-Null }
@@ -144,6 +173,12 @@ function Invoke-CodexAgentVerification {
             Test-AgentDocument -Path $path -ExpectedName $name -Issues $issues
         }
     }
+    if (-not (Test-Path -LiteralPath $skillUiPath -PathType Leaf) -or $null -ne (Get-ReparsePointInChain -Path $skillUiPath)) {
+        $issues.Add('it-analysis-openai:missing-or-reparse') | Out-Null
+    }
+    else {
+        Test-ItAnalysisSkillUi -Path $skillUiPath -Issues $issues
+    }
     return [pscustomobject]@{ Issues = @($issues | Sort-Object -Unique); AgentCount = $files.Count }
 }
 
@@ -160,6 +195,11 @@ function Invoke-SelfTest {
     New-Item -ItemType Directory -Path $baseFull | Out-Null
     try {
         Copy-Item -LiteralPath (Join-Path (Get-CodexAgentRoot -CandidateRoot $Root) '.codex') -Destination $baseFull -Recurse
+        $skillUiFixtureRoot = Join-Path $baseFull '.agents/skills/it-analysis/agents'
+        [System.IO.Directory]::CreateDirectory($skillUiFixtureRoot) | Out-Null
+        Copy-Item `
+            -LiteralPath (Join-Path (Get-CodexAgentRoot -CandidateRoot $Root) '.agents/skills/it-analysis/agents/openai.yaml') `
+            -Destination (Join-Path $skillUiFixtureRoot 'openai.yaml')
         $passed = [System.Collections.Generic.List[string]]::new()
         $result = Invoke-CodexAgentVerification -RepositoryRoot $baseFull
         if ($result.Issues.Count -ne 0 -or $result.AgentCount -ne 5) { throw 'positive-fixture-failed' }
@@ -179,6 +219,17 @@ function Invoke-SelfTest {
         [System.IO.File]::WriteAllText($systemPath, $originalSystem, $utf8NoBom)
         $passed.Add('negative-sandbox') | Out-Null
 
+        [System.IO.File]::WriteAllText(
+            $systemPath,
+            $originalSystem.Replace('mastery/analyst/solution-architecture.md#method', 'mastery/analyst/solution-architecture.md'),
+            $utf8NoBom
+        )
+        if ((Invoke-CodexAgentVerification -RepositoryRoot $baseFull).Issues -notcontains 'system_analyst:missing-solution-method-ref') {
+            throw 'solution-method-ref-fixture-failed'
+        }
+        [System.IO.File]::WriteAllText($systemPath, $originalSystem, $utf8NoBom)
+        $passed.Add('negative-solution-method-ref') | Out-Null
+
         $configPath = Join-Path $baseFull '.codex/config.toml'
         $originalConfig = [System.IO.File]::ReadAllText($configPath, $utf8NoBom)
         [System.IO.File]::WriteAllText($configPath, $originalConfig.Replace(' = 3', ' = 4'), $utf8NoBom)
@@ -189,6 +240,15 @@ function Invoke-SelfTest {
         [System.IO.File]::WriteAllText((Join-Path $baseFull '.codex/agents/extra.toml'), 'name = "extra"', $utf8NoBom)
         if ((Invoke-CodexAgentVerification -RepositoryRoot $baseFull).Issues -notcontains 'agent-inventory-mismatch') { throw 'inventory-fixture-failed' }
         $passed.Add('negative-inventory') | Out-Null
+
+        Remove-Item -LiteralPath (Join-Path $baseFull '.codex/agents/extra.toml') -Force
+        $skillUiPath = Join-Path $baseFull '.agents/skills/it-analysis/agents/openai.yaml'
+        $originalSkillUi = [System.IO.File]::ReadAllText($skillUiPath, $utf8NoBom)
+        [System.IO.File]::WriteAllText($skillUiPath, ($originalSkillUi.TrimEnd() + "`ndependencies:`n  - mcp: context7`n"), $utf8NoBom)
+        if ((Invoke-CodexAgentVerification -RepositoryRoot $baseFull).Issues -notcontains 'it-analysis-openai:forbidden-capability') {
+            throw 'skill-ui-mcp-fixture-failed'
+        }
+        $passed.Add('negative-skill-ui-mcp') | Out-Null
         Write-Host "PASS: codex agents self-test ($($passed.Count) scenarios)."
     }
     finally {

@@ -10,7 +10,7 @@
 - requirement и rule refs;
 - existing schemas, APIs, events и data classification.
 
-## Метод
+## Method
 
 1. Определить canonical entities, fields, ownership и lifecycle.
 2. Зафиксировать producers, consumers, protocol и schema.

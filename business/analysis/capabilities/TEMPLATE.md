@@ -22,10 +22,22 @@ review_due: YYYY-MM-DD
 
 # CAP-0001 - Название
 
-## Назначение, владелец и потребитель
+## Business outcome, назначение, владелец и потребители
 
-## Текущее и целевое состояние
+## Stakeholder concerns и decision owner
 
-## Входы, выходы и ограничения
+## AS-IS ability, evidence и maturity limitations
 
-## Supporting refs и gaps
+## TO-BE ability, scope и non-goals
+
+## Inputs, outputs, enabling resources и constraints
+
+## Supporting BP, RULE, BR и system refs
+
+## Gaps, dependencies, risks и assumptions
+
+## Measures, baseline, target и measurement source
+
+Используй только подтвержденные measures. Неизвестные baseline и target помечай `unknown`, не подставляй значения.
+
+## Acceptance, verification, validation и review refs

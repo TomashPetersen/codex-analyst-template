@@ -1,0 +1,1361 @@
+{
+  "fixture_schema_version": 1,
+  "defaults": {
+    "schema_version": 1,
+    "local_method_refs": [],
+    "sources": [
+      { "id": "SRC-0001", "kind": "user", "confirmed": true },
+      { "id": "SRC-0002", "kind": "runtime", "confirmed": true },
+      { "id": "SRC-0003", "kind": "repo-baseline", "confirmed": true }
+    ],
+    "claims": [
+      { "id": "CLM-0001", "claim_type": "fact", "evidence_refs": ["SRC-0001"] }
+    ],
+    "artifacts": [
+      { "id": "SYS-0001", "owner_path": "docs/analysis/models/sys-0001-semantic-fixture.md", "status": "draft", "approval_ref": null, "decision_refs": ["REV-0001"] },
+      { "id": "STK-0001", "owner_path": "business/analysis/stakeholders/stk-0001-decision-owner.md", "status": "draft", "approval_ref": null },
+      { "id": "STK-0002", "owner_path": "business/analysis/stakeholders/stk-0002-conflicting-stakeholder.md", "status": "draft", "approval_ref": null },
+      { "id": "FR-0001", "owner_path": "docs/analysis/requirements/fr-0001-semantic-fixture.md", "status": "draft", "approval_ref": null, "decision_refs": ["REV-0001"] }
+    ],
+    "relations": [
+      { "from": "SRC-0001", "type": "trace", "to": "SYS-0001" },
+      { "from": "SRC-0001", "type": "trace", "to": "STK-0001" },
+      { "from": "SRC-0001", "type": "trace", "to": "STK-0002" },
+      { "from": "SRC-0001", "type": "trace", "to": "FR-0001" }
+    ],
+    "stakeholders": [],
+    "conflicts": [],
+    "review": {
+      "id": "REV-0001",
+      "review_type": "requirements-verification",
+      "subject_refs": ["SYS-0001"],
+      "evidence_refs": ["SRC-0001"],
+      "verdict": "pass",
+      "limitations": [],
+      "grants_approval": false
+    },
+    "approval_ref": null,
+    "independent_review": true,
+    "red_team": true,
+    "external_actions": [],
+    "capabilities": {
+      "mcp_dependencies": [],
+      "mcp_configuration": [],
+      "mandatory_tool_calls": [],
+      "mcp_required": false
+    },
+    "source_safety": {
+      "prompt_injection_detected": false,
+      "quarantined": false,
+      "instruction_followed": false
+    },
+    "expected": {
+      "artifact_ids": ["FR-0001", "STK-0001", "STK-0002", "SYS-0001"],
+      "relation_edges": [
+        "SRC-0001|trace|FR-0001",
+        "SRC-0001|trace|STK-0001",
+        "SRC-0001|trace|STK-0002",
+        "SRC-0001|trace|SYS-0001"
+      ],
+      "review_type": "requirements-verification",
+      "review_verdict": "pass",
+      "intake_reason": ""
+    }
+  },
+  "kind_defaults": {
+    "near-miss": {
+      "claims": [
+        { "id": "CLM-0001", "claim_type": "fact", "evidence_refs": ["SRC-0001"] },
+        { "id": "ASM-0001", "claim_type": "assumption", "evidence_refs": [] }
+      ],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-verification",
+        "subject_refs": ["SYS-0001"],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "pass-with-actions",
+        "limitations": ["Assumption remains unresolved"],
+        "grants_approval": false
+      },
+      "expected": {
+        "review_verdict": "pass-with-actions"
+      }
+    }
+  },
+  "cases": [
+    {
+      "case_id": "positive-stakeholder-analysis",
+      "case_kind": "positive",
+      "intent_id": "stakeholder-analysis",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-stakeholder-analysis",
+      "case_kind": "near-miss",
+      "intent_id": "stakeholder-analysis",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "stakeholders": [
+        { "id": "STK-0001", "position": "retain" },
+        { "id": "STK-0002", "position": "replace" }
+      ],
+      "conflicts": [
+        { "id": "CONF-0001", "stakeholder_refs": ["STK-0001", "STK-0002"], "resolution": "unresolved" }
+      ],
+      "relations": [
+        { "from": "SRC-0001", "type": "trace", "to": "SYS-0001" },
+        { "from": "SRC-0001", "type": "trace", "to": "STK-0001" },
+        { "from": "SRC-0001", "type": "trace", "to": "STK-0002" },
+        { "from": "SRC-0001", "type": "trace", "to": "FR-0001" },
+        { "from": "STK-0001", "type": "conflicts-with", "to": "STK-0002" }
+      ],
+      "expected": {
+        "verdict": "pass",
+        "issue_codes": [],
+        "relation_edges": [
+          "SRC-0001|trace|FR-0001",
+          "SRC-0001|trace|STK-0001",
+          "SRC-0001|trace|STK-0002",
+          "SRC-0001|trace|SYS-0001",
+          "STK-0001|conflicts-with|STK-0002"
+        ]
+      }
+    },
+    {
+      "case_id": "adversarial-stakeholder-analysis",
+      "case_kind": "adversarial",
+      "intent_id": "stakeholder-analysis",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "stakeholders": [
+        { "id": "STK-0001", "position": "retain" },
+        { "id": "STK-0002", "position": "replace" }
+      ],
+      "conflicts": [
+        { "id": "CONF-0001", "stakeholder_refs": ["STK-0001", "STK-0002"], "resolution": "unresolved" }
+      ],
+      "expected": { "verdict": "hard-fail", "issue_codes": ["MISSING_CONFLICT"] }
+    },
+
+    {
+      "case_id": "positive-requirements-elicitation",
+      "case_kind": "positive",
+      "intent_id": "requirements-elicitation",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-requirements-elicitation",
+      "case_kind": "near-miss",
+      "intent_id": "requirements-elicitation",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "sources": [
+        { "id": "SRC-0001", "kind": "stakeholder", "confirmed": false }
+      ],
+      "claims": [
+        { "id": "ASM-0001", "claim_type": "assumption", "evidence_refs": ["SRC-0001"] }
+      ],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-verification",
+        "subject_refs": ["SYS-0001"],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "provisional",
+        "limitations": ["Stakeholder statement remains unconfirmed"],
+        "grants_approval": false
+      },
+      "expected": { "verdict": "pass", "issue_codes": [], "review_verdict": "provisional" }
+    },
+    {
+      "case_id": "adversarial-requirements-elicitation",
+      "case_kind": "adversarial",
+      "intent_id": "requirements-elicitation",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "claims": [
+        { "id": "CLM-0001", "claim_type": "fact", "evidence_refs": ["SRC-9999"] }
+      ],
+      "expected": { "verdict": "hard-fail", "issue_codes": ["FABRICATED_EVIDENCE"] }
+    },
+
+    {
+      "case_id": "positive-business-process-analysis",
+      "case_kind": "positive",
+      "intent_id": "business-process-analysis",
+      "selected_method_refs": ["mastery/analyst/process-and-use-case-modeling.md#method"],
+      "process": {
+        "representation": "bpmn-aligned",
+        "participants": ["customer", "service"],
+        "events": ["request", "result"],
+        "outcomes": ["completed"],
+        "error_paths": ["validation-error"],
+        "recovery_paths": ["correct-and-retry"]
+      },
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-business-process-analysis",
+      "case_kind": "near-miss",
+      "intent_id": "business-process-analysis",
+      "selected_method_refs": ["mastery/analyst/process-and-use-case-modeling.md#method"],
+      "process": {
+        "representation": "dmn-aligned",
+        "decision": {
+          "inputs": ["risk-score"],
+          "outputs": ["decision"],
+          "rules": ["high-risk-review"]
+        },
+        "error_paths": ["missing-input"],
+        "recovery_paths": ["manual-review"]
+      },
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "adversarial-business-process-analysis",
+      "case_kind": "adversarial",
+      "intent_id": "business-process-analysis",
+      "selected_method_refs": ["mastery/analyst/process-and-use-case-modeling.md#method"],
+      "process": {
+        "representation": "narrative",
+        "error_paths": [""],
+        "recovery_paths": ["manual-recovery"]
+      },
+      "expected": { "verdict": "hard-fail", "issue_codes": ["INVALID_NORMALIZED_SCHEMA", "MISSING_ERROR_PATH"] }
+    },
+
+    {
+      "case_id": "positive-as-is-to-be",
+      "case_kind": "positive",
+      "intent_id": "as-is-to-be",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-as-is-to-be",
+      "case_kind": "near-miss",
+      "intent_id": "as-is-to-be",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "adversarial-as-is-to-be",
+      "case_kind": "adversarial",
+      "intent_id": "as-is-to-be",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "relations": [],
+      "expected": { "verdict": "hard-fail", "issue_codes": ["MISSING_TRACE_EDGE"], "relation_edges": [] }
+    },
+
+    {
+      "case_id": "positive-gap-analysis",
+      "case_kind": "positive",
+      "intent_id": "gap-analysis",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-gap-analysis",
+      "case_kind": "near-miss",
+      "intent_id": "gap-analysis",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "adversarial-gap-analysis",
+      "case_kind": "adversarial",
+      "intent_id": "gap-analysis",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "artifacts": [
+        { "id": "SYS-0001", "owner_path": "docs/analysis/models/../models/sys-0001-wrong-owner.md", "status": "draft", "approval_ref": null },
+        { "id": "STK-0001", "owner_path": "business/analysis/stakeholders/stk-0001-decision-owner.md", "status": "draft", "approval_ref": null }
+      ],
+      "relations": [
+        { "from": "SRC-0001", "type": "trace", "to": "SYS-0001" },
+        { "from": "SRC-0001", "type": "trace", "to": "STK-0001" }
+      ],
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": ["MISSING_TRACE_EDGE", "OWNER_LEAKAGE"],
+        "artifact_ids": ["STK-0001", "SYS-0001"],
+        "relation_edges": ["SRC-0001|trace|STK-0001", "SRC-0001|trace|SYS-0001"]
+      }
+    },
+
+    {
+      "case_id": "positive-business-rule-analysis",
+      "case_kind": "positive",
+      "intent_id": "business-rule-analysis",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-business-rule-analysis",
+      "case_kind": "near-miss",
+      "intent_id": "business-rule-analysis",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "adversarial-business-rule-analysis",
+      "case_kind": "adversarial",
+      "intent_id": "business-rule-analysis",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-validation",
+        "subject_refs": ["SYS-0001"],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "pass",
+        "limitations": [],
+        "grants_approval": true
+      },
+      "expected": { "verdict": "hard-fail", "issue_codes": ["VALIDATION_VERIFICATION_APPROVAL_CONFLATION"], "review_type": "requirements-validation" }
+    },
+
+    {
+      "case_id": "positive-use-case-modeling",
+      "case_kind": "positive",
+      "intent_id": "use-case-modeling",
+      "selected_method_refs": ["mastery/analyst/process-and-use-case-modeling.md#method"],
+      "process": {
+        "representation": "narrative",
+        "error_paths": ["invalid-request"],
+        "recovery_paths": ["correct-and-resubmit"]
+      },
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-use-case-modeling",
+      "case_kind": "near-miss",
+      "intent_id": "use-case-modeling",
+      "selected_method_refs": ["mastery/analyst/process-and-use-case-modeling.md#method"],
+      "process": {
+        "representation": "bpmn-aligned",
+        "participants": ["actor", "system"],
+        "events": ["start", "finish"],
+        "outcomes": ["goal-achieved"],
+        "error_paths": ["timeout"],
+        "recovery_paths": ["retry"]
+      },
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "adversarial-use-case-modeling",
+      "case_kind": "adversarial",
+      "intent_id": "use-case-modeling",
+      "selected_method_refs": ["mastery/analyst/process-and-use-case-modeling.md#method"],
+      "process": {
+        "representation": "narrative",
+        "error_paths": ["timeout"],
+        "recovery_paths": []
+      },
+      "expected": { "verdict": "hard-fail", "issue_codes": ["MISSING_RECOVERY_PATH"] }
+    },
+
+    {
+      "case_id": "positive-functional-requirements",
+      "case_kind": "positive",
+      "intent_id": "functional-requirements",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "requirements": [
+        { "id": "FR-0001", "atomic": true, "terms_defined": true, "ambiguous_terms": [] }
+      ],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-functional-requirements",
+      "case_kind": "near-miss",
+      "intent_id": "functional-requirements",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "requirements": [
+        { "id": "FR-0001", "atomic": true, "terms_defined": true, "ambiguous_terms": [] }
+      ],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "adversarial-functional-requirements",
+      "case_kind": "adversarial",
+      "intent_id": "functional-requirements",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "requirements": [
+        { "id": "FR-0001", "atomic": false, "terms_defined": false, "ambiguous_terms": ["быстро", "удобно"] }
+      ],
+      "expected": { "verdict": "hard-fail", "issue_codes": ["COMPOUND_OR_AMBIGUOUS_REQUIREMENT"] }
+    },
+
+    {
+      "case_id": "positive-nonfunctional-requirements",
+      "case_kind": "positive",
+      "intent_id": "nonfunctional-requirements",
+      "selected_method_refs": ["mastery/analyst/nfr-and-quality-attributes.md#method"],
+      "quality_scenarios": [
+        {
+          "source_ref": "SRC-0001",
+          "stimulus": "request burst",
+          "environment": "normal operation",
+          "affected_artifact_ref": "SYS-0001",
+          "response": "serve accepted requests",
+          "response_measure": { "metric": "latency", "operator": "<=", "target": 250, "unit": "ms" },
+          "priority": "high",
+          "verification_method": "load test"
+        }
+      ],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-nonfunctional-requirements",
+      "case_kind": "near-miss",
+      "intent_id": "nonfunctional-requirements",
+      "selected_method_refs": ["mastery/analyst/nfr-and-quality-attributes.md#method"],
+      "quality_scenarios": [
+        {
+          "source_ref": "SRC-0001",
+          "stimulus": "dependency failure",
+          "environment": "degraded operation",
+          "affected_artifact_ref": "SYS-0001",
+          "response": "return bounded failure",
+          "response_measure": { "metric": "recovery-time", "operator": "<=", "target": 5, "unit": "min" },
+          "priority": "medium",
+          "verification_method": "failure injection"
+        }
+      ],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "adversarial-nonfunctional-requirements",
+      "case_kind": "adversarial",
+      "intent_id": "nonfunctional-requirements",
+      "selected_method_refs": ["mastery/analyst/nfr-and-quality-attributes.md#method"],
+      "quality_scenarios": [
+        {
+          "source_ref": "SRC-0001",
+          "stimulus": "load",
+          "environment": "production",
+          "affected_artifact_ref": "SYS-0001",
+          "response": "respond quickly",
+          "response_measure": { "metric": "speed", "operator": "better", "target": "fast", "unit": "" },
+          "priority": "high",
+          "verification_method": "observe"
+        }
+      ],
+      "expected": { "verdict": "hard-fail", "issue_codes": ["NONMETRIC_QUALITY_SCENARIO"] }
+    },
+
+    {
+      "case_id": "positive-data-analysis",
+      "case_kind": "positive",
+      "intent_id": "data-analysis",
+      "selected_method_refs": ["mastery/analyst/data-and-integration-analysis.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-data-analysis",
+      "case_kind": "near-miss",
+      "intent_id": "data-analysis",
+      "selected_method_refs": ["mastery/analyst/data-and-integration-analysis.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "adversarial-data-analysis",
+      "case_kind": "adversarial",
+      "intent_id": "data-analysis",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "independent_review": false,
+      "expected": { "verdict": "hard-fail", "issue_codes": ["METHOD_ROUTING", "MISSING_INDEPENDENT_REVIEW"] }
+    },
+
+    {
+      "case_id": "positive-integration-analysis",
+      "case_kind": "positive",
+      "intent_id": "integration-analysis",
+      "selected_method_refs": ["mastery/analyst/data-and-integration-analysis.md#method"],
+      "integration": {
+        "participants": ["producer", "consumer"],
+        "messages": ["command", "result"],
+        "error_paths": ["timeout"],
+        "recovery_paths": ["idempotent-retry"]
+      },
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-integration-analysis",
+      "case_kind": "near-miss",
+      "intent_id": "integration-analysis",
+      "selected_method_refs": ["mastery/analyst/data-and-integration-analysis.md#method"],
+      "integration": {
+        "participants": ["producer", "consumer"],
+        "messages": ["event"],
+        "error_paths": ["duplicate"],
+        "recovery_paths": ["deduplicate"]
+      },
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "adversarial-integration-analysis",
+      "case_kind": "adversarial",
+      "intent_id": "integration-analysis",
+      "selected_method_refs": ["mastery/analyst/data-and-integration-analysis.md#method"],
+      "integration": {
+        "participants": ["producer", "consumer"],
+        "messages": ["event"],
+        "error_paths": [],
+        "recovery_paths": []
+      },
+      "expected": { "verdict": "hard-fail", "issue_codes": ["MISSING_ERROR_PATH", "MISSING_RECOVERY_PATH"] }
+    },
+
+    {
+      "case_id": "positive-api-contract-analysis",
+      "case_kind": "positive",
+      "intent_id": "api-contract-analysis",
+      "selected_method_refs": ["mastery/analyst/data-and-integration-analysis.md#method"],
+      "integration": {
+        "participants": ["client", "api"],
+        "messages": ["request", "response"],
+        "error_paths": ["invalid-input"],
+        "recovery_paths": ["correct-request"]
+      },
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-api-contract-analysis",
+      "case_kind": "near-miss",
+      "intent_id": "api-contract-analysis",
+      "selected_method_refs": ["mastery/analyst/data-and-integration-analysis.md#method"],
+      "integration": {
+        "participants": ["client", "api"],
+        "messages": ["request", "error-response"],
+        "error_paths": ["rate-limit"],
+        "recovery_paths": ["retry-after"]
+      },
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "adversarial-api-contract-analysis",
+      "case_kind": "adversarial",
+      "intent_id": "api-contract-analysis",
+      "selected_method_refs": ["mastery/analyst/data-and-integration-analysis.md#method"],
+      "integration": {
+        "participants": ["client", "api"],
+        "messages": ["request", "response"],
+        "error_paths": ["invalid-input"],
+        "recovery_paths": ["correct-request"]
+      },
+      "external_actions": [
+        { "type": "deploy", "target": "external-service" }
+      ],
+      "expected": { "verdict": "hard-fail", "issue_codes": ["EXTERNAL_ACTION"] }
+    },
+
+    {
+      "case_id": "positive-architecture",
+      "case_kind": "positive",
+      "intent_id": "architecture",
+      "selected_method_refs": ["mastery/analyst/solution-architecture.md#method"],
+      "quality_scenarios": [
+        {
+          "source_ref": "SRC-0001",
+          "stimulus": "component loss",
+          "environment": "degraded operation",
+          "affected_artifact_ref": "SYS-0001",
+          "response": "restore service",
+          "response_measure": { "metric": "recovery-time", "operator": "<=", "target": 10, "unit": "min" },
+          "priority": "high",
+          "verification_method": "recovery exercise"
+        }
+      ],
+      "architecture": {
+        "drivers": ["availability", "auditability"],
+        "constraints": ["existing identity boundary"],
+        "criteria": ["operability", "recoverability"],
+        "options": [
+          { "id": "OPT-0001", "criteria": ["operability", "recoverability"], "trade_offs": ["more operational components"], "risks": ["coordination overhead"], "evidence_refs": ["SRC-0001", "SRC-0002"] },
+          { "id": "OPT-0002", "criteria": ["operability", "recoverability"], "trade_offs": ["larger failure domain"], "risks": ["scaling limit"], "evidence_refs": ["SRC-0001", "SRC-0002"] }
+        ],
+        "proposed_strategy_ref": "STRATEGY-0001",
+        "accepted_option_ref": null,
+        "adr_status": "candidate"
+      },
+      "decision": { "selected_option_ref": null, "adr_accepted": false },
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-architecture",
+      "case_kind": "near-miss",
+      "intent_id": "architecture",
+      "selected_method_refs": ["mastery/analyst/solution-architecture.md#method", "mastery/analyst/nfr-and-quality-attributes.md#method"],
+      "quality_scenarios": [
+        {
+          "source_ref": "SRC-0001",
+          "stimulus": "dependency latency",
+          "environment": "peak operation",
+          "affected_artifact_ref": "SYS-0001",
+          "response": "bound upstream wait",
+          "response_measure": { "metric": "timeout", "operator": "<=", "target": 3, "unit": "s" },
+          "priority": "medium",
+          "verification_method": "dependency simulation"
+        }
+      ],
+      "architecture": {
+        "drivers": ["availability"],
+        "constraints": ["unknown production traffic profile"],
+        "criteria": ["availability", "operability"],
+        "options": [
+          { "id": "OPT-0001", "criteria": ["availability", "operability"], "trade_offs": ["higher complexity"], "risks": ["skills gap"], "evidence_refs": ["SRC-0001", "SRC-0003"] },
+          { "id": "OPT-0002", "criteria": ["availability", "operability"], "trade_offs": ["lower isolation"], "risks": ["blast radius"], "evidence_refs": ["SRC-0001", "SRC-0003"] }
+        ],
+        "proposed_strategy_ref": null,
+        "accepted_option_ref": null,
+        "adr_status": "none"
+      },
+      "decision": { "selected_option_ref": null, "adr_accepted": false },
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "adversarial-architecture",
+      "case_kind": "adversarial",
+      "intent_id": "architecture",
+      "selected_method_refs": ["mastery/analyst/solution-architecture.md#method"],
+      "quality_scenarios": [
+        {
+          "source_ref": "SRC-0001",
+          "stimulus": "component loss",
+          "environment": "degraded operation",
+          "affected_artifact_ref": "SYS-0001",
+          "response": "restore service",
+          "response_measure": { "metric": "recovery-time", "operator": "<=", "target": 10, "unit": "min" },
+          "priority": "high",
+          "verification_method": "recovery exercise"
+        }
+      ],
+      "architecture": {
+        "drivers": [""],
+        "constraints": ["existing identity boundary"],
+        "criteria": [""],
+        "options": [
+          { "id": "OPT-0001", "criteria": [""], "trade_offs": [""], "risks": [""], "evidence_refs": [] },
+          { "id": "OPT-0001", "criteria": [""], "trade_offs": [""], "risks": [""], "evidence_refs": [] }
+        ],
+        "proposed_strategy_ref": "OPT-0001",
+        "accepted_option_ref": "OPT-0001",
+        "adr_status": "accepted"
+      },
+      "decision": { "selected_option_ref": "OPT-0001", "adr_accepted": true },
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": [
+          "ARCHITECTURE_INSUFFICIENT_OPTIONS",
+          "ARCHITECTURE_MISSING_CRITERIA",
+          "ARCHITECTURE_MISSING_DRIVERS",
+          "ARCHITECTURE_MISSING_RISKS",
+          "ARCHITECTURE_MISSING_TRADE_OFFS",
+          "ARCHITECTURE_OPTION_EVIDENCE_MISSING",
+          "AUTOMATIC_ARCHITECTURE_DECISION",
+          "INVALID_NORMALIZED_SCHEMA"
+        ]
+      }
+    },
+    {
+      "case_id": "adversarial-architecture-status-alias",
+      "case_kind": "adversarial",
+      "intent_id": "architecture",
+      "selected_method_refs": ["mastery/analyst/solution-architecture.md#method"],
+      "quality_scenarios": [
+        {
+          "source_ref": "SRC-0001",
+          "stimulus": "component loss",
+          "environment": "degraded operation",
+          "affected_artifact_ref": "SYS-0001",
+          "response": "restore service",
+          "response_measure": { "metric": "recovery-time", "operator": "<=", "target": 10, "unit": "min" },
+          "priority": "high",
+          "verification_method": "recovery exercise"
+        }
+      ],
+      "architecture": {
+        "drivers": ["availability"],
+        "constraints": ["existing identity boundary"],
+        "criteria": ["recoverability"],
+        "options": [
+          { "id": "OPT-0001", "criteria": ["recoverability"], "trade_offs": ["coordination overhead"], "risks": ["skills gap"], "evidence_refs": ["SRC-0001"] },
+          { "id": "OPT-0002", "criteria": ["recoverability"], "trade_offs": ["larger failure domain"], "risks": ["capacity limit"], "evidence_refs": ["SRC-0001"] }
+        ],
+        "proposed_strategy_ref": null,
+        "accepted_option_ref": null,
+        "adr_status": "approved"
+      },
+      "decision": { "selected_option_ref": null, "adr_accepted": "false" },
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": ["AUTOMATIC_ARCHITECTURE_DECISION", "INVALID_NORMALIZED_SCHEMA"]
+      }
+    },
+
+    {
+      "case_id": "positive-traceability",
+      "case_kind": "positive",
+      "intent_id": "traceability",
+      "selected_method_refs": ["mastery/analyst/traceability-and-change-impact.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-traceability",
+      "case_kind": "near-miss",
+      "intent_id": "traceability",
+      "selected_method_refs": ["mastery/analyst/traceability-and-change-impact.md#method"],
+      "relations": [
+        { "from": "SRC-0001", "type": "trace", "to": "SYS-0001" },
+        { "from": "SYS-0001", "type": "trace", "to": "STK-0001" },
+        { "from": "SRC-0001", "type": "trace", "to": "STK-0002" },
+        { "from": "SRC-0001", "type": "trace", "to": "FR-0001" }
+      ],
+      "expected": {
+        "verdict": "pass",
+        "issue_codes": [],
+        "relation_edges": ["SRC-0001|trace|FR-0001", "SRC-0001|trace|STK-0002", "SRC-0001|trace|SYS-0001", "SYS-0001|trace|STK-0001"]
+      }
+    },
+    {
+      "case_id": "adversarial-traceability",
+      "case_kind": "adversarial",
+      "intent_id": "traceability",
+      "selected_method_refs": ["mastery/analyst/traceability-and-change-impact.md#method"],
+      "relations": [
+        { "from": "SRC-9999", "type": "trace", "to": "SYS-0001" }
+      ],
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": ["INVALID_NORMALIZED_SCHEMA", "MISSING_TRACE_EDGE"],
+        "relation_edges": ["SRC-9999|trace|SYS-0001"]
+      }
+    },
+    {
+      "case_id": "adversarial-empty-relation-type",
+      "case_kind": "adversarial",
+      "intent_id": "traceability",
+      "selected_method_refs": ["mastery/analyst/traceability-and-change-impact.md#method"],
+      "relations": [
+        { "from": "SRC-0001", "type": "", "to": "SYS-0001" }
+      ],
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": ["INVALID_NORMALIZED_SCHEMA", "MISSING_TRACE_EDGE"],
+        "relation_edges": ["SRC-0001||SYS-0001"]
+      }
+    },
+
+    {
+      "case_id": "positive-change-impact-analysis",
+      "case_kind": "positive",
+      "intent_id": "change-impact-analysis",
+      "selected_method_refs": ["mastery/analyst/traceability-and-change-impact.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-change-impact-analysis",
+      "case_kind": "near-miss",
+      "intent_id": "change-impact-analysis",
+      "selected_method_refs": ["mastery/analyst/traceability-and-change-impact.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "adversarial-change-impact-analysis",
+      "case_kind": "adversarial",
+      "intent_id": "change-impact-analysis",
+      "selected_method_refs": ["mastery/analyst/traceability-and-change-impact.md#method"],
+      "red_team": false,
+      "expected": { "verdict": "hard-fail", "issue_codes": ["MISSING_RED_TEAM"] }
+    },
+
+    {
+      "case_id": "positive-acceptance-criteria",
+      "case_kind": "positive",
+      "intent_id": "acceptance-criteria",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-acceptance-criteria",
+      "case_kind": "near-miss",
+      "intent_id": "acceptance-criteria",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "adversarial-acceptance-criteria",
+      "case_kind": "adversarial",
+      "intent_id": "acceptance-criteria",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-verification",
+        "subject_refs": ["FR-0001"],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "approved",
+        "limitations": [],
+        "grants_approval": false
+      },
+      "expected": { "verdict": "hard-fail", "issue_codes": ["VALIDATION_VERIFICATION_APPROVAL_CONFLATION"], "review_verdict": "approved" }
+    },
+
+    {
+      "case_id": "positive-specification-authoring",
+      "case_kind": "positive",
+      "intent_id": "specification-authoring",
+      "selected_method_refs": ["mastery/analyst/specification-writing.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-specification-authoring",
+      "case_kind": "near-miss",
+      "intent_id": "specification-authoring",
+      "selected_method_refs": ["mastery/analyst/specification-writing.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "adversarial-specification-authoring",
+      "case_kind": "adversarial",
+      "intent_id": "specification-authoring",
+      "selected_method_refs": ["mastery/analyst/specification-writing.md#method"],
+      "external_actions": [
+        { "type": "publish", "target": "external-registry" }
+      ],
+      "expected": { "verdict": "hard-fail", "issue_codes": ["EXTERNAL_ACTION"] }
+    },
+
+    {
+      "case_id": "positive-specification-review",
+      "case_kind": "positive",
+      "intent_id": "specification-review",
+      "selected_method_refs": ["mastery/analyst/specification-writing.md#method"],
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-specification-review",
+      "case_kind": "near-miss",
+      "intent_id": "specification-review",
+      "selected_method_refs": ["mastery/analyst/specification-writing.md#method"],
+      "source_safety": {
+        "prompt_injection_detected": true,
+        "quarantined": true,
+        "instruction_followed": false
+      },
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "adversarial-specification-review",
+      "case_kind": "adversarial",
+      "intent_id": "specification-review",
+      "selected_method_refs": ["mastery/analyst/specification-writing.md#method"],
+      "capabilities": {
+        "mcp_dependencies": ["context7"],
+        "mcp_configuration": ["mcp_servers.context7"],
+        "mandatory_tool_calls": ["mcp.context7.resolve"],
+        "mcp_required": true
+      },
+      "source_safety": {
+        "prompt_injection_detected": true,
+        "quarantined": false,
+        "instruction_followed": true
+      },
+      "expected": { "verdict": "hard-fail", "issue_codes": ["HOSTILE_SOURCE_EXECUTION", "MCP_DEPENDENCY_CONFIGURATION"] }
+    },
+
+    {
+      "case_id": "positive-requirements-validation",
+      "case_kind": "positive",
+      "intent_id": "requirements-validation",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-validation",
+        "subject_refs": ["FR-0001"],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "pass",
+        "limitations": [],
+        "grants_approval": false
+      },
+      "expected": { "verdict": "pass", "issue_codes": [], "review_type": "requirements-validation" }
+    },
+    {
+      "case_id": "near-miss-requirements-validation",
+      "case_kind": "near-miss",
+      "intent_id": "requirements-validation",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-validation",
+        "subject_refs": ["FR-0001"],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "pass-with-actions",
+        "limitations": ["One stakeholder confirmation is pending"],
+        "grants_approval": false
+      },
+      "expected": { "verdict": "pass", "issue_codes": [], "review_type": "requirements-validation" }
+    },
+    {
+      "case_id": "adversarial-requirements-validation",
+      "case_kind": "adversarial",
+      "intent_id": "requirements-validation",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-validation",
+        "subject_refs": ["SYS-0001"],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "approved",
+        "limitations": [],
+        "grants_approval": true
+      },
+      "expected": { "verdict": "hard-fail", "issue_codes": ["VALIDATION_VERIFICATION_APPROVAL_CONFLATION"], "review_type": "requirements-validation", "review_verdict": "approved" }
+    },
+
+    {
+      "case_id": "positive-requirements-verification",
+      "case_kind": "positive",
+      "intent_id": "requirements-verification",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "requirements": [
+        { "id": "FR-0001", "atomic": true, "terms_defined": true, "ambiguous_terms": [] }
+      ],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-verification",
+        "subject_refs": ["FR-0001"],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "pass",
+        "limitations": [],
+        "grants_approval": false
+      },
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-requirements-verification",
+      "case_kind": "near-miss",
+      "intent_id": "requirements-verification",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "requirements": [
+        { "id": "FR-0001", "atomic": true, "terms_defined": true, "ambiguous_terms": [] }
+      ],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-verification",
+        "subject_refs": ["FR-0001"],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "pass-with-actions",
+        "limitations": ["Boundary example remains provisional"],
+        "grants_approval": false
+      },
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "adversarial-requirements-verification",
+      "case_kind": "adversarial",
+      "intent_id": "requirements-verification",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "requirements": [
+        { "id": "FR-0001", "atomic": false, "terms_defined": false, "ambiguous_terms": ["appropriate"] }
+      ],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-verification",
+        "subject_refs": ["FR-0001"],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "reject",
+        "limitations": [],
+        "grants_approval": false
+      },
+      "expected": { "verdict": "hard-fail", "issue_codes": ["COMPOUND_OR_AMBIGUOUS_REQUIREMENT"], "review_verdict": "reject" }
+    },
+
+    {
+      "case_id": "positive-requirements-prioritization",
+      "case_kind": "positive",
+      "intent_id": "requirements-prioritization",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "prioritization": { "scheme": "MoSCoW", "decision_owner_ref": "STK-0001" },
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "near-miss-requirements-prioritization",
+      "case_kind": "near-miss",
+      "intent_id": "requirements-prioritization",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "prioritization": { "scheme": "weighted-ranking", "decision_owner_ref": "STK-0001" },
+      "expected": { "verdict": "pass", "issue_codes": [] }
+    },
+    {
+      "case_id": "adversarial-requirements-prioritization",
+      "case_kind": "adversarial",
+      "intent_id": "requirements-prioritization",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "prioritization": { "scheme": "", "decision_owner_ref": "" },
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": ["PRIORITIZATION_DECISION_OWNER_MISSING", "PRIORITIZATION_SCHEME_MISSING"]
+      }
+    },
+
+    {
+      "case_id": "positive-solution-evaluation",
+      "case_kind": "positive",
+      "intent_id": "solution-evaluation",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "solution-evaluation",
+        "subject_refs": ["SYS-0001"],
+        "evidence_refs": ["SRC-0002", "SRC-0003"],
+        "verdict": "pass",
+        "limitations": ["Observed in bounded runtime window"],
+        "grants_approval": false
+      },
+      "solution_evaluation": {
+        "evidence_refs": ["SRC-0002"],
+        "baseline_refs": ["SRC-0003"]
+      },
+      "expected": { "verdict": "pass", "issue_codes": [], "review_type": "solution-evaluation" }
+    },
+    {
+      "case_id": "near-miss-solution-evaluation",
+      "case_kind": "near-miss",
+      "intent_id": "solution-evaluation",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "sources": [
+        { "id": "SRC-0001", "kind": "user", "confirmed": true },
+        { "id": "SRC-0003", "kind": "repo-baseline", "confirmed": true }
+      ],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "solution-evaluation",
+        "subject_refs": ["SYS-0001"],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "provisional",
+        "limitations": ["Runtime evidence is not available"],
+        "grants_approval": false
+      },
+      "solution_evaluation": {
+        "evidence_refs": [],
+        "baseline_refs": ["SRC-0003"]
+      },
+      "expected": { "verdict": "pass", "issue_codes": [], "review_type": "solution-evaluation", "review_verdict": "provisional" }
+    },
+    {
+      "case_id": "adversarial-solution-evaluation",
+      "case_kind": "adversarial",
+      "intent_id": "solution-evaluation",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "sources": [
+        { "id": "SRC-0001", "kind": "user", "confirmed": true }
+      ],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "solution-evaluation",
+        "subject_refs": ["SYS-0001"],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "pass",
+        "limitations": [],
+        "grants_approval": false
+      },
+      "solution_evaluation": {
+        "evidence_refs": [],
+        "baseline_refs": []
+      },
+      "expected": { "verdict": "hard-fail", "issue_codes": ["SOLUTION_EVALUATION_WITHOUT_RUNTIME_EVIDENCE"], "review_type": "solution-evaluation" }
+    },
+    {
+      "case_id": "adversarial-solution-evaluation-unconfirmed-runtime",
+      "case_kind": "adversarial",
+      "intent_id": "solution-evaluation",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "sources": [
+        { "id": "SRC-0001", "kind": "user", "confirmed": true },
+        { "id": "SRC-0002", "kind": "runtime", "confirmed": false },
+        { "id": "SRC-0003", "kind": "repo-baseline", "confirmed": true }
+      ],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "solution-evaluation",
+        "subject_refs": ["SYS-0001"],
+        "evidence_refs": ["SRC-0002", "SRC-0003"],
+        "verdict": "pass",
+        "limitations": [],
+        "grants_approval": false
+      },
+      "solution_evaluation": {
+        "evidence_refs": ["SRC-0002"],
+        "baseline_refs": ["SRC-0003"]
+      },
+      "expected": { "verdict": "hard-fail", "issue_codes": ["FABRICATED_EVIDENCE", "SOLUTION_EVALUATION_WITHOUT_RUNTIME_EVIDENCE"], "review_type": "solution-evaluation" }
+    },
+    {
+      "case_id": "adversarial-normalized-schema-alias",
+      "case_kind": "adversarial",
+      "intent_id": "traceability",
+      "selected_method_refs": ["mastery/analyst/traceability-and-change-impact.md#method"],
+      "mcpDependencies": ["context7"],
+      "expected": { "verdict": "hard-fail", "issue_codes": ["INVALID_NORMALIZED_SCHEMA"] }
+    },
+    {
+      "case_id": "adversarial-missing-review-ref",
+      "case_kind": "adversarial",
+      "intent_id": "traceability",
+      "selected_method_refs": ["mastery/analyst/traceability-and-change-impact.md#method"],
+      "artifacts": [
+        { "id": "SYS-0001", "owner_path": "docs/analysis/models/sys-0001-semantic-fixture.md", "status": "draft", "approval_ref": null, "decision_refs": ["REV-9999"] },
+        { "id": "STK-0001", "owner_path": "business/analysis/stakeholders/stk-0001-decision-owner.md", "status": "draft", "approval_ref": null },
+        { "id": "STK-0002", "owner_path": "business/analysis/stakeholders/stk-0002-conflicting-stakeholder.md", "status": "draft", "approval_ref": null },
+        { "id": "FR-0001", "owner_path": "docs/analysis/requirements/fr-0001-semantic-fixture.md", "status": "draft", "approval_ref": null, "decision_refs": ["REV-0001"] }
+      ],
+      "expected": { "verdict": "hard-fail", "issue_codes": ["MISSING_TRACE_EDGE"] }
+    },
+    {
+      "case_id": "adversarial-boolean-string-coercion",
+      "case_kind": "adversarial",
+      "intent_id": "requirements-verification",
+      "schema_version": "1",
+      "selected_method_refs": ["mastery/analyst/requirements-engineering.md#method"],
+      "requirements": [
+        { "id": "FR-0001", "atomic": "true", "terms_defined": "true", "ambiguous_terms": [] }
+      ],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-verification",
+        "subject_refs": ["FR-0001"],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "pass",
+        "limitations": [],
+        "grants_approval": "false"
+      },
+      "independent_review": "true",
+      "red_team": "true",
+      "capabilities": {
+        "mcp_dependencies": [],
+        "mcp_configuration": [],
+        "mandatory_tool_calls": [],
+        "mcp_required": "false"
+      },
+      "source_safety": {
+        "prompt_injection_detected": "false",
+        "quarantined": "false",
+        "instruction_followed": "false"
+      },
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": [
+          "COMPOUND_OR_AMBIGUOUS_REQUIREMENT",
+          "HOSTILE_SOURCE_EXECUTION",
+          "INVALID_NORMALIZED_SCHEMA",
+          "MCP_DEPENDENCY_CONFIGURATION",
+          "MISSING_INDEPENDENT_REVIEW",
+          "MISSING_RED_TEAM",
+          "VALIDATION_VERIFICATION_APPROVAL_CONFLATION"
+        ]
+      }
+    },
+    {
+      "case_id": "adversarial-unconfirmed-claim",
+      "case_kind": "adversarial",
+      "intent_id": "traceability",
+      "selected_method_refs": ["mastery/analyst/traceability-and-change-impact.md#method"],
+      "sources": [
+        { "id": "SRC-0001", "kind": "user", "confirmed": false }
+      ],
+      "claims": [
+        { "id": "CLM-0001", "claim_type": "fact", "evidence_refs": ["SRC-0001"] }
+      ],
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": ["FABRICATED_EVIDENCE"]
+      }
+    },
+    {
+      "case_id": "adversarial-claim-type-alias",
+      "case_kind": "adversarial",
+      "intent_id": "traceability",
+      "selected_method_refs": ["mastery/analyst/traceability-and-change-impact.md#method"],
+      "claims": [
+        { "id": "CLM-0001", "claim_type": "assertion", "evidence_refs": ["SRC-0001"] }
+      ],
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": ["INVALID_NORMALIZED_SCHEMA"]
+      }
+    },
+    {
+      "case_id": "adversarial-nested-array-shape",
+      "case_kind": "adversarial",
+      "intent_id": "traceability",
+      "selected_method_refs": ["mastery/analyst/traceability-and-change-impact.md#method"],
+      "external_actions": null,
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": ["INVALID_NORMALIZED_SCHEMA"]
+      }
+    },
+    {
+      "case_id": "adversarial-uppercase-intent",
+      "case_kind": "adversarial",
+      "intent_id": "ARCHITECTURE",
+      "selected_method_refs": ["mastery/analyst/solution-architecture.md#method"],
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": ["INVALID_NORMALIZED_SCHEMA"]
+      }
+    },
+    {
+      "case_id": "adversarial-uppercase-enums",
+      "case_kind": "adversarial",
+      "intent_id": "business-process-analysis",
+      "selected_method_refs": ["mastery/analyst/process-and-use-case-modeling.md#method"],
+      "artifacts": [
+        { "id": "SYS-0001", "owner_path": "docs/analysis/models/sys-0001-semantic-fixture.md", "status": "APPROVED", "approval_ref": null, "decision_refs": ["REV-0001"] },
+        { "id": "STK-0001", "owner_path": "business/analysis/stakeholders/stk-0001-decision-owner.md", "status": "draft", "approval_ref": null },
+        { "id": "STK-0002", "owner_path": "business/analysis/stakeholders/stk-0002-conflicting-stakeholder.md", "status": "draft", "approval_ref": null },
+        { "id": "FR-0001", "owner_path": "docs/analysis/requirements/fr-0001-semantic-fixture.md", "status": "draft", "approval_ref": null, "decision_refs": ["REV-0001"] }
+      ],
+      "process": {
+        "representation": "BPMN-ALIGNED",
+        "participants": ["customer", "service"],
+        "events": ["request", "result"],
+        "outcomes": ["completed"],
+        "error_paths": ["validation-error"],
+        "recovery_paths": ["correct-and-retry"]
+      },
+      "review": {
+        "id": "REV-0001",
+        "review_type": "REQUIREMENTS-VERIFICATION",
+        "subject_refs": ["SYS-0001"],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "PASS",
+        "limitations": [],
+        "grants_approval": false
+      },
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": [
+          "INVALID_NORMALIZED_SCHEMA",
+          "PROCESS_DECISION_SEMANTICS",
+          "VALIDATION_VERIFICATION_APPROVAL_CONFLATION"
+        ],
+        "review_type": "REQUIREMENTS-VERIFICATION",
+        "review_verdict": "PASS"
+      }
+    },
+    {
+      "case_id": "adversarial-duplicate-primary-method",
+      "case_kind": "adversarial",
+      "intent_id": "traceability",
+      "selected_method_refs": [
+        "mastery/analyst/traceability-and-change-impact.md#method",
+        "mastery/analyst/traceability-and-change-impact.md#method"
+      ],
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": ["METHOD_SELECTION_CARDINALITY"]
+      }
+    },
+    {
+      "case_id": "adversarial-limited-evaluation-fabricated-ref",
+      "case_kind": "adversarial",
+      "intent_id": "solution-evaluation",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "solution-evaluation",
+        "subject_refs": ["SYS-0001"],
+        "evidence_refs": [],
+        "verdict": "insufficient-evidence",
+        "limitations": ["Runtime evidence is unavailable"],
+        "grants_approval": false
+      },
+      "solution_evaluation": {
+        "evidence_refs": ["SRC-9999"],
+        "baseline_refs": []
+      },
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": ["FABRICATED_EVIDENCE"],
+        "review_type": "solution-evaluation",
+        "review_verdict": "insufficient-evidence"
+      }
+    },
+    {
+      "case_id": "adversarial-unconfirmed-verification-ref",
+      "case_kind": "adversarial",
+      "intent_id": "traceability",
+      "selected_method_refs": ["mastery/analyst/traceability-and-change-impact.md#method"],
+      "sources": [
+        { "id": "SRC-0001", "kind": "user", "confirmed": true },
+        { "id": "SRC-0004", "kind": "runtime", "confirmed": false }
+      ],
+      "artifacts": [
+        { "id": "SYS-0001", "owner_path": "docs/analysis/models/sys-0001-semantic-fixture.md", "status": "draft", "approval_ref": null, "decision_refs": ["REV-0001"], "verification_refs": ["SRC-0004"] },
+        { "id": "STK-0001", "owner_path": "business/analysis/stakeholders/stk-0001-decision-owner.md", "status": "draft", "approval_ref": null },
+        { "id": "STK-0002", "owner_path": "business/analysis/stakeholders/stk-0002-conflicting-stakeholder.md", "status": "draft", "approval_ref": null },
+        { "id": "FR-0001", "owner_path": "docs/analysis/requirements/fr-0001-semantic-fixture.md", "status": "draft", "approval_ref": null, "decision_refs": ["REV-0001"] }
+      ],
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": ["FABRICATED_EVIDENCE"]
+      }
+    },
+    {
+      "case_id": "adversarial-conflict-schema-without-positions",
+      "case_kind": "adversarial",
+      "intent_id": "traceability",
+      "selected_method_refs": ["mastery/analyst/traceability-and-change-impact.md#method"],
+      "conflicts": [{}],
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": ["INVALID_NORMALIZED_SCHEMA"]
+      }
+    },
+    {
+      "case_id": "adversarial-dmn-array-shape",
+      "case_kind": "adversarial",
+      "intent_id": "business-process-analysis",
+      "selected_method_refs": ["mastery/analyst/process-and-use-case-modeling.md#method"],
+      "process": {
+        "representation": "dmn-aligned",
+        "decision": {
+          "inputs": "risk-score",
+          "outputs": ["decision"],
+          "rules": ["high-risk-review"]
+        },
+        "error_paths": ["missing-input"],
+        "recovery_paths": ["manual-review"]
+      },
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": ["INVALID_NORMALIZED_SCHEMA"]
+      }
+    },
+    {
+      "case_id": "adversarial-solution-evaluation-wrong-baseline-kind",
+      "case_kind": "adversarial",
+      "intent_id": "solution-evaluation",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "sources": [
+        { "id": "SRC-0001", "kind": "stakeholder", "confirmed": true },
+        { "id": "SRC-0002", "kind": "runtime", "confirmed": true }
+      ],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "solution-evaluation",
+        "subject_refs": ["SYS-0001"],
+        "evidence_refs": ["SRC-0001", "SRC-0002"],
+        "verdict": "pass",
+        "limitations": [],
+        "grants_approval": false
+      },
+      "solution_evaluation": {
+        "evidence_refs": ["SRC-0002"],
+        "baseline_refs": ["SRC-0001"]
+      },
+      "expected": {
+        "verdict": "hard-fail",
+        "issue_codes": ["SOLUTION_EVALUATION_WITHOUT_RUNTIME_EVIDENCE"],
+        "review_type": "solution-evaluation"
+      }
+    }
+  ]
+}

@@ -35,9 +35,43 @@ $analysisIntentIds = @(
     'stakeholder-analysis', 'requirements-elicitation', 'business-process-analysis', 'as-is-to-be',
     'gap-analysis', 'business-rule-analysis', 'use-case-modeling', 'functional-requirements',
     'nonfunctional-requirements', 'data-analysis', 'integration-analysis', 'api-contract-analysis',
-    'traceability', 'change-impact-analysis', 'acceptance-criteria', 'specification-authoring',
-    'specification-review', 'requirements-validation'
+    'architecture', 'traceability', 'change-impact-analysis', 'acceptance-criteria',
+    'specification-authoring', 'specification-review', 'requirements-validation',
+    'requirements-verification', 'requirements-prioritization', 'solution-evaluation'
 )
+
+$analysisIntentPrimaryMethodPaths = @{
+    'stakeholder-analysis'          = 'mastery/analyst/business-analysis.md'
+    'as-is-to-be'                  = 'mastery/analyst/business-analysis.md'
+    'gap-analysis'                 = 'mastery/analyst/business-analysis.md'
+    'business-rule-analysis'       = 'mastery/analyst/business-analysis.md'
+    'solution-evaluation'          = 'mastery/analyst/business-analysis.md'
+    'requirements-elicitation'     = 'mastery/analyst/requirements-engineering.md'
+    'functional-requirements'      = 'mastery/analyst/requirements-engineering.md'
+    'acceptance-criteria'          = 'mastery/analyst/requirements-engineering.md'
+    'requirements-validation'      = 'mastery/analyst/requirements-engineering.md'
+    'requirements-verification'    = 'mastery/analyst/requirements-engineering.md'
+    'requirements-prioritization'  = 'mastery/analyst/requirements-engineering.md'
+    'use-case-modeling'            = 'mastery/analyst/process-and-use-case-modeling.md'
+    'business-process-analysis'    = 'mastery/analyst/process-and-use-case-modeling.md'
+    'data-analysis'                = 'mastery/analyst/data-and-integration-analysis.md'
+    'integration-analysis'         = 'mastery/analyst/data-and-integration-analysis.md'
+    'api-contract-analysis'        = 'mastery/analyst/data-and-integration-analysis.md'
+    'nonfunctional-requirements'   = 'mastery/analyst/nfr-and-quality-attributes.md'
+    'architecture'                 = 'mastery/analyst/solution-architecture.md'
+    'traceability'                 = 'mastery/analyst/traceability-and-change-impact.md'
+    'change-impact-analysis'       = 'mastery/analyst/traceability-and-change-impact.md'
+    'specification-authoring'      = 'mastery/analyst/specification-writing.md'
+    'specification-review'         = 'mastery/analyst/specification-writing.md'
+}
+
+$reviewRecordFields = @('review_type', 'subject_refs', 'evidence_refs', 'verdict', 'limitations')
+$reviewTypes = @('requirements-verification', 'requirements-validation', 'solution-evaluation')
+$reviewVerdicts = @('pass', 'pass-with-actions', 'reject', 'insufficient-evidence', 'provisional', 'blocked')
+$solutionEvaluationLimitedVerdicts = @('insufficient-evidence', 'provisional', 'blocked')
+$solutionEvaluationRuntimeEvidenceRefPattern = '^evidence:(?:runtime|uat|operational):[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$'
+$solutionEvaluationBaselineRefPattern = '^evidence:baseline:[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$'
+$architectureHandoffKinds = @('system-model', 'data-model', 'integration-contract', 'nonfunctional-requirement', 'specification')
 
 $runFiles = @(
     'brief.md', 'sources.md', 'analysis.md', 'requirements.md',
@@ -275,6 +309,24 @@ function Test-StringList {
     if ($null -eq $Value -or $Value -is [string]) { return $false }
     foreach ($entry in @($Value)) { if ($entry -isnot [string] -or [string]::IsNullOrWhiteSpace([string]$entry)) { return $false } }
     return $true
+}
+
+function Test-ExactDictionaryFieldSet {
+    param($Value, [Parameter(Mandatory = $true)][string[]]$Expected)
+    if ($Value -isnot [System.Collections.IDictionary]) { return $false }
+    $actual = @($Value.Keys | ForEach-Object { [string]$_ } | Sort-Object)
+    $wanted = @($Expected | Sort-Object)
+    if ($actual.Count -ne $wanted.Count) { return $false }
+    for ($index = 0; $index -lt $actual.Count; $index++) { if ($actual[$index] -cne $wanted[$index]) { return $false } }
+    return $true
+}
+
+function Get-AnalystMethodReferencePath {
+    param($Reference)
+    if ($Reference -is [string] -and [string]$Reference -cmatch '^(?<path>mastery/analyst/(?!INDEX\.md#)[a-z0-9-]+\.md)#method$') {
+        return [string]$Matches['path']
+    }
+    return $null
 }
 
 function Test-StrictDate {
@@ -527,7 +579,9 @@ function Read-CanonicalArtifacts {
             foreach ($field in @('source_refs', 'parent_refs', 'related_refs', 'decision_refs', 'acceptance_refs', 'verification_refs')) {
                 foreach ($reference in @($data[$field])) {
                     $allowSource = $field -ceq 'source_refs'
-                    [void](Test-AndRecordMachineReference -Issues $Issues -RepositoryRoot $RepositoryRoot -SourcePath $file.FullName -Reference ([string]$reference) -Label 'canonical-reference' -AllowHttps:$allowSource -AllowLogical:$allowSource)
+                    $allowEvidence = $field -ceq 'verification_refs' -and [string]$reference -cmatch $safeEvidenceRefPattern
+                    if ($allowEvidence) { continue }
+                    [void](Test-AndRecordMachineReference -Issues $Issues -RepositoryRoot $RepositoryRoot -SourcePath $file.FullName -Reference ([string]$reference) -Label 'canonical-reference' -AllowHttps:$allowSource -AllowLogical:($allowSource -or $allowEvidence))
                 }
             }
             foreach ($provenanceRef in @($data.provenance_refs)) {
@@ -555,6 +609,122 @@ function Get-ArtifactTargetKinds {
     return @($kinds)
 }
 
+function Get-CanonicalArtifactForReference {
+    param(
+        [Parameter(Mandatory = $true)][string]$RepositoryRoot,
+        [Parameter(Mandatory = $true)][string]$SourcePath,
+        [Parameter(Mandatory = $true)][string]$Reference,
+        [Parameter(Mandatory = $true)][hashtable]$ByPath
+    )
+    try {
+        $resolved = Resolve-ModelProjectSafeReference -Root $RepositoryRoot -SourcePath $SourcePath -Reference $Reference -ReferenceBase Repository
+        if (-not (Test-ReferenceResultValid -Result $resolved) -or [string]$resolved.Kind -cne 'internal') { return $null }
+        $key = ([string]$resolved.RepositoryPath).ToLowerInvariant()
+        if ($ByPath.ContainsKey($key)) { return $ByPath[$key] }
+    }
+    catch { }
+    return $null
+}
+
+function Test-CanonicalReviewRecord {
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.Generic.List[string]]$Issues,
+        [Parameter(Mandatory = $true)][string]$RepositoryRoot,
+        [Parameter(Mandatory = $true)]$Artifact,
+        [Parameter(Mandatory = $true)][hashtable]$ByPath
+    )
+
+    $jsonFenceCount = [regex]::Matches($Artifact.Body, '(?m)^```json[ \t]*$').Count
+    $matches = [regex]::Matches($Artifact.Body, '(?ms)^```json[ \t]*\r?\n(?<json>.*?)\r?\n```[ \t]*$')
+    if ($jsonFenceCount -ne 1 -or $matches.Count -ne 1) {
+        Add-AnalysisIssue -Issues $Issues -Code 'invalid-review-record-count' -Path $Artifact.Path
+        return
+    }
+
+    $jsonText = [string]$matches[0].Groups['json'].Value
+    if (Test-ApiContractJsonHasDuplicateKeys -Text $jsonText) {
+        Add-AnalysisIssue -Issues $Issues -Code 'invalid-review-record-json' -Path $Artifact.Path
+        return
+    }
+    try { $root = ConvertFrom-Json -InputObject $jsonText -AsHashtable -Depth 32 -ErrorAction Stop }
+    catch {
+        Add-AnalysisIssue -Issues $Issues -Code 'invalid-review-record-json' -Path $Artifact.Path
+        return
+    }
+    if (-not (Test-ExactDictionaryFieldSet -Value $root -Expected @('review_record')) -or
+        -not (Test-ExactDictionaryFieldSet -Value $root['review_record'] -Expected $reviewRecordFields)) {
+        Add-AnalysisIssue -Issues $Issues -Code 'invalid-review-record-schema' -Path $Artifact.Path
+        return
+    }
+
+    $record = $root['review_record']
+    if ($record['review_type'] -isnot [string] -or [string]$record['review_type'] -cnotin $reviewTypes) {
+        Add-AnalysisIssue -Issues $Issues -Code 'invalid-review-type' -Path $Artifact.Path
+    }
+    $listsValid = (Test-StringList -Value $record['subject_refs']) -and
+        (Test-StringList -Value $record['evidence_refs']) -and
+        (Test-StringList -Value $record['limitations'])
+    if (-not $listsValid) {
+        Add-AnalysisIssue -Issues $Issues -Code 'invalid-review-record-list' -Path $Artifact.Path
+        return
+    }
+    if ($record['verdict'] -isnot [string] -or [string]$record['verdict'] -cnotin $reviewVerdicts) {
+        Add-AnalysisIssue -Issues $Issues -Code 'invalid-review-verdict' -Path $Artifact.Path
+        if ([string]$record['verdict'] -cmatch '(?i)(?:^|-)(?:approv(?:e|ed|al)|accept(?:ed|ance)?|authori[sz](?:e|ed|ation)?)(?:-|$)') {
+            Add-AnalysisIssue -Issues $Issues -Code 'review-verdict-approval-conflation' -Path $Artifact.Path
+        }
+        return
+    }
+
+    $verdict = [string]$record['verdict']
+
+    $subjects = @($record['subject_refs'])
+    if ($subjects.Count -eq 0) { Add-AnalysisIssue -Issues $Issues -Code 'invalid-review-subject-ref' -Path $Artifact.Path }
+    foreach ($subjectRef in $subjects) {
+        $subject = Get-CanonicalArtifactForReference -RepositoryRoot $RepositoryRoot -SourcePath $Artifact.FullPath -Reference ([string]$subjectRef) -ByPath $ByPath
+        if ($null -eq $subject -or [string]$subject.Kind -ceq 'review-decision') {
+            Add-AnalysisIssue -Issues $Issues -Code 'invalid-review-subject-ref' -Path $Artifact.Path
+            continue
+        }
+        $reverseFound = $false
+        foreach ($decisionRef in @($subject.Data.decision_refs)) {
+            $decisionTarget = Get-CanonicalArtifactForReference -RepositoryRoot $RepositoryRoot -SourcePath $subject.FullPath -Reference ([string]$decisionRef) -ByPath $ByPath
+            if ($null -ne $decisionTarget -and [string]$decisionTarget.Path -ceq [string]$Artifact.Path) { $reverseFound = $true; break }
+        }
+        if (-not $reverseFound) { Add-AnalysisIssue -Issues $Issues -Code 'review-subject-missing-reverse-decision-ref' -Path $Artifact.Path }
+    }
+
+    $evidenceRefs = @($record['evidence_refs'])
+    foreach ($evidenceRef in $evidenceRefs) {
+        $reference = [string]$evidenceRef
+        if ($reference -cmatch $safeUserRefPattern) {
+            Add-AnalysisIssue -Issues $Issues -Code 'invalid-review-evidence-ref' -Path $Artifact.Path
+            continue
+        }
+        if ($reference -cmatch $safeEvidenceRefPattern) { continue }
+        try {
+            $resolved = Resolve-ModelProjectSafeReference -Root $RepositoryRoot -SourcePath $Artifact.FullPath -Reference $reference -ReferenceBase Repository -AllowHttps -AllowLogical
+            if (-not (Test-ReferenceResultValid -Result $resolved)) { Add-AnalysisIssue -Issues $Issues -Code 'invalid-review-evidence-ref' -Path $Artifact.Path }
+        }
+        catch { Add-AnalysisIssue -Issues $Issues -Code 'invalid-review-evidence-ref' -Path $Artifact.Path }
+    }
+    if ([string]$record['review_type'] -cne 'solution-evaluation' -and $evidenceRefs.Count -eq 0) {
+        Add-AnalysisIssue -Issues $Issues -Code 'review-record-without-evidence' -Path $Artifact.Path
+    }
+    if ([string]$record['review_type'] -ceq 'solution-evaluation' -and $verdict -cnotin $solutionEvaluationLimitedVerdicts) {
+        $verificationRefs = @($Artifact.Data.verification_refs)
+        $hasRuntimeEvidence = @($evidenceRefs | Where-Object {
+            [string]$_ -cmatch $solutionEvaluationRuntimeEvidenceRefPattern -and $verificationRefs -ccontains [string]$_
+        }).Count -gt 0
+        $hasBaselineEvidence = @($evidenceRefs | Where-Object {
+            [string]$_ -cmatch $solutionEvaluationBaselineRefPattern -and $verificationRefs -ccontains [string]$_
+        }).Count -gt 0
+        if (-not $hasRuntimeEvidence -or -not $hasBaselineEvidence) {
+            Add-AnalysisIssue -Issues $Issues -Code 'solution-evaluation-without-evidence' -Path $Artifact.Path
+        }
+    }
+}
+
 function Test-CanonicalSemantics {
     param([Parameter(Mandatory = $true)][System.Collections.Generic.List[string]]$Issues, [Parameter(Mandatory = $true)][string]$RepositoryRoot, [Parameter(Mandatory = $true)][AllowEmptyCollection()][object[]]$Artifacts)
     $byId = @{}; $byPath = @{}
@@ -574,6 +744,23 @@ function Test-CanonicalSemantics {
         if ($status -ceq 'in-review' -or $status -ceq 'rejected') {
             $decisionKinds = Get-ArtifactTargetKinds -RepositoryRoot $RepositoryRoot -Artifact $artifact -Fields @('decision_refs') -ByPath $byPath
             if ($decisionKinds -cnotcontains 'review-decision') { Add-AnalysisIssue -Issues $Issues -Code 'status-without-review-decision' -Path $path }
+        }
+        foreach ($decisionRef in @($data.decision_refs)) {
+            $decisionTarget = Get-CanonicalArtifactForReference -RepositoryRoot $RepositoryRoot -SourcePath $artifact.FullPath -Reference ([string]$decisionRef) -ByPath $byPath
+            if ($null -eq $decisionTarget -or [string]$decisionTarget.Kind -cne 'review-decision') {
+                Add-AnalysisIssue -Issues $Issues -Code 'decision-ref-not-review' -Path $path
+                break
+            }
+        }
+        foreach ($verificationRef in @($data.verification_refs)) {
+            $verificationTarget = Get-CanonicalArtifactForReference -RepositoryRoot $RepositoryRoot -SourcePath $artifact.FullPath -Reference ([string]$verificationRef) -ByPath $byPath
+            if ($null -ne $verificationTarget) {
+                Add-AnalysisIssue -Issues $Issues -Code 'invalid-verification-ref-kind' -Path $path
+                break
+            }
+        }
+        if ($artifact.Kind -ceq 'review-decision') {
+            Test-CanonicalReviewRecord -Issues $Issues -RepositoryRoot $RepositoryRoot -Artifact $artifact -ByPath $byPath
         }
         $basis = [string]$data.capture_basis; $provenance = @($data.provenance_refs)
         $analysisRunIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
@@ -626,6 +813,23 @@ function Test-CanonicalSemantics {
             $hasDecision = @($data.source_refs | Where-Object { [string]$_ -cmatch '^research/runs/[^/]+/decision\.md(?:#[^#]+)?$' }).Count -gt 0
             $hasEvidence = @($provenance | Where-Object { [string]$_ -cmatch $safeEvidenceRefPattern }).Count -gt 0
             if (-not $hasDecision -or -not $hasEvidence) { Add-AnalysisIssue -Issues $Issues -Code 'invalid-research-derived-provenance' -Path $path }
+        }
+        if ($artifact.Kind -ceq 'business-requirement' -and $status -ceq 'approved') {
+            $parentKinds = Get-ArtifactTargetKinds -RepositoryRoot $RepositoryRoot -Artifact $artifact -Fields @('parent_refs') -ByPath $byPath
+            $acceptanceKinds = Get-ArtifactTargetKinds -RepositoryRoot $RepositoryRoot -Artifact $artifact -Fields @('acceptance_refs') -ByPath $byPath
+            if (@($parentKinds | Where-Object { $_ -cin @('stakeholder', 'capability', 'business-process') }).Count -eq 0) { Add-AnalysisIssue -Issues $Issues -Code 'approved-br-without-business-parent' -Path $path }
+            if ($acceptanceKinds -cnotcontains 'acceptance-criterion') { Add-AnalysisIssue -Issues $Issues -Code 'approved-br-without-acceptance-criterion' -Path $path }
+        }
+        if ($artifact.Kind -ceq 'business-rule' -and $status -ceq 'approved') {
+            $relationKinds = Get-ArtifactTargetKinds -RepositoryRoot $RepositoryRoot -Artifact $artifact -Fields @('parent_refs', 'related_refs') -ByPath $byPath
+            $acceptanceKinds = Get-ArtifactTargetKinds -RepositoryRoot $RepositoryRoot -Artifact $artifact -Fields @('acceptance_refs') -ByPath $byPath
+            if (@($relationKinds | Where-Object { $_ -cin @('business-process', 'business-requirement') }).Count -eq 0) { Add-AnalysisIssue -Issues $Issues -Code 'approved-rule-without-business-relation' -Path $path }
+            if ($acceptanceKinds -cnotcontains 'acceptance-criterion') { Add-AnalysisIssue -Issues $Issues -Code 'approved-rule-without-acceptance-criterion' -Path $path }
+        }
+        if ($artifact.Kind -ceq 'acceptance-criterion' -and $status -ceq 'approved') {
+            $parentKinds = Get-ArtifactTargetKinds -RepositoryRoot $RepositoryRoot -Artifact $artifact -Fields @('parent_refs') -ByPath $byPath
+            if (@($parentKinds | Where-Object { $_ -cin @('business-requirement', 'business-rule', 'use-case', 'functional-requirement', 'nonfunctional-requirement') }).Count -eq 0) { Add-AnalysisIssue -Issues $Issues -Code 'approved-ac-without-subject-parent' -Path $path }
+            if (@($data.verification_refs).Count -eq 0) { Add-AnalysisIssue -Issues $Issues -Code 'approved-ac-without-verification-evidence' -Path $path }
         }
         if ($artifact.Kind -cin @('functional-requirement', 'nonfunctional-requirement') -and $status -ceq 'approved') {
             $parentKinds = Get-ArtifactTargetKinds -RepositoryRoot $RepositoryRoot -Artifact $artifact -Fields @('parent_refs') -ByPath $byPath
@@ -698,7 +902,12 @@ function Test-SourceRegistrySafety {
 }
 
 function Test-RunDirectory {
-    param([Parameter(Mandatory = $true)][System.Collections.Generic.List[string]]$Issues, [Parameter(Mandatory = $true)][string]$RepositoryRoot, [Parameter(Mandatory = $true)][System.IO.DirectoryInfo]$Directory)
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.Generic.List[string]]$Issues,
+        [Parameter(Mandatory = $true)][string]$RepositoryRoot,
+        [Parameter(Mandatory = $true)][System.IO.DirectoryInfo]$Directory,
+        [Parameter(Mandatory = $true)][hashtable]$CanonicalByPath
+    )
     $relativeDirectory = Get-SafeRepositoryRelativePath -RepositoryRoot $RepositoryRoot -Path $Directory.FullName
     $runMatch = [regex]::Match($Directory.Name, $runIdPattern)
     if (-not $runMatch.Success) { Add-AnalysisIssue -Issues $Issues -Code 'invalid-run-id' -Path $relativeDirectory; return }
@@ -760,8 +969,12 @@ function Test-RunDirectory {
     $brief = $parsedFiles['brief.md'].Parsed.Data
     if ($null -ne $brief.intent_id -and ([string]$brief.intent_id -cnotin $analysisIntentIds)) { Add-AnalysisIssue -Issues $Issues -Code 'invalid-analysis-intent' -Path "$relativeDirectory/brief.md" }
     foreach ($field in @('selected_method_refs', 'local_method_refs')) { if (-not (Test-StringList -Value $brief[$field])) { Add-AnalysisIssue -Issues $Issues -Code 'invalid-run-method-list' -Path "$relativeDirectory/brief.md" } }
-    if (@($brief.selected_method_refs).Count -gt 2 -or @($brief.local_method_refs).Count -gt 1 -or
-        @($brief.selected_method_refs | Sort-Object -Unique).Count -ne @($brief.selected_method_refs).Count) { Add-AnalysisIssue -Issues $Issues -Code 'invalid-run-method-selection' -Path "$relativeDirectory/brief.md" }
+    $selectedMethodRefs = @($brief.selected_method_refs); $localMethodRefs = @($brief.local_method_refs)
+    $selectedMethodPaths = @($selectedMethodRefs | ForEach-Object { Get-AnalystMethodReferencePath -Reference $_ } | Where-Object { $null -ne $_ })
+    if ($selectedMethodRefs.Count -gt 2 -or $localMethodRefs.Count -gt 1 -or
+        ($selectedMethodRefs.Count + $localMethodRefs.Count) -gt 2 -or
+        @($selectedMethodRefs | Sort-Object -Unique).Count -ne $selectedMethodRefs.Count -or
+        @($selectedMethodPaths | Sort-Object -Unique).Count -ne $selectedMethodPaths.Count) { Add-AnalysisIssue -Issues $Issues -Code 'invalid-run-method-selection' -Path "$relativeDirectory/brief.md" }
     $closedRunStatus = [string]$first.run_status
     if ($closedRunStatus -cin @('in-review', 'completed', 'blocked', 'rejected')) {
         if ($brief.intent_id -isnot [string] -or [string]::IsNullOrWhiteSpace([string]$brief.intent_id)) {
@@ -771,8 +984,18 @@ function Test-RunDirectory {
             Add-AnalysisIssue -Issues $Issues -Code 'non-open-run-without-method-selection' -Path "$relativeDirectory/brief.md"
         }
     }
+    $intentId = if ($brief.intent_id -is [string]) { [string]$brief.intent_id } else { '' }
+    if ($intentId -cin $analysisIntentIds -and $selectedMethodRefs.Count -gt 0) {
+        $primaryMethodPath = Get-AnalystMethodReferencePath -Reference $selectedMethodRefs[0]
+        if ($null -eq $primaryMethodPath -or [string]$primaryMethodPath -cne [string]$analysisIntentPrimaryMethodPaths[$intentId]) {
+            Add-AnalysisIssue -Issues $Issues -Code 'intent-primary-method-mismatch' -Path "$relativeDirectory/brief.md"
+        }
+    }
+    if ($intentId -cne 'architecture' -and $selectedMethodPaths -ccontains 'mastery/analyst/solution-architecture.md') {
+        Add-AnalysisIssue -Issues $Issues -Code 'solution-architecture-outside-architecture-intent' -Path "$relativeDirectory/brief.md"
+    }
     foreach ($reference in @($brief.selected_method_refs)) {
-        if ([string]$reference -cnotmatch '^mastery/analyst/(?!INDEX\.md$)[a-z0-9-]+\.md#[^#\s]+$') { Add-AnalysisIssue -Issues $Issues -Code 'invalid-analyst-method-ref' -Path "$relativeDirectory/brief.md" }
+        if ([string]$reference -cnotmatch '^mastery/analyst/(?!INDEX\.md#)[a-z0-9-]+\.md#method$') { Add-AnalysisIssue -Issues $Issues -Code 'invalid-analyst-method-ref' -Path "$relativeDirectory/brief.md" }
         else { [void](Test-AndRecordMachineReference -Issues $Issues -RepositoryRoot $RepositoryRoot -SourcePath $parsedFiles['brief.md'].FullPath -Reference ([string]$reference) -Label 'analyst-method-reference') }
     }
     foreach ($reference in @($brief.local_method_refs)) {
@@ -782,10 +1005,18 @@ function Test-RunDirectory {
     foreach ($fileName in @('requirements.md', 'models.md')) {
         $data = $parsedFiles[$fileName].Parsed.Data
         foreach ($field in @('proposed_ids', 'canonical_target_refs')) { if (-not (Test-StringList -Value $data[$field])) { Add-AnalysisIssue -Issues $Issues -Code 'invalid-run-list' -Path "$relativeDirectory/$fileName" } }
-        foreach ($id in @($data.proposed_ids)) { if ($null -eq (Get-ContractById -Id ([string]$id))) { Add-AnalysisIssue -Issues $Issues -Code 'invalid-proposed-id' -Path "$relativeDirectory/$fileName" } }
+        foreach ($id in @($data.proposed_ids)) {
+            $contract = Get-ContractById -Id ([string]$id)
+            if ($null -eq $contract) { Add-AnalysisIssue -Issues $Issues -Code 'invalid-proposed-id' -Path "$relativeDirectory/$fileName" }
+            elseif ($intentId -ceq 'architecture' -and [string]$contract.Kind -cnotin $architectureHandoffKinds) { Add-AnalysisIssue -Issues $Issues -Code 'architecture-proposed-id-kind-not-allowed' -Path "$relativeDirectory/$fileName" }
+        }
         foreach ($reference in @($data.canonical_target_refs)) {
             if ([string]$reference -match '^analysis/runs/') { Add-AnalysisIssue -Issues $Issues -Code 'run-used-as-canonical-target' -Path "$relativeDirectory/$fileName" }
             [void](Test-AndRecordMachineReference -Issues $Issues -RepositoryRoot $RepositoryRoot -SourcePath $parsedFiles[$fileName].FullPath -Reference ([string]$reference) -Label 'canonical-target-reference')
+            if ($intentId -ceq 'architecture') {
+                $target = Get-CanonicalArtifactForReference -RepositoryRoot $RepositoryRoot -SourcePath $parsedFiles[$fileName].FullPath -Reference ([string]$reference) -ByPath $CanonicalByPath
+                if ($null -eq $target -or [string]$target.Kind -cnotin $architectureHandoffKinds) { Add-AnalysisIssue -Issues $Issues -Code 'architecture-target-kind-not-allowed' -Path "$relativeDirectory/$fileName" }
+            }
         }
     }
     Test-SourceRegistrySafety -Issues $Issues -RepositoryRoot $RepositoryRoot -SourcePath $parsedFiles['sources.md'].FullPath -RelativePath "$relativeDirectory/sources.md" -Body $parsedFiles['sources.md'].Parsed.Body
@@ -806,6 +1037,12 @@ function Test-RunDirectory {
     foreach ($reference in @($decisionData.canonical_target_refs) + @($decisionData.affected_canon)) {
         if ([string]$reference -match '^analysis/runs/') { Add-AnalysisIssue -Issues $Issues -Code 'run-used-as-canonical-target' -Path "$relativeDirectory/decision.md" }
         [void](Test-AndRecordMachineReference -Issues $Issues -RepositoryRoot $RepositoryRoot -SourcePath $parsedFiles['decision.md'].FullPath -Reference ([string]$reference) -Label 'decision-target-reference')
+    }
+    if ($intentId -ceq 'architecture') {
+        foreach ($reference in @($decisionData.canonical_target_refs)) {
+            $target = Get-CanonicalArtifactForReference -RepositoryRoot $RepositoryRoot -SourcePath $parsedFiles['decision.md'].FullPath -Reference ([string]$reference) -ByPath $CanonicalByPath
+            if ($null -eq $target -or [string]$target.Kind -cnotin $architectureHandoffKinds) { Add-AnalysisIssue -Issues $Issues -Code 'architecture-target-kind-not-allowed' -Path "$relativeDirectory/decision.md" }
+        }
     }
     foreach ($authority in @($brief.authority_ref, $decisionData.authority_ref)) {
         if ($null -ne $authority -and ($authority -isnot [string] -or [string]$authority -cnotmatch $safeUserRefPattern)) { Add-AnalysisIssue -Issues $Issues -Code 'invalid-run-authority' -Path $relativeDirectory }
@@ -840,7 +1077,12 @@ function Test-RunDirectory {
 }
 
 function Test-AnalysisRuns {
-    param([Parameter(Mandatory = $true)][System.Collections.Generic.List[string]]$Issues, [Parameter(Mandatory = $true)][string]$RepositoryRoot, $ProjectMode)
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.Generic.List[string]]$Issues,
+        [Parameter(Mandatory = $true)][string]$RepositoryRoot,
+        $ProjectMode,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][object[]]$Artifacts
+    )
     $runsRoot = Join-Path $RepositoryRoot 'analysis/runs'
     if (-not (Test-Path -LiteralPath $runsRoot -PathType Container)) { Add-AnalysisIssue -Issues $Issues -Code 'missing-analysis-runs' -Path 'analysis/runs'; return }
     if ($null -ne (Get-ModelProjectReparsePointInFullChain -Root $RepositoryRoot -Path $runsRoot)) { Add-AnalysisIssue -Issues $Issues -Code 'reparse-analysis-runs' -Path 'analysis/runs'; return }
@@ -857,10 +1099,11 @@ function Test-AnalysisRuns {
     $entries = @($allEntries | Where-Object { $_.Name -ine '.gitkeep' })
     if ($null -ne $ProjectMode -and $ProjectMode.Kind -ceq 'template-source' -and $entries.Count -gt 0) { Add-AnalysisIssue -Issues $Issues -Code 'template-source-run-not-empty' -Path 'analysis/runs'; return }
     if ($entries.Count -gt $maximumRuns) { Add-AnalysisIssue -Issues $Issues -Code 'run-count-exhaustion' -Path 'analysis/runs'; return }
+    $canonicalByPath = @{}; foreach ($artifact in $Artifacts) { $canonicalByPath[$artifact.Path.ToLowerInvariant()] = $artifact }
     foreach ($entry in $entries) {
         $relative = Get-SafeRepositoryRelativePath -RepositoryRoot $RepositoryRoot -Path $entry.FullName
         if (-not $entry.PSIsContainer) { Add-AnalysisIssue -Issues $Issues -Code 'non-directory-run-entry' -Path $relative; continue }
-        Test-RunDirectory -Issues $Issues -RepositoryRoot $RepositoryRoot -Directory $entry
+        Test-RunDirectory -Issues $Issues -RepositoryRoot $RepositoryRoot -Directory $entry -CanonicalByPath $canonicalByPath
     }
 }
 
@@ -1182,7 +1425,7 @@ function Invoke-AnalysisVerification {
     Test-CanonicalSemantics -Issues $issues -RepositoryRoot $RepositoryRoot -Artifacts $artifacts
     Test-ApiContractAttachments -Issues $issues -RepositoryRoot $RepositoryRoot -Artifacts $artifacts
     Test-CanonicalReachability -Issues $issues -RepositoryRoot $RepositoryRoot -Artifacts $artifacts
-    Test-AnalysisRuns -Issues $issues -RepositoryRoot $RepositoryRoot -ProjectMode $mode
+    Test-AnalysisRuns -Issues $issues -RepositoryRoot $RepositoryRoot -ProjectMode $mode -Artifacts $artifacts
     Test-ForbiddenAnalysisTargets -Issues $issues -RepositoryRoot $RepositoryRoot
     $runCount = 0; $runRoot = Join-Path $RepositoryRoot 'analysis/runs'; if (Test-Path -LiteralPath $runRoot) { $runCount = @(Get-ChildItem -LiteralPath $runRoot -Directory -Force).Count }
     return [pscustomobject]@{ Issues=@($issues | Where-Object { $_ -cne '__sentinel__' } | Sort-Object -Unique); ProjectMode=$mode; CanonicalCount=@($artifacts).Count; RunCount=$runCount }
@@ -1214,8 +1457,10 @@ knowledge_capture_mode: report-only
     Write-Utf8FixtureFile -Base $Base -Relative 'business/analysis/INDEX.md' -Content "# Business analysis`n"
     Write-Utf8FixtureFile -Base $Base -Relative 'docs/analysis/INDEX.md' -Content "# System analysis`n"
     Write-Utf8FixtureFile -Base $Base -Relative 'mastery/analyst/INDEX.md' -Content "# Analyst`n"
-    Write-Utf8FixtureFile -Base $Base -Relative 'mastery/analyst/requirements-engineering.md' -Content "# Requirements Engineering`n`n## Method`n"
-    Write-Utf8FixtureFile -Base $Base -Relative 'mastery/analyst/system-analysis.md' -Content "# System Analysis`n`n## Method`n"
+    foreach ($methodPath in @(@($analysisIntentPrimaryMethodPaths.Values) + 'mastery/analyst/system-analysis.md' | Sort-Object -Unique)) {
+        Write-Utf8FixtureFile -Base $Base -Relative ([string]$methodPath) -Content "# Fixture method`n`n## Method`n"
+    }
+    Write-Utf8FixtureFile -Base $Base -Relative 'mastery/local/fixture.md' -Content "# Local fixture method`n`n## Method`n"
     Write-Utf8FixtureFile -Base $Base -Relative 'docs/analysis/contracts/README.md' -Content "# Contract attachments`n"
     foreach ($owner in @($artifactContracts.Owner | Sort-Object -Unique)) { [System.IO.Directory]::CreateDirectory((Join-Path $Base $owner.Replace('/', [System.IO.Path]::DirectorySeparatorChar))) | Out-Null }
     foreach ($derived in @('docs/analysis/context', 'docs/analysis/traceability')) {
@@ -1440,6 +1685,60 @@ function Invoke-AnalysisSelfTest {
         $result = Invoke-AnalysisVerification -RepositoryRoot $base
         if ($result.Issues.Count -ne 0) { throw 'positive-non-open-two-methods' }; $passed.Add('positive-non-open-two-methods') | Out-Null
 
+        if ($analysisIntentIds.Count -ne 22 -or $analysisIntentPrimaryMethodPaths.Count -ne 22 -or
+            @($analysisIntentIds | Where-Object { -not $analysisIntentPrimaryMethodPaths.ContainsKey($_) }).Count -ne 0) { throw 'intent-primary-map-complete' }
+        $passed.Add('intent-primary-map-complete') | Out-Null
+
+        $businessMethodRef = 'mastery/analyst/business-analysis.md#method'
+        $solutionArchitectureMethodRef = 'mastery/analyst/solution-architecture.md#method'
+        $localMethodRef = 'mastery/local/fixture.md#method'
+        $wrongPrimaryBrief = $completedBriefOriginal.Replace("  - $requirementsMethodRef", "  - $businessMethodRef")
+        [System.IO.File]::WriteAllText($completedBriefPath, $wrongPrimaryBrief, $utf8NoBom)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^intent-primary-method-mismatch' -Name 'negative-intent-primary-method-mismatch'
+        [System.IO.File]::WriteAllText($completedBriefPath, $completedBriefOriginal, $utf8NoBom); $passed.Add('negative-intent-primary-method-mismatch') | Out-Null
+
+        foreach ($invalidAnchor in @('#метод', '#requirements-engineering')) {
+            $invalidMethodBrief = $completedBriefOriginal.Replace($requirementsMethodRef, "mastery/analyst/requirements-engineering.md$invalidAnchor")
+            [System.IO.File]::WriteAllText($completedBriefPath, $invalidMethodBrief, $utf8NoBom)
+            $result = Invoke-AnalysisVerification -RepositoryRoot $base
+            Assert-SelfTestFinding -Result $result -Pattern '^invalid-analyst-method-ref' -Name "negative-analyst-method-anchor-$invalidAnchor"
+            [System.IO.File]::WriteAllText($completedBriefPath, $completedBriefOriginal, $utf8NoBom)
+            $passed.Add("negative-analyst-method-anchor-$invalidAnchor") | Out-Null
+        }
+
+        $architectureSupplementBrief = $completedBriefOriginal.Replace("  - $requirementsMethodRef", "  - $requirementsMethodRef`n  - $solutionArchitectureMethodRef")
+        [System.IO.File]::WriteAllText($completedBriefPath, $architectureSupplementBrief, $utf8NoBom)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^solution-architecture-outside-architecture-intent' -Name 'negative-solution-architecture-outside-intent'
+        [System.IO.File]::WriteAllText($completedBriefPath, $completedBriefOriginal, $utf8NoBom); $passed.Add('negative-solution-architecture-outside-intent') | Out-Null
+
+        $primaryPlusLocalBrief = $completedBriefOriginal.Replace('local_method_refs: []', "local_method_refs:`n  - $localMethodRef")
+        [System.IO.File]::WriteAllText($completedBriefPath, $primaryPlusLocalBrief, $utf8NoBom)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base
+        if ($result.Issues.Count -ne 0) { throw 'positive-primary-plus-local-method' }; $passed.Add('positive-primary-plus-local-method') | Out-Null
+
+        $twoBaselinesPlusLocalBrief = $twoMethodBrief.Replace('local_method_refs: []', "local_method_refs:`n  - $localMethodRef")
+        [System.IO.File]::WriteAllText($completedBriefPath, $twoBaselinesPlusLocalBrief, $utf8NoBom)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-run-method-selection' -Name 'negative-baseline-and-local-supplements'
+        [System.IO.File]::WriteAllText($completedBriefPath, $completedBriefOriginal, $utf8NoBom); $passed.Add('negative-baseline-and-local-supplements') | Out-Null
+
+        $architectureBrief = $completedBriefOriginal.Replace('intent_id: requirements-validation', 'intent_id: architecture').Replace("  - $requirementsMethodRef", "  - $solutionArchitectureMethodRef")
+        $runRequirementsPath = Join-Path $base "analysis/runs/$runId/requirements.md"; $runRequirementsOriginal = [System.IO.File]::ReadAllText($runRequirementsPath, $strictUtf8)
+        $allowedArchitectureProposal = $runRequirementsOriginal.Replace('proposed_ids: []', "proposed_ids:`n  - SYS-0002")
+        [System.IO.File]::WriteAllText($completedBriefPath, $architectureBrief, $utf8NoBom); [System.IO.File]::WriteAllText($runRequirementsPath, $allowedArchitectureProposal, $utf8NoBom)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base
+        if ($result.Issues.Count -ne 0) { throw 'positive-architecture-proposed-kind' }; $passed.Add('positive-architecture-proposed-kind') | Out-Null
+
+        $forbiddenArchitectureProposal = $runRequirementsOriginal.Replace('proposed_ids: []', "proposed_ids:`n  - BR-0002")
+        [System.IO.File]::WriteAllText($runRequirementsPath, $forbiddenArchitectureProposal, $utf8NoBom)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^architecture-proposed-id-kind-not-allowed' -Name 'negative-architecture-proposed-kind'
+        $passed.Add('negative-architecture-proposed-kind') | Out-Null
+
+        Write-Utf8FixtureFile -Base $base -Relative 'docs/decisions/ADR-0001.md' -Content "# ADR fixture`n"
+        $forbiddenArchitectureTarget = $runRequirementsOriginal.Replace('canonical_target_refs: []', "canonical_target_refs:`n  - docs/decisions/ADR-0001.md")
+        [System.IO.File]::WriteAllText($runRequirementsPath, $forbiddenArchitectureTarget, $utf8NoBom)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^architecture-target-kind-not-allowed' -Name 'negative-architecture-adr-target'
+        [System.IO.File]::Delete((Join-Path $base 'docs/decisions/ADR-0001.md')); [System.IO.File]::WriteAllText($runRequirementsPath, $runRequirementsOriginal, $utf8NoBom); [System.IO.File]::WriteAllText($completedBriefPath, $completedBriefOriginal, $utf8NoBom); $passed.Add('negative-architecture-adr-target') | Out-Null
+
         [System.IO.File]::WriteAllText($completedBriefPath, ($completedBriefOriginal -replace 'intent_id: requirements-validation', 'intent_id: null'), $utf8NoBom)
         $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^non-open-run-without-intent' -Name 'negative-non-open-without-intent'
         [System.IO.File]::WriteAllText($completedBriefPath, $completedBriefOriginal, $utf8NoBom); $passed.Add('negative-non-open-without-intent') | Out-Null
@@ -1477,12 +1776,15 @@ function Invoke-AnalysisSelfTest {
         if (@($artifactContracts.Prefix | Sort-Object -Unique).Count -ne $artifactContracts.Count -or @($artifactContracts.Kind | Sort-Object -Unique).Count -ne $artifactContracts.Count) { throw 'namespace-not-bijective' }
         $passed.Add('namespace-bijection') | Out-Null
 
-        [void](New-SelfTestCanonicalArtifact -Base $base -Id 'STK-0001' -VerificationRefs @('PROJECT.md'))
+        $stk = New-SelfTestCanonicalArtifact -Base $base -Id 'STK-0001' -VerificationRefs @('PROJECT.md')
         $result = Invoke-AnalysisVerification -RepositoryRoot $base
         if ($result.Issues.Count -ne 0) { throw 'positive-draft-canonical-set' }; $passed.Add('positive-draft-canonical-set') | Out-Null
 
-        $br = New-SelfTestCanonicalArtifact -Base $base -Id 'BR-0001' -Status approved -VerificationRefs @('PROJECT.md')
-        $ac = New-SelfTestCanonicalArtifact -Base $base -Id 'AC-0001' -Status approved -VerificationRefs @('PROJECT.md')
+        $brExpected = 'business/analysis/requirements/br-0001-fixture.md'
+        $ac = New-SelfTestCanonicalArtifact -Base $base -Id 'AC-0001' -Status approved -ParentRefs @($brExpected) -VerificationRefs @('PROJECT.md')
+        $br = New-SelfTestCanonicalArtifact -Base $base -Id 'BR-0001' -Status approved -ParentRefs @($stk) -AcceptanceRefs @($ac)
+        $bp = New-SelfTestCanonicalArtifact -Base $base -Id 'BP-0001'
+        $rule = New-SelfTestCanonicalArtifact -Base $base -Id 'RULE-0001' -Status approved -RelatedRefs @($br) -AcceptanceRefs @($ac)
         $fr = New-SelfTestCanonicalArtifact -Base $base -Id 'FR-0001' -Status approved -ParentRefs @($br) -AcceptanceRefs @($ac)
         $nfr = New-SelfTestCanonicalArtifact -Base $base -Id 'NFR-0001' -Status approved -ParentRefs @($br) -AcceptanceRefs @($ac) -Body "# NFR`n`nUnder repeatable test condition latency is at most 500 ms."
         $dataRef = New-SelfTestCanonicalArtifact -Base $base -Id 'DATA-0001' -Status approved -VerificationRefs @('PROJECT.md')
@@ -1490,8 +1792,116 @@ function Invoke-AnalysisSelfTest {
         $intRef = New-SelfTestCanonicalArtifact -Base $base -Id 'INT-0001' -Status approved -RelatedRefs @($dataRef, $sysRef) -VerificationRefs @('PROJECT.md')
         $specBody = "# SPEC`n`n## Purpose, scope and non-goals`n`n## Context refs`n`n## Requirement refs`n`n## Model refs`n`n## Acceptance and verification`n`n## Risks, security and privacy`n`n## Unresolved questions`n"
         $specRef = New-SelfTestCanonicalArtifact -Base $base -Id 'SPEC-0001' -Status approved -RelatedRefs @($fr, $dataRef) -AcceptanceRefs @($ac) -VerificationRefs @('PROJECT.md') -Body $specBody
+        $revExpected = 'docs/analysis/reviews/rev-0001-fixture.md'
+        $reviewSubject = New-SelfTestCanonicalArtifact -Base $base -Id 'CR-0007' -DecisionRefs @($revExpected)
+        $reviewBodyTemplate = @'
+# Review fixture
+
+```json
+{
+  "review_record": {
+    "review_type": "requirements-verification",
+    "subject_refs": ["{{SUBJECT_REF}}"],
+    "evidence_refs": ["PROJECT.md"],
+    "verdict": "pass-with-actions",
+    "limitations": []
+  }
+}
+```
+'@
+        $reviewBody = $reviewBodyTemplate.Replace('{{SUBJECT_REF}}', $reviewSubject)
+        $reviewRef = New-SelfTestCanonicalArtifact -Base $base -Id 'REV-0001' -Body $reviewBody
         $result = Invoke-AnalysisVerification -RepositoryRoot $base
         if ($result.Issues.Count -ne 0) { throw 'positive-approved-canonical-set' }; $passed.Add('positive-approved-canonical-set') | Out-Null
+
+        $brPath = Join-Path $base $br.Replace('/', [System.IO.Path]::DirectorySeparatorChar); $brOriginal = [System.IO.File]::ReadAllText($brPath, $strictUtf8)
+        [void](New-SelfTestCanonicalArtifact -Base $base -Id 'BR-0001' -Status approved -AcceptanceRefs @($ac))
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^approved-br-without-business-parent' -Name 'negative-approved-br-business-parent'
+        [System.IO.File]::WriteAllText($brPath, $brOriginal, $utf8NoBom); $passed.Add('negative-approved-br-business-parent') | Out-Null
+
+        [void](New-SelfTestCanonicalArtifact -Base $base -Id 'BR-0001' -Status approved -ParentRefs @($stk) -VerificationRefs @('PROJECT.md'))
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^approved-br-without-acceptance-criterion' -Name 'negative-approved-br-acceptance'
+        [System.IO.File]::WriteAllText($brPath, $brOriginal, $utf8NoBom); $passed.Add('negative-approved-br-acceptance') | Out-Null
+
+        $rulePath = Join-Path $base $rule.Replace('/', [System.IO.Path]::DirectorySeparatorChar); $ruleOriginal = [System.IO.File]::ReadAllText($rulePath, $strictUtf8)
+        [void](New-SelfTestCanonicalArtifact -Base $base -Id 'RULE-0001' -Status approved -AcceptanceRefs @($ac))
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^approved-rule-without-business-relation' -Name 'negative-approved-rule-business-relation'
+        [System.IO.File]::WriteAllText($rulePath, $ruleOriginal, $utf8NoBom); $passed.Add('negative-approved-rule-business-relation') | Out-Null
+
+        [void](New-SelfTestCanonicalArtifact -Base $base -Id 'RULE-0001' -Status approved -RelatedRefs @($br) -VerificationRefs @('PROJECT.md'))
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^approved-rule-without-acceptance-criterion' -Name 'negative-approved-rule-acceptance'
+        [System.IO.File]::WriteAllText($rulePath, $ruleOriginal, $utf8NoBom); $passed.Add('negative-approved-rule-acceptance') | Out-Null
+
+        $acPath = Join-Path $base $ac.Replace('/', [System.IO.Path]::DirectorySeparatorChar); $acOriginal = [System.IO.File]::ReadAllText($acPath, $strictUtf8)
+        [void](New-SelfTestCanonicalArtifact -Base $base -Id 'AC-0001' -Status approved -VerificationRefs @('PROJECT.md'))
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^approved-ac-without-subject-parent' -Name 'negative-approved-ac-subject-parent'
+        [System.IO.File]::WriteAllText($acPath, $acOriginal, $utf8NoBom); $passed.Add('negative-approved-ac-subject-parent') | Out-Null
+
+        [void](New-SelfTestCanonicalArtifact -Base $base -Id 'AC-0001' -Status approved -ParentRefs @($br))
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^approved-ac-without-verification-evidence' -Name 'negative-approved-ac-verification'
+        [System.IO.File]::WriteAllText($acPath, $acOriginal, $utf8NoBom); $passed.Add('negative-approved-ac-verification') | Out-Null
+
+        $wrongDecisionRef = New-SelfTestCanonicalArtifact -Base $base -Id 'CR-0008' -DecisionRefs @($br)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^decision-ref-not-review' -Name 'negative-decision-ref-kind'
+        [System.IO.File]::Delete((Join-Path $base $wrongDecisionRef.Replace('/', [System.IO.Path]::DirectorySeparatorChar))); $passed.Add('negative-decision-ref-kind') | Out-Null
+
+        $wrongVerificationRef = New-SelfTestCanonicalArtifact -Base $base -Id 'CR-0009' -VerificationRefs @($ac)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-verification-ref-kind' -Name 'negative-verification-ref-kind'
+        [System.IO.File]::Delete((Join-Path $base $wrongVerificationRef.Replace('/', [System.IO.Path]::DirectorySeparatorChar))); $passed.Add('negative-verification-ref-kind') | Out-Null
+
+        $reviewPath = Join-Path $base $reviewRef.Replace('/', [System.IO.Path]::DirectorySeparatorChar); $reviewOriginal = [System.IO.File]::ReadAllText($reviewPath, $strictUtf8)
+        $reviewSubjectPath = Join-Path $base $reviewSubject.Replace('/', [System.IO.Path]::DirectorySeparatorChar); $reviewSubjectOriginal = [System.IO.File]::ReadAllText($reviewSubjectPath, $strictUtf8)
+        $duplicateReviewKey = $reviewOriginal.Replace('"review_type": "requirements-verification",', '"review_type": "requirements-verification",' + "`n    `"review_type`": `"requirements-validation`",")
+        [System.IO.File]::WriteAllText($reviewPath, $duplicateReviewKey, $utf8NoBom)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-review-record-json' -Name 'negative-review-duplicate-json-key'
+        [System.IO.File]::WriteAllText($reviewPath, $reviewOriginal, $utf8NoBom); $passed.Add('negative-review-duplicate-json-key') | Out-Null
+
+        $wrongReviewSchema = $reviewOriginal.Replace('"limitations": []', '"unexpected": []')
+        [System.IO.File]::WriteAllText($reviewPath, $wrongReviewSchema, $utf8NoBom)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-review-record-schema' -Name 'negative-review-exact-fields'
+        [System.IO.File]::WriteAllText($reviewPath, $reviewOriginal, $utf8NoBom); $passed.Add('negative-review-exact-fields') | Out-Null
+
+        $wrongReviewType = $reviewOriginal.Replace('"review_type": "requirements-verification"', '"review_type": "requirements-verifications"')
+        [System.IO.File]::WriteAllText($reviewPath, $wrongReviewType, $utf8NoBom)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-review-type' -Name 'negative-review-type-closed-set'
+        [System.IO.File]::WriteAllText($reviewPath, $reviewOriginal, $utf8NoBom); $passed.Add('negative-review-type-closed-set') | Out-Null
+
+        $secondReviewFence = $reviewOriginal + "`n" + '```json' + "`n{`"review_record`":{}}`n" + '```' + "`n"
+        [System.IO.File]::WriteAllText($reviewPath, $secondReviewFence, $utf8NoBom)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-review-record-count' -Name 'negative-review-record-count'
+        [System.IO.File]::WriteAllText($reviewPath, $reviewOriginal, $utf8NoBom); $passed.Add('negative-review-record-count') | Out-Null
+
+        [void](New-SelfTestCanonicalArtifact -Base $base -Id 'CR-0007')
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^review-subject-missing-reverse-decision-ref' -Name 'negative-review-reverse-edge'
+        [System.IO.File]::WriteAllText($reviewSubjectPath, $reviewSubjectOriginal, $utf8NoBom); $passed.Add('negative-review-reverse-edge') | Out-Null
+
+        [System.IO.File]::WriteAllText($reviewPath, $reviewOriginal.Replace('"evidence_refs": ["PROJECT.md"]', '"evidence_refs": ["user-request:fixture-approval"]'), $utf8NoBom)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^invalid-review-evidence-ref' -Name 'negative-review-user-authority-evidence'
+        [System.IO.File]::WriteAllText($reviewPath, $reviewOriginal, $utf8NoBom); $passed.Add('negative-review-user-authority-evidence') | Out-Null
+
+        [System.IO.File]::WriteAllText($reviewPath, $reviewOriginal.Replace('"verdict": "pass-with-actions"', '"verdict": "approved"'), $utf8NoBom)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^review-verdict-approval-conflation' -Name 'negative-review-approval-verdict'
+        [System.IO.File]::WriteAllText($reviewPath, $reviewOriginal, $utf8NoBom); $passed.Add('negative-review-approval-verdict') | Out-Null
+
+        [System.IO.File]::WriteAllText($reviewPath, $reviewOriginal.Replace('"verdict": "pass-with-actions"', '"verdict": "approved-with-actions"'), $utf8NoBom)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^review-verdict-approval-conflation' -Name 'negative-review-approval-suffix-verdict'
+        [System.IO.File]::WriteAllText($reviewPath, $reviewOriginal, $utf8NoBom); $passed.Add('negative-review-approval-suffix-verdict') | Out-Null
+
+        $provisionalSolutionReview = $reviewOriginal.Replace('"review_type": "requirements-verification"', '"review_type": "solution-evaluation"').Replace('"evidence_refs": ["PROJECT.md"]', '"evidence_refs": []').Replace('"verdict": "pass-with-actions"', '"verdict": "provisional"')
+        [System.IO.File]::WriteAllText($reviewPath, $provisionalSolutionReview, $utf8NoBom)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base
+        if ($result.Issues.Count -ne 0) { throw 'positive-provisional-solution-evaluation' }; $passed.Add('positive-provisional-solution-evaluation') | Out-Null
+
+        $unsupportedSolutionReview = $provisionalSolutionReview.Replace('"verdict": "provisional"', '"verdict": "pass"')
+        [System.IO.File]::WriteAllText($reviewPath, $unsupportedSolutionReview, $utf8NoBom)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base; Assert-SelfTestFinding -Result $result -Pattern '^solution-evaluation-without-evidence' -Name 'negative-solution-evaluation-without-evidence'
+        [System.IO.File]::WriteAllText($reviewPath, $reviewOriginal, $utf8NoBom); $passed.Add('negative-solution-evaluation-without-evidence') | Out-Null
+
+        $supportedSolutionBody = $reviewBodyTemplate.Replace('{{SUBJECT_REF}}', $reviewSubject).Replace('"review_type": "requirements-verification"', '"review_type": "solution-evaluation"').Replace('"evidence_refs": ["PROJECT.md"]', '"evidence_refs": ["evidence:runtime:fixture", "evidence:baseline:fixture"]').Replace('"verdict": "pass-with-actions"', '"verdict": "pass"')
+        [void](New-SelfTestCanonicalArtifact -Base $base -Id 'REV-0001' -VerificationRefs @('evidence:runtime:fixture', 'evidence:baseline:fixture') -Body $supportedSolutionBody)
+        $result = Invoke-AnalysisVerification -RepositoryRoot $base
+        if ($result.Issues.Count -ne 0) { throw 'positive-supported-solution-evaluation' }; $passed.Add('positive-supported-solution-evaluation') | Out-Null
+        [System.IO.File]::WriteAllText($reviewPath, $reviewOriginal, $utf8NoBom)
 
         $apiRelative = 'docs/analysis/contracts/int-0001.openapi.json'; $apiPath = Join-Path $base $apiRelative.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
         $asyncRelative = 'docs/analysis/contracts/int-0001.asyncapi.json'; $asyncPath = Join-Path $base $asyncRelative.Replace('/', [System.IO.Path]::DirectorySeparatorChar)

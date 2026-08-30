@@ -33,7 +33,7 @@
 - [`.agents/skills/project-delivery/SKILL.md`](.agents/skills/project-delivery/SKILL.md) - реализация через сохраняемый Plan v2.
 - [`.agents/skills/knowledge-curator/SKILL.md`](.agents/skills/knowledge-curator/SKILL.md) - closeout, candidates и разрешенный promotion.
 - [`.agents/skills/startup-researcher/SKILL.md`](.agents/skills/startup-researcher/SKILL.md) - доказательное исследование.
-- [`.agents/skills/it-analysis/SKILL.md`](.agents/skills/it-analysis/SKILL.md) - бизнес- и системный анализ с traceability и review.
+- [`.agents/skills/it-analysis/SKILL.md`](.agents/skills/it-analysis/SKILL.md) - бизнес-, системный и solution-анализ с traceability и review.
 - [`.codex/config.toml`](.codex/config.toml) - лимит и пять project-scoped read-only ролей из `.codex/agents/`.
 - [`scripts/README.md`](scripts/README.md) - инициализация, generators и gates.
 

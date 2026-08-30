@@ -1,5 +1,14 @@
 # История шаблона
 
+## 1.1.0 - Unreleased
+
+- Усилен единый `it-analysis`: Business Analysis, Requirements Engineering, process/decision semantics, NFR и solution architecture используют проверяемые методы и сохраняют authority boundaries.
+- IBM Solution Architect оригинально переоперационализирован как profile `solution-architecture` для существующего `system_analyst` только при `intent_id: architecture`; новые роли и IBM output files не добавлялись.
+- Добавлены `requirements-verification`, `requirements-prioritization`, `solution-evaluation` и architecture routing с одним primary и максимум одним supplementary method.
+- Восьмифайловый run и canonical body contracts разделяют requirements verification, stakeholder validation и approval, а `REV-*` использует machine-readable `review_record`.
+- Добавлены deterministic verifier rules и source-only offline semantic-contract fixtures без model, network или MCP calls.
+- Template candidate и mastery bundle подготовлены как локальная `1.1.0`; опубликованным consumer release остается `v1.0.1` до отдельной release-команды.
+
 ## 1.0.1 - 2026-08-27
 
 - Нормализованы physical system temp roots для hosted macOS fixtures без ослабления reparse-point gates.

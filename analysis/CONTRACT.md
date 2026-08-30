@@ -72,7 +72,45 @@ draft -> rejected
 - `rejected`: есть `REV-*` с причиной; approval fields равны `null`.
 - Новый replacement указывает `supersedes_ref` на существующий старый ID. Старый artifact имеет `status: superseded`. Self-ref, missing target и cycles запрещены.
 
-Accepted ADR является только дополнительной decision trace и не заменяет прямую user authority. Verifier проверяет grammar и snapshot, но не заявляет, что доказал реальное согласие.
+Accepted ADR является только отдельной architecture relation, обычно через `related_refs`, и не заменяет прямую user authority. `decision_refs` зарезервирован для `REV-*`. Verifier проверяет grammar и snapshot, но не заявляет, что доказал реальное согласие.
+
+## Verification, validation, review и approval
+
+```text
+requirements verification != stakeholder validation != approval
+```
+
+- Requirements verification проверяет качество самого artifact: полноту, однозначность, непротиворечивость, реализуемость, testability и соблюдение contract. Она не доказывает, что stakeholder согласен с потребностью или что решение разрешено.
+- Stakeholder validation проверяет, что artifact отражает нужную потребность, outcome и operating context. Она требует stakeholder ref, способ подтверждения, evidence и limitations, но не меняет status на `approved`.
+- Approval является отдельным authority event. Только `approval_ref: user-request:<safe-stable-task-ref>` вместе с `approved_at` и `approved_by` разрешает status `approved`.
+- `decision_refs` связывает subject artifact с соответствующим canonical `REV-*`. Review recommendation, validation verdict, runtime result, analysis run или accepted ADR не подменяет `approval_ref`.
+- `verification_refs` содержит только фактические test/check evidence, точный проверочный artifact или reserved evidence classification ref, описанный ниже. План проверки, acceptance criterion, stakeholder statement и approval event не являются verification evidence.
+- `acceptance_refs` связывает проверяемое предложение с `AC-*`; acceptance criterion задает условие, а фактический результат его исполнения хранится в `verification_refs`.
+
+Каждый `REV-*` содержит в body ровно один machine-readable JSON-блок `review_record` следующей формы:
+
+```json
+{
+  "review_record": {
+    "review_type": "requirements-verification",
+    "subject_refs": ["docs/analysis/requirements/fr-0001-example.md"],
+    "evidence_refs": ["tests/example-result.json"],
+    "verdict": "pass-with-actions",
+    "limitations": ["Не выполнен production load test"]
+  }
+}
+```
+
+Допустимые `review_type` закрыты: `requirements-verification | requirements-validation | solution-evaluation`. Допустимые `verdict` также закрыты: `pass | pass-with-actions | reject | insufficient-evidence | provisional | blocked`. `subject_refs` указывает проверяемые canonical artifacts, `evidence_refs` - наблюдаемую основу verdict, `limitations` - границы применимости. `verdict` является review result и не имеет approval semantics.
+
+Для положительного `solution-evaluation` (`pass` или `pass-with-actions`) `evidence_refs` и `verification_refs` содержат минимум один одинаковый runtime-class ref `evidence:runtime:<id>`, `evidence:uat:<id>` или `evidence:operational:<id>` и минимум один одинаковый baseline ref `evidence:baseline:<id>`. Это reserved classification grammar, а не доказательство существования или достоверности измерения. Verifier проверяет только grammar и cross-field связь. Lead обязан отдельно подтвердить registered source, provenance, collection method, фактический проверочный artifact и limitations; semantic runner проверяет существование и `confirmed` в normalized source registry. Без runtime/UAT/operational evidence и baseline допустимы только `insufficient-evidence`, `provisional` или `blocked`.
+
+Approved-artifact invariants уточняют общий lifecycle:
+
+- Approved `BR-*` связан через `parent_refs` минимум с одним `STK-*`, `CAP-*` или `BP-*`, а через `acceptance_refs` - минимум с одним `AC-*`.
+- Approved `RULE-*` связан через `parent_refs` или `related_refs` минимум с одним `BP-*` или `BR-*`, а через `acceptance_refs` - минимум с одним `AC-*`.
+- Approved `AC-*` связан через `parent_refs` минимум с одним `BR-*`, `RULE-*`, `UC-*`, `FR-*` или `NFR-*` и содержит фактический результат выполнения в `verification_refs`.
+- Переход через `in-review` сохраняет применимые `REV-*` в `decision_refs`; review record не дает approval сам по себе.
 
 ## Run contract
 
@@ -82,9 +120,9 @@ Run ID: `RUN-YYYYMMDD-HHmmss-<slug>-<6hex>`, где timestamp UTC, slug соот
 
 Допустимые `run_status`: `open | in-review | completed | blocked | rejected`. `traceability_outcome` имеет enum `pending | pass | fail`, `review_outcome` - `pending | pass | pass-with-actions | reject`, `decision_outcome` - `pending | handoff | no-change | blocked | rejected`. `completed` требует terminal outcomes, заполненный knowledge outcome, зеленую traceability и отсутствие unresolved blockers при `handoff` или `no-change`. `handoff` содержит точные canonical targets и прямую user authority, `no-change` оставляет targets пустыми. Run никогда не использует canonical `approved`.
 
-`open` run может временно иметь `intent_id: null` и пустой `selected_method_refs`. Любой `in-review`, `completed`, `blocked` или `rejected` run обязан иметь один closed `intent_id` и от одного до двух baseline method refs из `mastery/analyst/`. Это гарантирует, что terminal state не скрывает невыбранный метод.
+`open` run может временно иметь `intent_id: null`, пустой `selected_method_refs` и пустой `local_method_refs`. Любой `in-review`, `completed`, `blocked` или `rejected` run обязан иметь один closed `intent_id` и ровно один primary baseline method в `selected_method_refs[0]`. Baseline method ref использует стабильный machine suffix `#method`, а не сгенерированный Markdown anchor заголовка. Допускается максимум один supplementary method: либо baseline в `selected_method_refs[1]`, либо один active и непросроченный project-local method в `local_method_refs[0]`, но не оба одновременно. Суммарно выбирается не более двух methods. Это гарантирует, что terminal state не скрывает невыбранный primary или конкурирующие supplementary methods.
 
-Closed `intent_id` для analysis run: `stakeholder-analysis | requirements-elicitation | business-process-analysis | as-is-to-be | gap-analysis | business-rule-analysis | use-case-modeling | functional-requirements | nonfunctional-requirements | data-analysis | integration-analysis | api-contract-analysis | traceability | change-impact-analysis | acceptance-criteria | specification-authoring | specification-review | requirements-validation`.
+Closed `intent_id` для analysis run: `stakeholder-analysis | requirements-elicitation | business-process-analysis | as-is-to-be | gap-analysis | business-rule-analysis | use-case-modeling | functional-requirements | nonfunctional-requirements | data-analysis | integration-analysis | api-contract-analysis | architecture | traceability | change-impact-analysis | acceptance-criteria | specification-authoring | specification-review | requirements-validation | requirements-verification | requirements-prioritization | solution-evaluation`.
 
 `decision.md` хранит `capture_basis` и `provenance_refs` для proposed handoff. Для `pending` и `no-change` они могут быть `null` и пустыми. `handoff` требует тот же provenance-контракт, что canonical artifact; ссылка на сам analysis run не заменяет первичный origin.
 
@@ -115,19 +153,29 @@ Closed `intent_id` для analysis run: `stakeholder-analysis | requirements-eli
 
 ```text
 source -> STK/CAP/BP/problem -> BR
-       -> UC/FR/NFR/DATA/INT/SYS
-       -> AC или verification -> SPEC
-       -> ADR или CR -> REV/decision
+       -> RULE -> BP/BR
+BR/RULE -> UC/FR/NFR/DATA/INT/SYS
+        -> AC -> verification evidence -> SPEC
+artifact -> REV(review_type, verdict, evidence, limitations)
+artifact change -> CR
+architecture proposal -> отдельный Plan/authority workflow -> ADR
+approval_ref -> approved status
 ```
 
 - Каждый approved artifact имеет source.
+- Каждый approved BR имеет stakeholder/capability/process parent и AC.
+- Каждый approved RULE имеет BP/BR relation и AC.
+- Каждый approved AC имеет subject parent из BR/RULE/UC/FR/NFR и фактическое verification evidence.
 - Каждый FR/NFR связан с `BR-*` или применимым `STK-*`/`CAP-*` и имеет acceptance или verification.
 - NFR содержит измеримый fit criterion, единицу и условие проверки.
 - INT связан минимум с одним DATA и одним SYS.
 - INT с machine-readable attachment владеет им через `related_refs`; attachment не заменяет связи с DATA, SYS, acceptance и verification evidence.
 - SPEC ссылается на scope, requirements, models, acceptance, risks и unresolved questions, не копируя нормативный текст.
+- `decision_refs`, `verification_refs` и `approval_ref` не взаимозаменяемы и проходят отдельные trace edges.
 - Все canonical files зарегистрированы тематическим index и достижимы от root `INDEX.md`.
 - После разрешенного canonical handoff trusted generator обновляет `knowledge/graph/INDEX.md`; stale derived view блокирует structure gate, но не становится вторым владельцем текста.
+
+Для `intent_id: architecture` analysis handoff ограничен существующими `SYS-*`, `DATA-*`, `INT-*`, `NFR-*` и `SPEC-*` как аналитическими proposals. Такой handoff не выбирает вариант, не подтверждает архитектуру, не устанавливает `approved` и не принимает ADR. Подтвержденная архитектура, implementation plan и accepted ADR создаются только отдельным Plan v2 и authority workflow.
 
 ## Provenance и безопасность
 

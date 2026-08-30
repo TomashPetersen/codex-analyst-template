@@ -10,7 +10,7 @@
 - requirement, model, acceptance и decision refs;
 - risks, security/privacy и unresolved questions.
 
-## Метод
+## Method
 
 1. Зафиксировать purpose, audience, scope и exclusions.
 2. Сослаться на context, requirements и models по exact IDs.

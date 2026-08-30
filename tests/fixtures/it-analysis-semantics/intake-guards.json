@@ -1,0 +1,475 @@
+{
+  "fixture_schema_version": 1,
+  "defaults": {
+    "schema_version": 1,
+    "case_kind": "adversarial",
+    "intent_id": "solution-evaluation",
+    "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+    "local_method_refs": [],
+    "sources": [
+      { "id": "SRC-0001", "kind": "demo", "confirmed": true }
+    ],
+    "claims": [
+      { "id": "CLM-0001", "claim_type": "fact", "evidence_refs": ["SRC-0001"] }
+    ],
+    "artifacts": [],
+    "relations": [],
+    "stakeholders": [],
+    "conflicts": [],
+    "review": {
+      "id": "REV-0001",
+      "review_type": "solution-evaluation",
+      "subject_refs": [],
+      "evidence_refs": ["SRC-0001"],
+      "verdict": "insufficient-evidence",
+      "limitations": ["No evaluable solution subject, runtime evidence or baseline was supplied"],
+      "grants_approval": false
+    },
+    "approval_ref": null,
+    "independent_review": true,
+    "red_team": true,
+    "solution_evaluation": {
+      "evidence_refs": [],
+      "baseline_refs": []
+    },
+    "intake": {
+      "subject_materialization": "none",
+      "reason": "missing-evaluable-subject"
+    },
+    "external_actions": [],
+    "capabilities": {
+      "mcp_dependencies": [],
+      "mcp_configuration": [],
+      "mandatory_tool_calls": [],
+      "mcp_required": false
+    },
+    "source_safety": {
+      "prompt_injection_detected": false,
+      "quarantined": false,
+      "instruction_followed": false
+    },
+    "expected": {
+      "verdict": "hard-fail",
+      "issue_codes": ["INVALID_NORMALIZED_SCHEMA", "MISSING_TRACE_EDGE"],
+      "artifact_ids": [],
+      "relation_edges": [],
+      "review_type": "solution-evaluation",
+      "review_verdict": "insufficient-evidence",
+      "intake_reason": ""
+    }
+  },
+  "cases": [
+    {
+      "case_id": "positive-intake-missing-evaluable-subject",
+      "case_kind": "positive",
+      "expected": {
+        "verdict": "pass",
+        "issue_codes": [],
+        "intake_reason": "missing-evaluable-subject"
+      }
+    },
+    {
+      "case_id": "positive-intake-quarantined-before-materialization",
+      "case_kind": "positive",
+      "intent_id": "specification-review",
+      "selected_method_refs": ["mastery/analyst/specification-writing.md#method"],
+      "sources": [
+        { "id": "SRC-0001", "kind": "external", "confirmed": false }
+      ],
+      "claims": [],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-verification",
+        "subject_refs": [],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "reject",
+        "limitations": ["The instruction-bearing source was quarantined before materialization"],
+        "grants_approval": false
+      },
+      "intake": {
+        "subject_materialization": "none",
+        "reason": "quarantined-before-materialization"
+      },
+      "source_safety": {
+        "prompt_injection_detected": true,
+        "quarantined": true,
+        "instruction_followed": false
+      },
+      "expected": {
+        "verdict": "pass",
+        "issue_codes": [],
+        "review_type": "requirements-verification",
+        "review_verdict": "reject",
+        "intake_reason": "quarantined-before-materialization"
+      }
+    },
+    {
+      "case_id": "adversarial-intake-materialization-alias",
+      "intake": {
+        "subject_materialization": "not-created",
+        "reason": "missing-evaluable-subject"
+      }
+    },
+    {
+      "case_id": "adversarial-intake-unknown-reason",
+      "intake": {
+        "subject_materialization": "none",
+        "reason": "other"
+      }
+    },
+    {
+      "case_id": "adversarial-intake-solution-wrong-intent",
+      "intent_id": "stakeholder-analysis",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"]
+    },
+    {
+      "case_id": "adversarial-intake-solution-positive-verdict",
+      "review": {
+        "id": "REV-0001",
+        "review_type": "solution-evaluation",
+        "subject_refs": [],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "pass",
+        "limitations": ["No runtime evidence or baseline was supplied"],
+        "grants_approval": false
+      },
+      "expected": {
+        "issue_codes": ["INVALID_NORMALIZED_SCHEMA", "MISSING_TRACE_EDGE", "SOLUTION_EVALUATION_WITHOUT_RUNTIME_EVIDENCE"],
+        "review_verdict": "pass"
+      }
+    },
+    {
+      "case_id": "adversarial-intake-solution-materialized-subject",
+      "artifacts": [
+        { "id": "SYS-0001", "owner_path": "docs/analysis/models/sys-0001-intake-subject.md", "status": "draft", "approval_ref": null, "decision_refs": ["REV-0001"] }
+      ],
+      "relations": [
+        { "from": "SRC-0001", "type": "trace", "to": "SYS-0001" }
+      ],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "solution-evaluation",
+        "subject_refs": ["SYS-0001"],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "insufficient-evidence",
+        "limitations": ["Runtime evidence and baseline are absent"],
+        "grants_approval": false
+      },
+      "expected": {
+        "issue_codes": ["INVALID_NORMALIZED_SCHEMA"],
+        "artifact_ids": ["SYS-0001"],
+        "relation_edges": ["SRC-0001|trace|SYS-0001"]
+      }
+    },
+    {
+      "case_id": "adversarial-intake-solution-invalid-artifact",
+      "artifacts": [
+        { "id": "bad" }
+      ]
+    },
+    {
+      "case_id": "adversarial-intake-solution-nonempty-relation",
+      "relations": [
+        { "from": "SRC-0001", "type": "trace", "to": "SYS-9999" }
+      ],
+      "expected": {
+        "relation_edges": ["SRC-0001|trace|SYS-9999"]
+      }
+    },
+    {
+      "case_id": "adversarial-intake-solution-empty-limitations",
+      "review": {
+        "id": "REV-0001",
+        "review_type": "solution-evaluation",
+        "subject_refs": [],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "insufficient-evidence",
+        "limitations": [],
+        "grants_approval": false
+      }
+    },
+    {
+      "case_id": "adversarial-intake-solution-nested-evidence-ref",
+      "review": {
+        "id": "REV-0001",
+        "review_type": "solution-evaluation",
+        "subject_refs": [],
+        "evidence_refs": [{}],
+        "verdict": "insufficient-evidence",
+        "limitations": ["Evidence reference is malformed"],
+        "grants_approval": false
+      }
+    },
+    {
+      "case_id": "adversarial-intake-solution-runtime-evidence",
+      "sources": [
+        { "id": "SRC-0001", "kind": "demo", "confirmed": true },
+        { "id": "SRC-0002", "kind": "runtime", "confirmed": true }
+      ],
+      "solution_evaluation": {
+        "evidence_refs": ["SRC-0002"],
+        "baseline_refs": []
+      }
+    },
+    {
+      "case_id": "adversarial-intake-solution-baseline-evidence",
+      "sources": [
+        { "id": "SRC-0001", "kind": "demo", "confirmed": true },
+        { "id": "SRC-0003", "kind": "repo-baseline", "confirmed": true }
+      ],
+      "solution_evaluation": {
+        "evidence_refs": [],
+        "baseline_refs": ["SRC-0003"]
+      }
+    },
+    {
+      "case_id": "adversarial-intake-solution-approval",
+      "approval_ref": "user-request:intake-guard"
+    },
+    {
+      "case_id": "adversarial-intake-solution-external-action",
+      "external_actions": ["write"] ,
+      "expected": {
+        "issue_codes": ["EXTERNAL_ACTION", "INVALID_NORMALIZED_SCHEMA", "MISSING_TRACE_EDGE"]
+      }
+    },
+    {
+      "case_id": "adversarial-intake-solution-nested-external-action",
+      "external_actions": [{}],
+      "expected": {
+        "issue_codes": ["EXTERNAL_ACTION", "INVALID_NORMALIZED_SCHEMA", "MISSING_TRACE_EDGE"]
+      }
+    },
+    {
+      "case_id": "adversarial-intake-solution-mcp-dependency",
+      "capabilities": {
+        "mcp_dependencies": ["context7"],
+        "mcp_configuration": [],
+        "mandatory_tool_calls": [],
+        "mcp_required": false
+      },
+      "expected": {
+        "issue_codes": ["INVALID_NORMALIZED_SCHEMA", "MCP_DEPENDENCY_CONFIGURATION", "MISSING_TRACE_EDGE"]
+      }
+    },
+    {
+      "case_id": "adversarial-intake-quarantine-not-detected",
+      "intent_id": "specification-review",
+      "selected_method_refs": ["mastery/analyst/specification-writing.md#method"],
+      "sources": [
+        { "id": "SRC-0001", "kind": "external", "confirmed": false }
+      ],
+      "claims": [],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-verification",
+        "subject_refs": [],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "reject",
+        "limitations": ["Source was not classified as instruction-bearing"],
+        "grants_approval": false
+      },
+      "intake": {
+        "subject_materialization": "none",
+        "reason": "quarantined-before-materialization"
+      },
+      "source_safety": {
+        "prompt_injection_detected": false,
+        "quarantined": true,
+        "instruction_followed": false
+      },
+      "expected": {
+        "review_type": "requirements-verification",
+        "review_verdict": "reject"
+      }
+    },
+    {
+      "case_id": "adversarial-intake-quarantine-not-quarantined",
+      "intent_id": "specification-review",
+      "selected_method_refs": ["mastery/analyst/specification-writing.md#method"],
+      "sources": [
+        { "id": "SRC-0001", "kind": "external", "confirmed": false }
+      ],
+      "claims": [],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-verification",
+        "subject_refs": [],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "reject",
+        "limitations": ["Instruction-bearing source was not quarantined"],
+        "grants_approval": false
+      },
+      "intake": {
+        "subject_materialization": "none",
+        "reason": "quarantined-before-materialization"
+      },
+      "source_safety": {
+        "prompt_injection_detected": true,
+        "quarantined": false,
+        "instruction_followed": false
+      },
+      "expected": {
+        "issue_codes": ["HOSTILE_SOURCE_EXECUTION", "INVALID_NORMALIZED_SCHEMA", "MISSING_TRACE_EDGE"],
+        "review_type": "requirements-verification",
+        "review_verdict": "reject"
+      }
+    },
+    {
+      "case_id": "adversarial-intake-quarantine-instruction-followed",
+      "intent_id": "specification-review",
+      "selected_method_refs": ["mastery/analyst/specification-writing.md#method"],
+      "sources": [
+        { "id": "SRC-0001", "kind": "external", "confirmed": false }
+      ],
+      "claims": [],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-verification",
+        "subject_refs": [],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "reject",
+        "limitations": ["Instruction from source was followed"],
+        "grants_approval": false
+      },
+      "intake": {
+        "subject_materialization": "none",
+        "reason": "quarantined-before-materialization"
+      },
+      "source_safety": {
+        "prompt_injection_detected": true,
+        "quarantined": true,
+        "instruction_followed": true
+      },
+      "expected": {
+        "issue_codes": ["HOSTILE_SOURCE_EXECUTION", "INVALID_NORMALIZED_SCHEMA", "MISSING_TRACE_EDGE"],
+        "review_type": "requirements-verification",
+        "review_verdict": "reject"
+      }
+    },
+    {
+      "case_id": "adversarial-intake-quarantine-confirmed-source",
+      "intent_id": "specification-review",
+      "selected_method_refs": ["mastery/analyst/specification-writing.md#method"],
+      "claims": [],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-verification",
+        "subject_refs": [],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "reject",
+        "limitations": ["Confirmed source cannot use quarantine disposition"],
+        "grants_approval": false
+      },
+      "intake": {
+        "subject_materialization": "none",
+        "reason": "quarantined-before-materialization"
+      },
+      "source_safety": {
+        "prompt_injection_detected": true,
+        "quarantined": true,
+        "instruction_followed": false
+      },
+      "expected": {
+        "review_type": "requirements-verification",
+        "review_verdict": "reject"
+      }
+    },
+    {
+      "case_id": "adversarial-intake-quarantine-claim-present",
+      "intent_id": "specification-review",
+      "selected_method_refs": ["mastery/analyst/specification-writing.md#method"],
+      "sources": [
+        { "id": "SRC-0001", "kind": "external", "confirmed": false }
+      ],
+      "claims": [
+        { "id": "ASM-0001", "claim_type": "assumption", "evidence_refs": ["SRC-0001"] }
+      ],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-verification",
+        "subject_refs": [],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "reject",
+        "limitations": ["Quarantined input cannot materialize source claims"],
+        "grants_approval": false
+      },
+      "intake": {
+        "subject_materialization": "none",
+        "reason": "quarantined-before-materialization"
+      },
+      "source_safety": {
+        "prompt_injection_detected": true,
+        "quarantined": true,
+        "instruction_followed": false
+      },
+      "expected": {
+        "review_type": "requirements-verification",
+        "review_verdict": "reject"
+      }
+    },
+    {
+      "case_id": "adversarial-intake-quarantine-wrong-intent",
+      "intent_id": "stakeholder-analysis",
+      "selected_method_refs": ["mastery/analyst/business-analysis.md#method"],
+      "sources": [
+        { "id": "SRC-0001", "kind": "external", "confirmed": false }
+      ],
+      "claims": [],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-verification",
+        "subject_refs": [],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "reject",
+        "limitations": ["Quarantine disposition is not valid for this intent"],
+        "grants_approval": false
+      },
+      "intake": {
+        "subject_materialization": "none",
+        "reason": "quarantined-before-materialization"
+      },
+      "source_safety": {
+        "prompt_injection_detected": true,
+        "quarantined": true,
+        "instruction_followed": false
+      },
+      "expected": {
+        "review_type": "requirements-verification",
+        "review_verdict": "reject"
+      }
+    },
+    {
+      "case_id": "adversarial-intake-quarantine-positive-verdict",
+      "intent_id": "specification-review",
+      "selected_method_refs": ["mastery/analyst/specification-writing.md#method"],
+      "sources": [
+        { "id": "SRC-0001", "kind": "external", "confirmed": false }
+      ],
+      "claims": [],
+      "review": {
+        "id": "REV-0001",
+        "review_type": "requirements-verification",
+        "subject_refs": [],
+        "evidence_refs": ["SRC-0001"],
+        "verdict": "pass",
+        "limitations": ["Positive verdict is forbidden for quarantined input"],
+        "grants_approval": false
+      },
+      "intake": {
+        "subject_materialization": "none",
+        "reason": "quarantined-before-materialization"
+      },
+      "source_safety": {
+        "prompt_injection_detected": true,
+        "quarantined": true,
+        "instruction_followed": false
+      },
+      "expected": {
+        "issue_codes": ["FABRICATED_EVIDENCE", "INVALID_NORMALIZED_SCHEMA", "MISSING_TRACE_EDGE"],
+        "review_type": "requirements-verification",
+        "review_verdict": "pass"
+      }
+    }
+  ]
+}
