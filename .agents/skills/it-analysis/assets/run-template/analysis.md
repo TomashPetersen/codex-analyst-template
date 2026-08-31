@@ -25,14 +25,34 @@ created_at: "{{CREATED_AT}}"
 
 Единый синтез Lead Analyst. Только Lead записывает run и proposed artifacts.
 
-## Facts и observations
+## BACCM preflight и tailoring
+
+Покрой `need`, `change`, `solution`, `stakeholder`, `value`, `context` в границах доступного evidence. Объясни, какие concepts/techniques применимы, какие не применимы и почему. Это operational checklist, не заявление formal IIBA conformance.
+
+## Stakeholder engagement и elicitation results
+
+Вопросы, техники, участники, подтвержденные формулировки, расхождения и pending confirmation. Elicitation result не равен validation или approval.
+
+## Facts, observations и business impact
+
+Отделяй наблюдаемое evidence от интерпретации. Покажи затронутые stakeholders, capabilities, processes, rules, value и risks.
 
 ## Hypotheses и assumptions
 
 ## Questions и conflicts
 
+## Root causes и contributing factors
+
 ## AS-IS
 
 ## TO-BE
 
-## Gap
+## Gap и change impacts
+
+## Business options и prioritization
+
+Сравни варианты по одной evidence-backed схеме. Для приоритизации укажи scheme, criteria, scale, dependencies и decision owner. Аналитик не превращает приоритет в approval.
+
+## Solution evaluation
+
+Сопоставь expected outcomes с runtime/UAT/operational evidence, baseline и limitations. Без такого evidence verdict только `insufficient-evidence`, `provisional` или `blocked`.

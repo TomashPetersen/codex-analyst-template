@@ -18,12 +18,24 @@ blocked_reason: null
 
 # Decision - {{RUN_TITLE}}
 
-## Outcome и rationale
+## Recommendation proposal и rationale
+
+Сформулируй recommendation как предложение, указав evidence, criteria, trade-offs, limitations, residual risks и unresolved questions. Не скрывай выбор в словах `approved`, `selected`, `final` или эквивалентах без authority.
 
 ## Blockers и authority status
+
+## Delivery readiness
+
+Что аналитически готово, что остается `insufficient-evidence`/`provisional`/`blocked`, какие verification/validation/approval refs отсутствуют. Для solution evaluation требуется runtime/UAT/operational evidence.
+
+## Dependencies и follow-up refs
+
+Перечисли владельцев, зависимости, последующие analysis/Plan/ADR/CR refs и условия продолжения. Не помещай сюда implementation plan, decomposition, бюджет или schedule - реализация ведется отдельным Plan v2.
 
 ## Proposed canonical handoff
 
 Перечисли exact targets либо зафиксируй `no-change`. Этот run ничего не утверждает и не записывает в канон автоматически.
+
+Для `architecture` targets ограничены существующими `SYS`, `DATA`, `INT`, `NFR` и `SPEC`. Proposed strategy или ADR candidate не становится подтвержденной архитектурой и не принимает ADR.
 
 ## Knowledge closeout

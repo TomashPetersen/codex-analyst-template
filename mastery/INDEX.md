@@ -5,7 +5,7 @@ Project-local mastery хранит только проверенные, пере
 ## Области
 
 - [Researcher Mastery](researcher/INDEX.md) - методы исследования перспективности новых IT/web-возможностей до разработки и на ранней стадии проверки.
-- [Analyst Mastery](analyst/INDEX.md) - immutable baseline методов бизнес- и системного анализа.
+- [Analyst Mastery](analyst/INDEX.md) - immutable baseline методов бизнес-, системного и solution-анализа.
 - [`INTENTS.json`](INTENTS.json) - расширяемый каталог категорий методов; новые intent IDs добавляются без изменения PowerShell-кода.
 - [Local Mastery](local/INDEX.md) - производный реестр примененных project-local методов, созданных только в generated project.
 

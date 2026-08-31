@@ -13,14 +13,34 @@ local_method_refs: []
 
 # Brief - {{RUN_TITLE}}
 
-## Problem и решение задачи
+## Decision context и bounded question
+
+Какое решение или проверяемый вывод требуется, кто decision owner и какой выбор не входит в authority этого run.
+
+## Audience и stakeholder concerns
+
+Для каждой аудитории укажи `STK-*`/safe ref, concern, требуемый viewpoint и способ подтверждения понимания.
 
 ## Scope и non-goals
 
-## Constraints и inputs
+## Tailoring и governance
 
-## Deliverables и acceptance
+Почему выбран этот уровень анализа, какие representations и techniques применяются, какие роли участвуют, кто Lead-only writer и где находятся approval boundaries.
+
+## Drivers, constraints и inputs
+
+Не изобретай stack, budget, schedule, KPI, NFR threshold или architecture choice. Неподтвержденное помечай assumption/unknown.
+
+## Deliverables, acceptance и exit criteria
+
+Определи ожидаемые восемь run assets, semantic outcomes, достаточность evidence, blockers и условия `no-change`/handoff.
 
 ## Selected methods
 
-Укажи exact refs на `mastery/analyst` и, если применимо, максимум одно active local extension.
+Укажи closed `intent_id`; `selected_method_refs[0]` содержит exact primary ref на `mastery/analyst` со стабильным suffix `#method`, а не Markdown anchor заголовка. Дополнение допускается либо как `selected_method_refs[1]` с одним supplementary baseline, либо как `local_method_refs[0]` с одним active local extension, но не оба сразу. Суммарно baseline и local refs не больше двух. Для `architecture` primary обязан быть `mastery/analyst/solution-architecture.md#method`.
+
+## Planned techniques и confirmation
+
+Свяжи technique с вопросом, source/stakeholder, ожидаемым evidence и способом confirmation. Не заявляй formal conformance BPMN/DMN или нормативным стандартам.
+
+## Residual risk и unresolved questions

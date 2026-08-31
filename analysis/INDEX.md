@@ -1,6 +1,6 @@
 # Аналитический контур
 
-`analysis/` содержит рабочий слой бизнес- и системного анализа. Он не является предметным каноном и не выдает агентный вывод за принятое решение.
+`analysis/` содержит рабочий слой бизнес-, системного и solution-анализа. Он не является предметным каноном и не выдает агентный вывод за принятое решение.
 
 ## Маршрут
 
@@ -22,7 +22,7 @@
 ## Инструменты
 
 - [`scripts/new-analysis-run.ps1`](../scripts/new-analysis-run.ps1) - атомарный scaffold.
-- [`scripts/verify-analysis.ps1`](../scripts/verify-analysis.ps1) - semantic analysis gate, report и self-tests.
+- [`scripts/verify-analysis.ps1`](../scripts/verify-analysis.ps1) - machine-verifiable structure/contract gate, report и self-tests.
 - [`mastery/analyst/INDEX.md`](../mastery/analyst/INDEX.md) - baseline методов аналитика.
 - [`.codex/config.toml`](../.codex/config.toml) - project-scoped read-only специалисты и независимые review-роли.
 - [`prompts/analysis-run.md`](../prompts/analysis-run.md) - один bounded run без Plan v2.

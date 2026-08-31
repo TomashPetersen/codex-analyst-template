@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "template_version": "1.0.1",
+  "template_version": "1.1.0",
   "portable_files": [
     ".agents/skills/it-analysis/agents/openai.yaml",
     ".agents/skills/it-analysis/assets/run-template/analysis.md",
@@ -113,6 +113,7 @@
     "mastery/analyst/nfr-and-quality-attributes.md",
     "mastery/analyst/process-and-use-case-modeling.md",
     "mastery/analyst/requirements-engineering.md",
+    "mastery/analyst/solution-architecture.md",
     "mastery/analyst/specification-writing.md",
     "mastery/analyst/system-analysis.md",
     "mastery/analyst/traceability-and-change-impact.md",
@@ -203,11 +204,19 @@
     ".github/workflows/template-integrity.yml",
     "docs/decisions/2026-08-20-codex-analyst-template-v1.md",
     "docs/decisions/2026-08-22-url-first-codex-install.md",
+    "docs/decisions/2026-08-30-context7-mcp-template.md",
     "plans/2026-08-20-codex-analyst-template-v1.md",
     "plans/2026-08-22-url-first-codex-install.md",
     "plans/2026-08-23-github-release-v1-0-0.md",
+    "plans/2026-08-29-it-analysis-v1-1.md",
+    "plans/2026-08-30-publish-it-analysis-v1-1-source.md",
+    "plans/2026-08-30-context7-mcp-template.md",
+    "plans/2026-08-31-context7-config-layer-recovery.md",
+    "plans/2026-08-31-active-learning-v1-1-release.md",
     "retrospectives/2026-08-21_19-27_codex-analyst-template-v1.md",
     "retrospectives/2026-08-22_14-55_url-first-codex-install.md",
+    "retrospectives/2026-08-28_11-20_github-release-v1-0-1.md",
+    "retrospectives/2026-08-31_09-25_context7-config-layer-recovery.md",
     "scripts/build-github-template.ps1",
     "scripts/test-analyst-consumer-boundary.ps1",
     "scripts/test-canon-graph.ps1",
@@ -219,9 +228,12 @@
     "scripts/test-knowledge-privacy.ps1",
     "scripts/test-knowledge-research.ps1",
     "scripts/test-knowledge-semantics.ps1",
+    "scripts/test-it-analysis-semantics.ps1",
     "scripts/test-mastery-v2.ps1",
     "scripts/test-plan-lifecycle.ps1",
     "scripts/test-platform.ps1",
+    "tests/fixtures/it-analysis-semantics/intake-guards.json",
+    "tests/fixtures/it-analysis-semantics/intent-matrix.json",
     "TEMPLATE-CHANGELOG.md",
     "TEMPLATE.md"
   ],
@@ -245,45 +257,49 @@
     "scripts"
   ],
   "mastery_baseline": {
-    "bundle_version": "1.0.0",
-    "verified_at": "2026-08-20",
-    "review_due": "2027-02-20",
+    "bundle_version": "1.1.0",
+    "verified_at": "2026-08-29",
+    "review_due": "2027-02-25",
     "files": [
       {
         "path": "mastery/analyst/business-analysis.md",
-        "sha256": "6ee83301f5f1f1cbb08cde44865e0836fb6ba486eb6c8e2bcb0c488e175bf384"
+      "sha256": "7d493634ab4d5473c83faa4250bc0d9c6671fc5756def5816ed2185c20fffa4e"
       },
       {
         "path": "mastery/analyst/data-and-integration-analysis.md",
-        "sha256": "f0b53f526d5683ae698e3e414ffd5144e70d48e8f81b27473e516123cdf2c1cb"
+      "sha256": "bc369b71e12c53043d541ab6960ac4e1a7043325dd065536d91da181025f4cee"
       },
       {
         "path": "mastery/analyst/INDEX.md",
-        "sha256": "892e4c931c171b8bee5626fca06484c56180737f739cd152c89cff0bc3b70296"
+        "sha256": "a9cfebe01279d7eeb37229d1c6c6f6416e510f7eca09e36c04929ca0767bc938"
       },
       {
         "path": "mastery/analyst/nfr-and-quality-attributes.md",
-        "sha256": "9889ade9ac49c84d2f0f4bc83d34a57c970f5200688917e0f5c1ea731c22b810"
+      "sha256": "78af52ade50b7306b18aad956bd74ce7a801bc189ec9051f0b9f0e149efcbf84"
       },
       {
         "path": "mastery/analyst/process-and-use-case-modeling.md",
-        "sha256": "2b048433c720ad9ac5ec75d0b00aa2ca3b2d415c897bb1749eb1b9b0e1c8ec60"
+      "sha256": "35f94e953531ac937607eb57974cb30a690268020344bab3defb1efa09a34ad7"
       },
       {
         "path": "mastery/analyst/requirements-engineering.md",
-        "sha256": "9123f342a3b7f5d5724efc1b79797e207d49e9b7fda4a4249f6ea1adfad7dabb"
+      "sha256": "24b98fcb4c33b78565c69374cab0608acdb14237634b9c618c769a910a63c9cb"
+      },
+      {
+        "path": "mastery/analyst/solution-architecture.md",
+      "sha256": "41511a443284fef0d607839b548c839ac735ed76eb85b9d36d74b12fa3bb3ff3"
       },
       {
         "path": "mastery/analyst/specification-writing.md",
-        "sha256": "d4bfd2df9ad600b6170d84f3c7c443a9c9c83d3a5e497537085f57f07f9e702d"
+      "sha256": "9570d63b7420702f0e329f9c410b77e2e90e6270aa8ac5c5f90ea1fc2a84f81e"
       },
       {
         "path": "mastery/analyst/system-analysis.md",
-        "sha256": "fed6e49ac0363d8cf43457354a13fa781201f0924801c81222841a5aa2b37eab"
+      "sha256": "0ade93e4eb51b6fa7736852674755a75c61fa68c76941c888ac05a0629b9c071"
       },
       {
         "path": "mastery/analyst/traceability-and-change-impact.md",
-        "sha256": "28ae58fbddd9fd0cf50870edfc87ac7292acccc30688f9096fcea48ba86f24ea"
+      "sha256": "150bb2bc6ec85961665ff5e6a13f634de7c3a28eb7ba11c12e6d7f9c84c15e58"
       },
       {
         "path": "mastery/researcher/alberto-savoia.md",

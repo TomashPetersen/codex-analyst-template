@@ -14,7 +14,7 @@
     {
       "id": "architecture",
       "label": "Архитектура",
-      "description": "Проектирование границ, компонентов, данных, интеграций и технических компромиссов."
+      "description": "Анализ architecture drivers, constraints, вариантов и trade-offs без скрытого выбора или принятия ADR."
     },
     {
       "id": "as-is-to-be",
@@ -147,9 +147,19 @@
       "description": "Сбор, уточнение и проверка потребностей, ограничений, терминов и критических неизвестных."
     },
     {
+      "id": "requirements-prioritization",
+      "label": "Приоритизация требований",
+      "description": "Ранжирование требований по явной схеме, критериям и decision owner с фиксацией конфликтов и unresolved ties."
+    },
+    {
       "id": "requirements-validation",
       "label": "Валидация требований",
-      "description": "Проверка требований на необходимость, корректность, согласованность, выполнимость и проверяемость."
+      "description": "Подтверждение соответствия requirement stakeholder need, ожидаемому outcome и context отдельно от verification и approval."
+    },
+    {
+      "id": "requirements-verification",
+      "label": "Верификация требований",
+      "description": "Проверка качества requirement artifact, его однозначности, consistency, testability и traceability отдельно от stakeholder validation и approval."
     },
     {
       "id": "release",
@@ -170,6 +180,11 @@
       "id": "security",
       "label": "Безопасность",
       "description": "Проверка trust boundaries, данных, полномочий, секретов и abuse-сценариев."
+    },
+    {
+      "id": "solution-evaluation",
+      "label": "Оценка решения",
+      "description": "Оценка фактической performance, value и ограничений решения по runtime, UAT или operational evidence с явными limitations."
     },
     {
       "id": "specification-authoring",

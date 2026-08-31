@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$Root = '',
-    [switch]$Report
+    [switch]$Report,
+    [string]$MethodPlanRef = ''
 )
 
 Set-StrictMode -Version 2.0
@@ -9,8 +10,15 @@ $ErrorActionPreference = 'Stop'
 
 $modulePath = Join-Path $PSScriptRoot 'lib/ModelProject.Plan.psm1'
 Import-Module $modulePath -Force
+$masteryModulePath = Join-Path $PSScriptRoot 'lib/ModelProject.Mastery.psm1'
+Import-Module $masteryModulePath -Force
+$knowledgeModulePath = Join-Path $PSScriptRoot 'lib/ModelProject.Knowledge.psm1'
+Import-Module $knowledgeModulePath -Force
+$platformModulePath = Join-Path $PSScriptRoot 'lib/ModelProject.Platform.psm1'
+Import-Module $platformModulePath -Force
 $rootPath = Get-ModelProjectPlanRoot -Root $Root
 $issues = [System.Collections.Generic.List[string]]::new()
+$script:requiresCanonicalKnowledgeGate = $false
 
 function Add-Issue {
     param([string]$Message)
@@ -48,6 +56,127 @@ function Get-CheckpointValue {
     return $null
 }
 
+function Test-CanonicalMethodKnowledge {
+    if (-not $script:requiresCanonicalKnowledgeGate) { return }
+    $verifyKnowledgeScript = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'verify-knowledge.ps1'))
+    try {
+        $pwshPath = Get-ModelProjectPowerShellHost -ControlledRoots @($rootPath)
+        $result = Invoke-ModelProjectProcess `
+            -Executable $pwshPath `
+            -Arguments @('-NoProfile', '-File', $verifyKnowledgeScript, '-Root', $rootPath) `
+            -WorkingDirectory $rootPath `
+            -MaxLines 2000 `
+            -MaxCharacters 2MB
+        if ($result.LimitExceeded -or $result.ExitCode -ne 0) {
+            Add-Issue 'Выбранный Local Mastery method не прошел canonical knowledge gate.'
+        }
+    }
+    catch { Add-Issue 'Canonical knowledge gate для Local Mastery method не выполнен.' }
+}
+
+function Test-MethodSelection {
+    param($Document, [string]$Status)
+
+    $headers = [regex]::Matches($Document.Body, '(?m)^## Метод выполнения\s*$')
+    if ($headers.Count -eq 0) {
+        if ($Status -cin @('planned', 'in-progress', 'blocked')) {
+            Add-Issue "$($Document.RelativePath): active plan требует раздел Метод выполнения."
+        }
+        return
+    }
+    if ($headers.Count -ne 1) {
+        Add-Issue "$($Document.RelativePath): требуется не более одного раздела Метод выполнения."
+        return
+    }
+
+    $section = [regex]::Match($Document.Body, '(?ms)^## Метод выполнения[ \t]*\r?\n(?<value>.*?)(?=^## |\z)')
+    if (-not $section.Success) {
+        Add-Issue "$($Document.RelativePath): раздел Метод выполнения не читается."
+        return
+    }
+    $selection = [regex]::Match(
+        $section.Groups['value'].Value,
+        '^\s*- Intent ID: (?<intent>[^\r\n]+)\r?\n- Local method ID: (?<method>[^\r\n]+)\r?\n- Local method ref: (?<ref>[^\r\n]+)\s*$'
+    )
+    if (-not $selection.Success) {
+        Add-Issue "$($Document.RelativePath): Метод выполнения должен содержать exact Intent ID, Local method ID и Local method ref."
+        return
+    }
+
+    $intentId = $selection.Groups['intent'].Value.Trim()
+    $methodId = $selection.Groups['method'].Value.Trim()
+    $methodRef = $selection.Groups['ref'].Value.Trim()
+    if ($intentId -ceq 'pending') {
+        if ($Status -cne 'planned' -or $methodId -cne 'none' -or $methodRef -cne 'none') {
+            Add-Issue "$($Document.RelativePath): pending intent допустим только для planned plan без local method."
+        }
+        return
+    }
+
+    if ($methodId -ceq 'none' -or $methodRef -ceq 'none') {
+        if ($methodId -cne 'none' -or $methodRef -cne 'none') {
+            Add-Issue "$($Document.RelativePath): Local method ID и ref должны быть одновременно none."
+            return
+        }
+    }
+    elseif ($methodId -cnotmatch '^[a-z0-9](?:[a-z0-9._-]{0,126}[a-z0-9])?$' -or
+        $methodRef -cne "mastery/local/$methodId.md") {
+        Add-Issue "$($Document.RelativePath): Local method ID и ref не совпадают."
+        return
+    }
+
+    $intentCatalog = @()
+    try { $intentCatalog = @(Get-ModelProjectMasteryIntentCatalog -Root $rootPath) }
+    catch { Add-Issue "$($Document.RelativePath): не удалось проверить mastery intent catalog."; return }
+    if ($intentId -cnotin @($intentCatalog | ForEach-Object { [string]$_.Id })) {
+        Add-Issue "$($Document.RelativePath): Intent ID отсутствует в mastery/INTENTS.json."
+        return
+    }
+
+    $registryChecked = $false
+    if ($Status -cin @('planned', 'in-progress', 'blocked')) {
+        try {
+            [void](Update-ModelProjectMasteryIndex -Root $rootPath -Mode Check)
+            $registryChecked = $true
+        }
+        catch { Add-Issue "$($Document.RelativePath): mastery registry неактуален."; return }
+    }
+
+    if ($methodId -ceq 'none') { return }
+
+    $methodPath = [System.IO.Path]::GetFullPath((Join-Path $rootPath $methodRef))
+    if (-not (Test-Path -LiteralPath $methodPath -PathType Leaf)) {
+        Add-Issue "$($Document.RelativePath): Local method ref не существует."
+        return
+    }
+    try { $method = Read-ModelProjectLocalMasteryRecord -Root $rootPath -Path $methodPath -IntentCatalog $intentCatalog }
+    catch { Add-Issue "$($Document.RelativePath): Local method ref не прошел mastery contract."; return }
+    $script:requiresCanonicalKnowledgeGate = $true
+    $methodText = Read-ModelProjectBoundedUtf8File -Root $rootPath -Path $methodPath -MaxBytes 2MB
+    foreach ($heading in @('Purpose', 'Use when', 'Do not use when', 'Inputs', 'Workflow', 'Quality gate', 'Failure modes', 'Provenance', 'Navigation')) {
+        $methodSection = [regex]::Matches($methodText, '(?ms)^## ' + [regex]::Escape($heading) + '[ \t]*\r?\n(?<value>.*?)(?=^## |\z)')
+        if ($methodSection.Count -ne 1 -or [string]::IsNullOrWhiteSpace($methodSection[0].Groups['value'].Value)) {
+            Add-Issue "$($Document.RelativePath): Local method не содержит заполненный раздел $heading."
+            return
+        }
+    }
+    if ($method.MethodId -cne $methodId) {
+        Add-Issue "$($Document.RelativePath): Local method ID не совпадает с artifact."
+        return
+    }
+
+    if (-not $registryChecked) {
+        try { [void](Update-ModelProjectMasteryIndex -Root $rootPath -Mode Check) }
+        catch { Add-Issue "$($Document.RelativePath): Local method отсутствует в актуальном mastery registry."; return }
+    }
+    if ($Status -cin @('planned', 'in-progress', 'blocked')) {
+        $reviewDue = [datetime]::ParseExact($method.ReviewDue, 'yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)
+        if ($method.Status -cne 'active' -or $reviewDue.Date -lt [datetime]::UtcNow.Date -or $intentId -cnotin @($method.AppliesTo)) {
+            Add-Issue "$($Document.RelativePath): active plan выбрал неактивный, просроченный или неприменимый local method."
+        }
+    }
+}
+
 function Test-V2Plan {
     param($Document)
     $data = $Document.Data
@@ -72,6 +201,7 @@ function Test-V2Plan {
     $statuses = @('planned', 'in-progress', 'complete', 'blocked')
     $status = if ($data.Contains('status')) { [string]$data.status } else { '' }
     if ($status -cnotin $statuses) { Add-Issue "$($Document.RelativePath): неизвестный status '$status'." }
+    Test-MethodSelection -Document $Document -Status $status
     if (-not $data.Contains('updated_at') -or [string]$data.updated_at -cnotmatch '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$') {
         Add-Issue "$($Document.RelativePath): updated_at должен быть UTC timestamp."
     }
@@ -162,10 +292,16 @@ function Test-PromptContracts {
         $policy = if ($document.Data.Contains('plan_policy')) { [string]$document.Data.plan_policy } else { '' }
         if ($policy -cnotin @('none', 'required', 'existing')) { Add-Issue "${relative}: неизвестный plan_policy '$policy'."; continue }
         if ($policy -ceq 'required') {
-            foreach ($token in @('scripts/new-plan.ps1', 'scripts/set-plan-status.ps1', 'Resume checkpoint', 'task_key', 'не создавай второй')) {
+            foreach ($token in @('scripts/new-plan.ps1', 'scripts/set-plan-status.ps1', 'Resume checkpoint', 'task_key', 'не создавай второй', 'PLAN_ACTION=existing', 'PLAN_ACTION=created', 'mastery/INTENTS.json', 'mastery/local/INDEX.md', 'Метод выполнения')) {
                 if ($document.Body.IndexOf($token, [System.StringComparison]::OrdinalIgnoreCase) -lt 0) { Add-Issue "${relative}: required prompt не содержит preflight token '$token'." }
             }
             $createPosition = $document.Body.IndexOf('scripts/new-plan.ps1', [System.StringComparison]::OrdinalIgnoreCase)
+            $existingActionPosition = $document.Body.IndexOf('PLAN_ACTION=existing', [System.StringComparison]::OrdinalIgnoreCase)
+            $createdActionPosition = $document.Body.IndexOf('PLAN_ACTION=created', [System.StringComparison]::OrdinalIgnoreCase)
+            $intentPosition = $document.Body.IndexOf('mastery/INTENTS.json', [System.StringComparison]::OrdinalIgnoreCase)
+            if ($existingActionPosition -le $createPosition -or $createdActionPosition -le $createPosition -or $intentPosition -le $createdActionPosition) {
+                Add-Issue "${relative}: required prompt выбирает новый method до ветвления результата new-plan."
+            }
             $workPosition = $document.Body.IndexOf('начинай', [System.StringComparison]::OrdinalIgnoreCase)
             if ($workPosition -ge 0 -and $createPosition -gt $workPosition) { Add-Issue "${relative}: реализация разрешена до plan preflight." }
         }
@@ -177,6 +313,35 @@ function Test-PromptContracts {
             Add-Issue "${relative}: plan_policy none содержит прямую команду предметного изменения."
         }
     }
+}
+
+if (-not [string]::IsNullOrWhiteSpace($MethodPlanRef)) {
+    $normalizedMethodPlanRef = $MethodPlanRef.Replace('\', '/')
+    if ($normalizedMethodPlanRef -cnotmatch '^plans/\d{4}-\d{2}-\d{2}-[a-z0-9][a-z0-9-]*\.md$') {
+        Add-Issue 'MethodPlanRef должен быть переносимым путем Plan v2.'
+    }
+    else {
+        $methodPlanPath = [System.IO.Path]::GetFullPath((Join-Path $rootPath $normalizedMethodPlanRef))
+        try {
+            $methodPlan = Read-ModelProjectPlanDocument -Path $methodPlanPath -Root $rootPath
+            if (-not $methodPlan.Data.Contains('plan_contract_version') -or [string]$methodPlan.Data.plan_contract_version -cne '2') {
+                Add-Issue "$normalizedMethodPlanRef`: method gate поддерживает только Plan v2."
+            }
+            else {
+                $methodPlanStatus = if ($methodPlan.Data.Contains('status')) { [string]$methodPlan.Data.status } else { '' }
+                Test-MethodSelection -Document $methodPlan -Status $methodPlanStatus
+            }
+        }
+        catch { Add-Issue "$normalizedMethodPlanRef`: method selection не читается." }
+    }
+    Test-CanonicalMethodKnowledge
+    if ($issues.Count -gt 0) {
+        Write-Host "FAIL: Plan method selection problems - $($issues.Count)." -ForegroundColor Red
+        $issues | Sort-Object -Unique | ForEach-Object { Write-Host "- $_" }
+        exit 1
+    }
+    Write-Host 'PASS: Plan Local Mastery selection корректен.'
+    exit 0
 }
 
 $manifestPath = Join-Path $rootPath '.template-manifest.json'
@@ -210,6 +375,7 @@ foreach ($key in $activeByTask.Keys) {
 
 Test-PromptContracts
 try { [void](Update-ModelProjectPlanIndex -Root $rootPath -Mode Check) } catch { Add-Issue $_.Exception.Message }
+Test-CanonicalMethodKnowledge
 
 if ($issues.Count -gt 0) {
     Write-Host "FAIL: Plan contract problems - $($issues.Count)." -ForegroundColor Red
@@ -217,6 +383,6 @@ if ($issues.Count -gt 0) {
     exit 1
 }
 
-if ($Report) { Write-Host 'REPORT: Plan v2 schema, active uniqueness, prompt contracts and deterministic index checked.' }
+if ($Report) { Write-Host 'REPORT: Plan v2 schema, Local Mastery selection, active uniqueness, prompt contracts and deterministic index checked.' }
 Write-Host 'PASS: Plan v2 contract корректен.'
 exit 0

@@ -22,12 +22,24 @@ review_due: YYYY-MM-DD
 
 # STK-0001 - Название
 
-## Роль и интерес
+## Роль, контекст и интерес
 
-## Влияние и полномочия
+## Влияние, полномочия и decision rights
 
-## Потребности, боли и критерии успеха
+## Потребности, боли, outcomes и критерии успеха
+
+Отделяй подтвержденные statements от интерпретаций аналитика. Не изобретай KPI, baseline или target.
+
+## Engagement: канал, формат, cadence и ограничения
+
+## Elicitation statements, confirmation status и evidence
+
+Для каждого существенного statement укажи способ получения, confirmation status, source/evidence ref и дату. Отсутствие подтверждения остается limitation.
 
 ## Конфликты и неизвестное
 
-## Связи и доказательства
+## Связи: CAP, BP, RULE, BR и source refs
+
+## Validation REV, limitations и follow-up
+
+Stakeholder confirmation относится к validation. Requirements verification и approval оформляются отдельно по [общему контракту](../../../analysis/CONTRACT.md).

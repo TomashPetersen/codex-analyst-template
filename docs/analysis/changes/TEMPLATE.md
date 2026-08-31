@@ -22,12 +22,26 @@ review_due: YYYY-MM-DD
 
 # CR-0001 - Название
 
-## Change, reason и source
+## Change request, reason, source и decision owner
 
-## Affected refs
+## Scope, non-goals и affected refs
 
 ## Before и after semantics
 
-## Impact: requirements, models, tests, data, integrations, security, privacy и operations
+## Traceability delta: STK/CAP/BP/RULE/BR, requirements, models, AC, SPEC и REV
 
-## Migration, rollback, approval и review
+## Impact: tests, data, integrations, security, privacy и operations
+
+## Conflicts, dependencies, assumptions и residual risk
+
+## Verification plan и factual verification evidence
+
+Не записывай план или AC как факт выполнения; завершенные checks ссылаются через `verification_refs`.
+
+## Stakeholder validation и review refs
+
+## Migration, rollback и recovery
+
+## Approval authority и follow-up
+
+Review verdict и validation не заменяют `approval_ref`; implementation work требует отдельного Plan/authority workflow.

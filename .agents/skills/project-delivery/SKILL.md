@@ -12,10 +12,11 @@ description: Выполняет значимые функции, bugfix, арх�
 1. Прочитай `AGENTS.md`, `PROJECT.md`, корневой `INDEX.md`, `plans/README.md` и `plans/INDEX.md`.
 2. Зафиксируй read-only Git snapshot по knowledge closeout contract. Не меняй index.
 3. Определи `plan_policy` активного prompt.
-4. Для `required` выбери стабильный lowercase `task_key` и вызови `scripts/new-plan.ps1`. Команда обязана вернуть ровно один existing или created plan.
-5. Для `existing` используй только переданный `<PLAN_REF>`. Не ищи замену и не создавай новый plan.
-6. Полностью прочитай plan, проверь schema и покажи пользователю точные `plan_id` и `plan_ref`.
-7. Переведи `planned` или возобновляемый `blocked` plan в `in-progress` через `scripts/set-plan-status.ps1`. Только после зеленого plan gate начинай предметные изменения.
+4. Для `existing` сначала полностью прочитай только переданный `<PLAN_REF>` и `Resume checkpoint`. Используй intent и local method из раздела `Метод выполнения`; не выбирай новый метод до чтения plan. Если сохраненный выбор больше не проходит gate, осознанно обнови plan до предметной работы или верни blocked outcome.
+5. Для `required` выбери стабильный lowercase `task_key` и вызови `scripts/new-plan.ps1`. Команда обязана вернуть ровно один existing или created plan.
+6. При `PLAN_ACTION=existing` сначала полностью прочитай возвращенный plan и `Resume checkpoint`, сохрани его method selection либо осознанно измени после gate. Только при `PLAN_ACTION=created` выбери intent из `mastery/INTENTS.json`, прочитай `mastery/local/INDEX.md`, рассмотри максимум один релевантный local method и открой его `Use when` и `Do not use when`. Допустим только `active`, непросроченный method с совпадающим `applies_to`; иначе используй `none`. Knowledge graph не подтверждает applicability или срок метода. Если применимый method есть, но выбран `none`, кратко объясни отказ в `Связанных решениях` plan. До перехода в `in-progress` запиши выбор в раздел `Метод выполнения`.
+7. Полностью прочитай plan, проверь schema и покажи пользователю точные `plan_id` и `plan_ref`.
+8. Переведи `planned` или возобновляемый `blocked` plan в `in-progress` через `scripts/set-plan-status.ps1`. Только после зеленого plan gate начинай предметные изменения.
 
 Если одинаковый `task_key` имеет несколько active plans, точный plan не найден или pre-task snapshot отсутствует, остановись с безопасным `blocked` outcome.
 

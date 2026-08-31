@@ -50,6 +50,42 @@ function Set-CheckpointLine {
     return [regex]::Replace($Content, $pattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($match) $replacement }, 1)
 }
 
+function Assert-ClosedMethodSelection {
+    param([string]$Body, [switch]$AllowPending)
+    $selection = [regex]::Match(
+        $Body,
+        '(?ms)^## Метод выполнения[ \t]*\r?\n\s*- Intent ID: (?<intent>[^\r\n]+)\r?\n- Local method ID: (?<method>[^\r\n]+)\r?\n- Local method ref: (?<ref>[^\r\n]+)\s*(?=^## |\z)'
+    )
+    if (-not $selection.Success) {
+        throw 'Active transition требует закрытый раздел Метод выполнения.'
+    }
+    $intentId = $selection.Groups['intent'].Value.Trim()
+    $methodId = $selection.Groups['method'].Value.Trim()
+    $methodRef = $selection.Groups['ref'].Value.Trim()
+    if ($intentId -ceq 'pending') {
+        if ($AllowPending -and $methodId -ceq 'none' -and $methodRef -ceq 'none') { return }
+        throw 'Active transition требует закрытый раздел Метод выполнения.'
+    }
+    if ($intentId -cnotmatch '^[a-z0-9](?:[a-z0-9-]{0,126}[a-z0-9])?$') {
+        throw 'Intent ID в разделе Метод выполнения имеет недопустимый формат.'
+    }
+    if (($methodId -ceq 'none') -xor ($methodRef -ceq 'none')) {
+        throw 'Local method ID и ref должны быть одновременно none.'
+    }
+    if ($methodId -cne 'none' -and
+        ($methodId -cnotmatch '^[a-z0-9](?:[a-z0-9._-]{0,126}[a-z0-9])?$' -or $methodRef -cne "mastery/local/$methodId.md")) {
+        throw 'Local method ID и ref не образуют точную переносимую пару.'
+    }
+}
+
+function Assert-MethodSelectionGate {
+    param([string]$RootPath, [string]$NormalizedRef)
+    $pwshPath = Get-ModelProjectPowerShellHost -ControlledRoots @($RootPath)
+    $verifyScript = Join-Path $PSScriptRoot 'verify-plans.ps1'
+    $null = @(& $pwshPath -NoProfile -File $verifyScript -Root $RootPath -MethodPlanRef $NormalizedRef 2>&1)
+    if ($LASTEXITCODE -ne 0) { throw 'Plan Local Mastery selection не прошел gate.' }
+}
+
 try {
     $rootPath = Get-ModelProjectPlanRoot -Root $Root
     Assert-SafeSingleLine -Value $PlanRef -Label 'PlanRef' -MaxLength 220
@@ -87,6 +123,12 @@ try {
     }
     if (-not $allowed.ContainsKey($oldStatus) -or $Status -cnotin $allowed[$oldStatus]) {
         throw "Недопустимый переход Plan v2: $oldStatus -> $Status."
+    }
+    if ($Status -cin @('in-progress', 'blocked', 'complete')) {
+        Assert-ClosedMethodSelection -Body $document.Body -AllowPending:($Status -ceq 'blocked')
+    }
+    if ($Status -cin @('in-progress', 'complete')) {
+        Assert-MethodSelectionGate -RootPath $rootPath -NormalizedRef $normalizedRef
     }
 
     $content = $document.Content

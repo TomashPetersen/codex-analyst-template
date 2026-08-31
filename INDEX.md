@@ -33,8 +33,8 @@
 - [`.agents/skills/project-delivery/SKILL.md`](.agents/skills/project-delivery/SKILL.md) - реализация через сохраняемый Plan v2.
 - [`.agents/skills/knowledge-curator/SKILL.md`](.agents/skills/knowledge-curator/SKILL.md) - closeout, candidates и разрешенный promotion.
 - [`.agents/skills/startup-researcher/SKILL.md`](.agents/skills/startup-researcher/SKILL.md) - доказательное исследование.
-- [`.agents/skills/it-analysis/SKILL.md`](.agents/skills/it-analysis/SKILL.md) - бизнес- и системный анализ с traceability и review.
-- [`.codex/config.toml`](.codex/config.toml) - лимит и пять project-scoped read-only ролей из `.codex/agents/`.
+- [`.agents/skills/it-analysis/SKILL.md`](.agents/skills/it-analysis/SKILL.md) - бизнес-, системный и solution-анализ с traceability и review.
+- [`.codex/config.toml`](.codex/config.toml) - лимит трех specialist threads и единственный optional remote Context7 MCP; пять read-only ролей находятся в `.codex/agents/`.
 - [`scripts/README.md`](scripts/README.md) - инициализация, generators и gates.
 
 ## Минимальные маршруты
@@ -42,6 +42,8 @@
 | Задача | Начать с |
 |---|---|
 | Понять проект | `PROJECT.md` |
+| Найти связанные знания в generated project | `scripts/update-knowledge-graph.ps1 -Mode Report`, затем `knowledge/graph/INDEX.md` и точные owner artifacts |
+| Оценить impact развития template source | `TEMPLATE.md`, `.template-manifest.json`, scripts и точные source owners |
 | Продолжить значимую работу | `plans/INDEX.md`, затем active plan и Resume checkpoint |
 | Запланировать реализацию | `prompts/plan-and-deliver.md` и `$project-delivery` |
 | Заполнить профиль | `prompts/ai-clone-interview.md` |
