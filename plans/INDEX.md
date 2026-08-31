@@ -12,12 +12,13 @@
 
 | Plan ID | Task key | Текущая фаза | Обновлено | План |
 |---|---|---|---|---|
-| PLAN-20260831-active-learning-v1-1-release | active-learning-v1-1-release | P3 | 2026-08-31T18:57:25Z | [План: Активное обучение, GitHub prompts и выпуск 1.1.0](2026-08-31-active-learning-v1-1-release.md) |
+| Пока нет | - | - | - | - |
 
 ## Сделано
 
 | Plan ID | Task key | Текущая фаза | Обновлено | План |
 |---|---|---|---|---|
+| PLAN-20260831-active-learning-v1-1-release | active-learning-v1-1-release | - | 2026-08-31T20:44:21Z | [План: Активное обучение, GitHub prompts и выпуск 1.1.0](2026-08-31-active-learning-v1-1-release.md) |
 | PLAN-20260820-codex-analyst-template-v1 | codex-analyst-template-v1 | - | 2026-08-22T06:52:50Z | [План: Codex Analyst Template v1.0.0](2026-08-20-codex-analyst-template-v1.md) |
 | PLAN-20260831-context7-config-layer-recovery | context7-config-layer-recovery | - | 2026-08-31T05:38:31Z | [План: Восстановление загрузки проекта при конфликте Context7 config layers](2026-08-31-context7-config-layer-recovery.md) |
 | PLAN-20260830-context7-mcp-template | context7-mcp-template | - | 2026-08-30T17:18:02Z | [План: Context7 MCP в разворачиваемом шаблоне](2026-08-30-context7-mcp-template.md) |

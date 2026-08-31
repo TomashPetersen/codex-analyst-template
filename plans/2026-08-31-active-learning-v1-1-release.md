@@ -4,15 +4,34 @@ plan_contract_version: 2
 plan_id: PLAN-20260831-active-learning-v1-1-release
 task_key: active-learning-v1-1-release
 prompt_ref: prompts/plan-and-deliver.md
-status: in-progress
-current_phase: P3
-updated_at: 2026-08-31T18:57:25Z
-completed_at: null
-closeout_status: pending
-knowledge_outcome: null
+status: complete
+current_phase: null
+updated_at: 2026-08-31T20:44:21Z
+completed_at: 2026-08-31T20:40:36Z
+closeout_status: complete
+knowledge_outcome: none
 candidate_ids: []
-result_refs: []
-affected_canon: []
+result_refs:
+  - README.md
+  - AGENTS.md
+  - .agents/skills/project-delivery/SKILL.md
+  - .codex/config.toml
+  - TEMPLATE-CHANGELOG.md
+  - scripts/build-github-template.ps1
+  - scripts/verify-plans.ps1
+  - retrospectives/2026-09-01_00-35_codex-analyst-template-v1-1-0.md
+affected_canon:
+  - .agents/skills/project-delivery/SKILL.md
+  - .codex/config.toml
+  - .github/workflows/template-integrity.yml
+  - .template-manifest.json
+  - AGENTS.md
+  - INDEX.md
+  - README.md
+  - TEMPLATE.md
+  - TEMPLATE-CHANGELOG.md
+  - scripts/build-github-template.ps1
+  - scripts/verify-plans.ps1
 blocked_reason: null
 ---
 
@@ -94,7 +113,7 @@ Deliverable: согласованные skill, Plan body contract/verifier/tests
 - [x] Добавить условный graph route в `AGENTS.md` и `INDEX.md`.
 - [x] Добавить два copy-ready prompts и синхронизировать release docs/version.
 
-## Фаза P3 - [WIP] Полная проверка и source publication
+## Фаза P3 - [x] Полная проверка и source publication
 
 Цель: доказать готовность совокупной версии 1.1.0 и зафиксировать ее в `source`.
 
@@ -106,10 +125,10 @@ Deliverable: зеленый полный профиль, проверенный 
 
 - [x] Выполнить focused tests, полный release profile, sanitizer, diff и privacy audit.
 - [x] Выполнить независимые review и red-team проверки фактического diff.
-- [ ] Поименно staged paths, создать обычный source commit и push без force.
-- [ ] Дождаться зеленого GitHub Actions для source commit.
+- [x] Поименно staged paths, создать обычный source commit и push без force.
+- [x] Дождаться зеленого GitHub Actions для source commit.
 
-## Фаза P4 - [ ] Tag, consumer main и public smoke
+## Фаза P4 - [x] Tag, consumer main и public smoke
 
 Цель: опубликовать воспроизводимый consumer только из проверенного source tag.
 
@@ -119,11 +138,11 @@ Deliverable: immutable `v1.1.0`, обновленный consumer `main` и fresh
 
 Задачи:
 
-- [ ] Создать и отправить annotated tag `v1.1.0` на проверенный source commit.
-- [ ] Собрать consumer trusted builder во временный exact destination и проверить inventory.
-- [ ] Создать consumer commit, push `main` без force и выполнить public URL-first smoke.
+- [x] Создать и отправить annotated tag `v1.1.0` на проверенный source commit.
+- [x] Собрать consumer trusted builder во временный exact destination и проверить inventory.
+- [x] Создать consumer commit, push `main` без force и выполнить public URL-first smoke.
 
-## Фаза P5 - [ ] Closeout
+## Фаза P5 - [x] Closeout
 
 Цель: терминально закрыть tracked plan и оставить воспроизводимое release state.
 
@@ -133,16 +152,17 @@ Deliverable: knowledge outcome, complete plan, финальные gates и sourc
 
 Задачи:
 
-- [ ] Применить `knowledge-curator` к фактической delta.
-- [ ] Закрыть plan, пересобрать derived indexes и повторить terminal gates.
-- [ ] Создать и отправить source closeout commit, подтвердить local/remote state.
+- [x] Применить `knowledge-curator` к фактической delta.
+- [x] Закрыть plan, пересобрать derived indexes и повторить terminal gates.
+- [x] Создать и отправить source closeout commit, подтвердить local/remote state.
 
 ## Проверки
 
-- Focused: `scripts/test-plan-lifecycle.ps1`, `scripts/verify-plans.ps1`, `scripts/update-knowledge-graph.ps1 -Mode Check`.
-- Полный профиль из `TEMPLATE.md`, включая analysis, agents, mastery, knowledge, consumer boundary, bootstrap, distribution и sanitizer.
-- `git diff --check`, staged inventory, secret/PII/source-only leakage audit.
-- Hosted GitHub Actions source matrix и fresh public `main` URL-first bootstrap.
+- Полный локальный профиль из `TEMPLATE.md`, skill validators, privacy, sanitizer, Plan, knowledge, consumer, bootstrap и distribution harness 17 - PASS.
+- Hosted GitHub Actions run `33428255350` для source commit `26afe81` - completed successfully после увеличения только job timeout до 90 минут.
+- Remote refs - PASS: `source` и peeled annotated tag `v1.1.0` указывают на `26afe81`; consumer `main` указывает на `ee2844a`.
+- Fresh public `main` - PASS: DistributionTemplate 144, Consumer sanitizer, URL-first GeneratedProject 146, branch `main`, remotes 0, commits 0.
+- Terminal Plan, knowledge, graph, structure, inventory и diff gates выполняются перед source closeout commit; failure блокирует push.
 
 ## Связанные решения
 
@@ -150,19 +170,19 @@ Deliverable: knowledge outcome, complete plan, финальные gates и sourc
 
 ## Resume checkpoint
 
-- Текущая фаза: P3
-- Уже выполнено: Release commit bf8703f отправлен fast-forward в source. Hosted run 33419990968: macOS PASS за 57m19s; Windows отменен только job timeout 60m после 1h0m15s. CI timeout увеличен до 90m без изменения gates.
-- Последние успешные проверки: Source local profile PASS; distribution checks=17; security review no blockers; exact staging 37 paths; credential audit PASS; source push bf8703f; macOS hosted PASS; Windows tests не сообщили failure до timeout.
-- Точные рабочие paths: .github/workflows/template-integrity.yml; plans/2026-08-31-active-learning-v1-1-release.md; plans/INDEX.md.
-- Git checkpoint: v1:8dab1e9fdf1f3ca40291b46211065ecc1b4aab53328e4002b5739029d54f4b20
-- Следующее действие: Проверить one-line CI diff, создать corrective source commit, push без force и дождаться зеленого Windows/macOS rerun.
-- Блокеры: нет: timeout cause подтвержден публичными job pages
-- Обновлено: 2026-08-31T18:57:25Z
+- Текущая фаза: нет - план завершен
+- Уже выполнено: P1-P5 завершены: active-learning contract, bounded graph routes, GitHub prompts и Context7 bundle опубликованы; source `26afe81`, annotated `v1.1.0`, consumer main `ee2844a` и fresh URL-first smoke подтверждены.
+- Последние успешные проверки: Local full profile PASS; distribution 17; security no blockers; hosted run 33428255350 success; remote refs PASS; public DistributionTemplate, sanitizer и GeneratedProject PASS.
+- Точные рабочие paths: plans/2026-08-31-active-learning-v1-1-release.md; plans/INDEX.md; retrospectives/2026-09-01_00-35_codex-analyst-template-v1-1-0.md; .template-manifest.json; TEMPLATE.md.
+- Git checkpoint: v1:7d078df2208eca938be12d3c9cb931f352ebb014987006468c20a89c924d878f
+- Следующее действие: нет - plan terminal; follow-up требует новый plan_id
+- Блокеры: нет
+- Обновлено: 2026-08-31T20:44:21Z
 
 ## Итог
 
-- Реализовано целиком:
-- Что осталось: P1-P5.
-- Коммиты: пока нет.
+- Реализовано целиком: активный Local Mastery retrieval в delivery, Plan traceability, bounded graph routes, короткие GitHub prompts, Context7 contract, hardened trusted builder и выпуск 1.1.0.
+- Что осталось: только обычное сопровождение через новый Plan v2; в этом plan незакрытых release-действий нет.
+- Коммиты: source release `26afe81`; annotated tag object `853051d` с peeled `26afe81`; consumer main `ee2844a`; terminal plan и retrospective закрепляются source closeout commit.
 
 Перед `complete` закрой criteria и фазы, заполни проверки, итог, `result_refs`, closeout и финальный knowledge outcome. Не дублируй остальные machine fields в body.
