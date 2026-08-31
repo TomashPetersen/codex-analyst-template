@@ -31,6 +31,8 @@ blocked_reason: null
 - Внешняя память, MCP, plugins, connectors, automations, secrets и модели не преднастраиваются.
 - Consumer строится exact allowlist-ом. Source-only история, заполненные data zones и release operations в payload не входят.
 
+Уточнение от 2026-08-30: запрет преднастроенного MCP сужен отдельным [решением Context7](2026-08-30-context7-mcp-template.md). Разрешена только описанная там optional remote Context7-конфигурация; запрет всех остальных MCP, credentials и обязательных tool calls сохраняется.
+
 ## Рассмотренные альтернативы
 
 - Копирование целого рабочего продукта отклонено из-за предметного канона, истории и риска чувствительных следов.

@@ -17,6 +17,7 @@ $expectedAgentNames = @(
     'requirements_analyst',
     'system_analyst'
 )
+$expectedCodexConfig = "[agents]`nenabled = true`nmax_concurrent_threads_per_session = 3`ninterrupt_message = true`n`n[mcp_servers.codex_analyst_context7]`nurl = `"https://mcp.context7.com/mcp`"`nenabled = true`nrequired = false`nenabled_tools = [`"resolve-library-id`", `"query-docs`"]`n"
 
 function Get-CodexAgentRoot {
     param([string]$CandidateRoot)
@@ -136,6 +137,80 @@ function Test-ItAnalysisSkillUi {
     }
 }
 
+function Test-UnauthorizedMcpConfigSurfaces {
+    param(
+        [Parameter(Mandatory = $true)][string]$RepositoryRoot,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][System.Collections.Generic.List[string]]$Issues
+    )
+
+    $configRootNames = @('.codex', '.continue', '.cursor', '.vscode', '.windsurf')
+    $namedSurfacePattern = '^\.?mcp(?:[-_.](?:config|settings))?\.(?:json|toml|ya?ml)$'
+
+    $manifestPath = Join-Path $RepositoryRoot '.template-manifest.json'
+    if (Test-Path -LiteralPath $manifestPath -PathType Leaf) {
+        try {
+            $manifest = (Read-StrictText -Path $manifestPath) | ConvertFrom-Json -ErrorAction Stop
+            foreach ($declared in @($manifest.portable_files) + @($manifest.source_only_paths)) {
+                $relative = ([string]$declared).Replace('\', '/')
+                if ($relative -ceq '.codex/config.toml') { continue }
+                if ([System.IO.Path]::GetFileName($relative).ToLowerInvariant() -match $namedSurfacePattern) {
+                    $Issues.Add('unauthorized-mcp-config-surface') | Out-Null
+                    return
+                }
+            }
+        }
+        catch {
+            $Issues.Add('invalid-mcp-config-inventory') | Out-Null
+            return
+        }
+    }
+
+    foreach ($rootFile in @(Get-ChildItem -LiteralPath $RepositoryRoot -File -Force -ErrorAction Stop)) {
+        if ($rootFile.Name.ToLowerInvariant() -match $namedSurfacePattern) {
+            $Issues.Add('unauthorized-mcp-config-surface') | Out-Null
+            return
+        }
+    }
+
+    foreach ($configRootName in $configRootNames) {
+        $configRoot = Join-Path $RepositoryRoot $configRootName
+        if (-not (Test-Path -LiteralPath $configRoot -PathType Container)) { continue }
+        if ($null -ne (Get-ReparsePointInChain -Path $configRoot)) {
+            $Issues.Add('unauthorized-mcp-config-surface') | Out-Null
+            return
+        }
+        $files = @(Get-ChildItem -LiteralPath $configRoot -File -Recurse -Force -ErrorAction Stop | Select-Object -First 65)
+        if ($files.Count -gt 64) {
+            $Issues.Add('unauthorized-mcp-config-surface') | Out-Null
+            return
+        }
+        foreach ($file in $files) {
+            $relative = [System.IO.Path]::GetRelativePath($RepositoryRoot, $file.FullName).Replace('\', '/')
+            if ($relative -ceq '.codex/config.toml') { continue }
+            $leaf = $file.Name.ToLowerInvariant()
+            if ($leaf -match $namedSurfacePattern -or
+                $file.Length -gt 32768 -or
+                $null -ne (Get-ReparsePointInChain -Path $file.FullName)) {
+                $Issues.Add('unauthorized-mcp-config-surface') | Out-Null
+                return
+            }
+            if ([System.IO.Path]::GetExtension($leaf) -in @('.json', '.toml', '.yaml', '.yml')) {
+                try {
+                    $candidateText = Read-StrictText -Path $file.FullName
+                    if ($candidateText -match '(?i)\b(?:mcpServers|mcp_servers|context7)\b') {
+                        $Issues.Add('unauthorized-mcp-config-surface') | Out-Null
+                        return
+                    }
+                }
+                catch {
+                    $Issues.Add('unauthorized-mcp-config-surface') | Out-Null
+                    return
+                }
+            }
+        }
+    }
+}
+
 function Invoke-CodexAgentVerification {
     param([Parameter(Mandatory = $true)][string]$RepositoryRoot)
 
@@ -151,11 +226,11 @@ function Invoke-CodexAgentVerification {
     if (-not (Test-Path -LiteralPath $configPath -PathType Leaf) -or -not (Test-Path -LiteralPath $agentsRoot -PathType Container)) {
         return [pscustomobject]@{ Issues = @($issues); AgentCount = 0 }
     }
+    Test-UnauthorizedMcpConfigSurfaces -RepositoryRoot $RepositoryRoot -Issues $issues
 
-    $expectedConfig = "[agents]`nenabled = true`nmax_concurrent_threads_per_session = 3`ninterrupt_message = true`n"
     try {
         $actualConfig = Read-StrictText -Path $configPath
-        if (($actualConfig.TrimEnd("`n") + "`n") -cne $expectedConfig) { $issues.Add('invalid-codex-config') | Out-Null }
+        if (($actualConfig.TrimEnd("`n") + "`n") -cne $expectedCodexConfig) { $issues.Add('invalid-codex-config') | Out-Null }
     }
     catch { $issues.Add($_.Exception.Message) | Out-Null }
 
@@ -232,10 +307,63 @@ function Invoke-SelfTest {
 
         $configPath = Join-Path $baseFull '.codex/config.toml'
         $originalConfig = [System.IO.File]::ReadAllText($configPath, $utf8NoBom)
-        [System.IO.File]::WriteAllText($configPath, $originalConfig.Replace(' = 3', ' = 4'), $utf8NoBom)
+        $fixtureConfig = $originalConfig.Replace("`r`n", "`n").TrimEnd("`n") + "`n"
+        function Assert-InvalidConfigFixture {
+            param(
+                [Parameter(Mandatory = $true)][string]$Name,
+                [Parameter(Mandatory = $true)][string]$Content
+            )
+
+            [System.IO.File]::WriteAllText($configPath, $Content, $utf8NoBom)
+            if ((Invoke-CodexAgentVerification -RepositoryRoot $baseFull).Issues -notcontains 'invalid-codex-config') {
+                throw "${Name}-fixture-failed"
+            }
+            [System.IO.File]::WriteAllText($configPath, $originalConfig, $utf8NoBom)
+            $passed.Add("negative-$Name") | Out-Null
+        }
+
+        [System.IO.File]::WriteAllText($configPath, $fixtureConfig.Replace(' = 3', ' = 4'), $utf8NoBom)
         if ((Invoke-CodexAgentVerification -RepositoryRoot $baseFull).Issues -notcontains 'invalid-codex-config') { throw 'concurrency-fixture-failed' }
         [System.IO.File]::WriteAllText($configPath, $originalConfig, $utf8NoBom)
         $passed.Add('negative-concurrency') | Out-Null
+
+        $agentsOnlyConfig = "[agents]`nenabled = true`nmax_concurrent_threads_per_session = 3`ninterrupt_message = true`n"
+        Assert-InvalidConfigFixture -Name 'missing-context7' -Content $agentsOnlyConfig
+        Assert-InvalidConfigFixture -Name 'unscoped-context7-id' -Content $fixtureConfig.Replace('[mcp_servers.codex_analyst_context7]', '[mcp_servers.context7]')
+        Assert-InvalidConfigFixture -Name 'duplicate-context7' -Content ($fixtureConfig.TrimEnd() + "`n`n" + $fixtureConfig.Substring($fixtureConfig.IndexOf('[mcp_servers.codex_analyst_context7]', [System.StringComparison]::Ordinal)))
+        Assert-InvalidConfigFixture -Name 'other-mcp' -Content $fixtureConfig.Replace('[mcp_servers.codex_analyst_context7]', '[mcp_servers.other]')
+        Assert-InvalidConfigFixture -Name 'context7-url-drift' -Content $fixtureConfig.Replace('https://mcp.context7.com/mcp', 'https://example.invalid/mcp')
+        Assert-InvalidConfigFixture -Name 'context7-disabled' -Content $fixtureConfig.Replace("[mcp_servers.codex_analyst_context7]`nurl = `"https://mcp.context7.com/mcp`"`nenabled = true", "[mcp_servers.codex_analyst_context7]`nurl = `"https://mcp.context7.com/mcp`"`nenabled = false")
+        Assert-InvalidConfigFixture -Name 'context7-required' -Content $fixtureConfig.Replace('required = false', 'required = true')
+        Assert-InvalidConfigFixture -Name 'context7-command' -Content $fixtureConfig.Replace("[mcp_servers.codex_analyst_context7]`n", "[mcp_servers.codex_analyst_context7]`ncommand = `"context7`"`n")
+        Assert-InvalidConfigFixture -Name 'context7-args' -Content $fixtureConfig.Replace("[mcp_servers.codex_analyst_context7]`n", "[mcp_servers.codex_analyst_context7]`nargs = [`"--transport`", `"stdio`"]`n")
+        Assert-InvalidConfigFixture -Name 'context7-env' -Content $fixtureConfig.Replace("[mcp_servers.codex_analyst_context7]`n", "[mcp_servers.codex_analyst_context7]`nenv = { CONTEXT7_MODE = `"fixture`" }`n")
+        Assert-InvalidConfigFixture -Name 'context7-env-vars' -Content $fixtureConfig.Replace("[mcp_servers.codex_analyst_context7]`n", "[mcp_servers.codex_analyst_context7]`nenv_vars = [`"CONTEXT7_KEY`"]`n")
+        Assert-InvalidConfigFixture -Name 'context7-http-headers' -Content $fixtureConfig.Replace("[mcp_servers.codex_analyst_context7]`n", "[mcp_servers.codex_analyst_context7]`nhttp_headers = { `"X-Fixture`" = `"forbidden`" }`n")
+        Assert-InvalidConfigFixture -Name 'context7-env-http-headers' -Content $fixtureConfig.Replace("[mcp_servers.codex_analyst_context7]`n", "[mcp_servers.codex_analyst_context7]`nenv_http_headers = { `"X-Context7-Key`" = `"CONTEXT7_KEY`" }`n")
+        Assert-InvalidConfigFixture -Name 'context7-bearer-token' -Content $fixtureConfig.Replace("[mcp_servers.codex_analyst_context7]`n", "[mcp_servers.codex_analyst_context7]`nbearer_token_env_var = `"CONTEXT7_TOKEN`"`n")
+        Assert-InvalidConfigFixture -Name 'context7-oauth' -Content $fixtureConfig.Replace("[mcp_servers.codex_analyst_context7]`n", "[mcp_servers.codex_analyst_context7]`noauth = true`n")
+        Assert-InvalidConfigFixture -Name 'context7-scopes' -Content $fixtureConfig.Replace("[mcp_servers.codex_analyst_context7]`n", "[mcp_servers.codex_analyst_context7]`nscopes = [`"mcp:read`"]`n")
+        Assert-InvalidConfigFixture -Name 'context7-tool-expansion' -Content $fixtureConfig.Replace('["resolve-library-id", "query-docs"]', '["resolve-library-id", "query-docs", "extra-tool"]')
+
+        $mcpSurfacePath = Join-Path $baseFull '.mcp.json'
+        [System.IO.File]::WriteAllText($mcpSurfacePath, '{}', $utf8NoBom)
+        if ((Invoke-CodexAgentVerification -RepositoryRoot $baseFull).Issues -notcontains 'unauthorized-mcp-config-surface') {
+            throw 'unauthorized-mcp-config-surface-fixture-failed'
+        }
+        Remove-Item -LiteralPath $mcpSurfacePath -Force
+        $passed.Add('negative-unauthorized-mcp-config-surface') | Out-Null
+
+        $vscodeRoot = Join-Path $baseFull '.vscode'
+        [System.IO.Directory]::CreateDirectory($vscodeRoot) | Out-Null
+        $vscodeSettingsPath = Join-Path $vscodeRoot 'settings.json'
+        [System.IO.File]::WriteAllText($vscodeSettingsPath, '{"mcpServers":{}}', $utf8NoBom)
+        if ((Invoke-CodexAgentVerification -RepositoryRoot $baseFull).Issues -notcontains 'unauthorized-mcp-config-surface') {
+            throw 'unauthorized-vscode-mcp-config-surface-fixture-failed'
+        }
+        Remove-Item -LiteralPath $vscodeSettingsPath -Force
+        Remove-Item -LiteralPath $vscodeRoot -Force
+        $passed.Add('negative-unauthorized-vscode-mcp-config-surface') | Out-Null
 
         [System.IO.File]::WriteAllText((Join-Path $baseFull '.codex/agents/extra.toml'), 'name = "extra"', $utf8NoBom)
         if ((Invoke-CodexAgentVerification -RepositoryRoot $baseFull).Issues -notcontains 'agent-inventory-mismatch') { throw 'inventory-fixture-failed' }
@@ -271,6 +399,8 @@ if ($verification.Issues.Count -gt 0) {
     $verification.Issues | ForEach-Object { Write-Host "- $_" }
     exit 1
 }
-if ($Report) { Write-Host "REPORT: $($verification.AgentCount) read-only project agents; concurrency cap 3." }
+if ($Report) {
+    Write-Host "REPORT: $($verification.AgentCount) read-only project agents; concurrency cap 3; portable project config has one optional remote Context7 MCP with tools resolve-library-id, query-docs and no credentials or stdio dependency; effective user/system layers are not inspected."
+}
 Write-Host 'PASS: Codex agent contract корректен.'
 exit 0

@@ -2,7 +2,18 @@
 
 ## OpenAI and Codex
 
-The template documents workflows for Codex and links to official OpenAI documentation. OpenAI, ChatGPT and Codex are trademarks of their respective owner. No OpenAI software, service credentials or MCP server is redistributed by this repository.
+The template documents workflows for Codex and links to official OpenAI documentation. OpenAI, ChatGPT and Codex are trademarks of their respective owner. No OpenAI software or service credentials are redistributed by this repository.
+
+## Context7 remote service configuration
+
+The template includes project-scoped configuration pointing to the public Context7 MCP endpoint `https://mcp.context7.com/mcp`. It does not redistribute the Context7 server, client package, API key, access token or other credentials. Context7 and Upstash names and services remain the property of their respective owners.
+
+- Configuration verified: `2026-08-30`
+- Official client setup: https://github.com/upstash/context7/blob/master/docs/resources/all-clients.mdx
+- Configured tools: `resolve-library-id`, `query-docs`
+- Authentication: none stored; anonymous service limits and availability are controlled by the provider
+
+After a project is trusted, the Codex client may contact Context7 for initialize and tool discovery before an actual documentation query. This can expose ordinary network/client metadata and receive provider-controlled server instructions, tool descriptions and schemas. A tool call additionally sends the technical query. All provider metadata, instructions, schemas and outputs are treated as untrusted external source data and remain subject to the provider's then-current terms, privacy practices and rate limits. The template does not make a successful Context7 response a mandatory runtime dependency.
 
 ## Named research methods
 

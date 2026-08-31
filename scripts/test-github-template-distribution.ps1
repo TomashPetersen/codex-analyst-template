@@ -17,6 +17,7 @@ $newRepositoryUrl = 'https://github.com/example/new-product'
 $sourceTag = $null
 $passes = [System.Collections.Generic.List[string]]::new()
 $savedGitEnvironment = @{}
+$expectedCodexConfig = "[agents]`nenabled = true`nmax_concurrent_threads_per_session = 3`ninterrupt_message = true`n`n[mcp_servers.codex_analyst_context7]`nurl = `"https://mcp.context7.com/mcp`"`nenabled = true`nrequired = false`nenabled_tools = [`"resolve-library-id`", `"query-docs`"]`n"
 
 function Assert-TemporaryRoot {
     param([Parameter(Mandatory = $true)][string]$Path)
@@ -75,6 +76,28 @@ function Copy-TreeExact {
     }
 }
 
+function Assert-ExactContext7Config {
+    param(
+        [Parameter(Mandatory = $true)][string]$CandidateRoot,
+        [Parameter(Mandatory = $true)][string]$Label,
+        [string]$ExpectedHash = ''
+    )
+
+    $path = Join-Path $CandidateRoot '.codex/config.toml'
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        throw "$Label не содержит .codex/config.toml."
+    }
+    $text = [System.IO.File]::ReadAllText($path).Replace("`r`n", "`n")
+    if (($text.TrimEnd("`n") + "`n") -cne $expectedCodexConfig) {
+        throw "$Label содержит неразрешенную Context7 MCP configuration."
+    }
+    $hash = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()
+    if (-not [string]::IsNullOrWhiteSpace($ExpectedHash) -and $hash -cne $ExpectedHash) {
+        throw "$Label получил неидентичную .codex/config.toml."
+    }
+    return $hash
+}
+
 function Get-GitExecutable {
     $command = Get-Command -Name 'git.exe' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($null -eq $command) {
@@ -107,7 +130,7 @@ function Invoke-Git {
     return @($output)
 }
 
-function Invoke-ScriptProcess {
+function Start-ScriptProcess {
     param(
         [Parameter(Mandatory = $true)][string]$ScriptPath,
         [Parameter(Mandatory = $true)][string[]]$Arguments
@@ -126,18 +149,43 @@ function Invoke-ScriptProcess {
     $process.StartInfo = $startInfo
     try {
         if (-not $process.Start()) { throw 'Не удалось запустить child PowerShell.' }
-        $stdoutTask = $process.StandardOutput.ReadToEndAsync()
-        $stderrTask = $process.StandardError.ReadToEndAsync()
+        return [pscustomobject]@{
+            Process = $process
+            StdoutTask = $process.StandardOutput.ReadToEndAsync()
+            StderrTask = $process.StandardError.ReadToEndAsync()
+        }
+    }
+    catch {
+        $process.Dispose()
+        throw
+    }
+}
+
+function Complete-ScriptProcess {
+    param([Parameter(Mandatory = $true)][object]$ActiveProcess)
+
+    $process = $ActiveProcess.Process
+    try {
         $process.WaitForExit()
         return [pscustomobject]@{
             ExitCode = $process.ExitCode
-            Stdout = $stdoutTask.GetAwaiter().GetResult()
-            Stderr = $stderrTask.GetAwaiter().GetResult()
+            Stdout = $ActiveProcess.StdoutTask.GetAwaiter().GetResult()
+            Stderr = $ActiveProcess.StderrTask.GetAwaiter().GetResult()
         }
     }
     finally {
         $process.Dispose()
     }
+}
+
+function Invoke-ScriptProcess {
+    param(
+        [Parameter(Mandatory = $true)][string]$ScriptPath,
+        [Parameter(Mandatory = $true)][string[]]$Arguments
+    )
+
+    $activeProcess = Start-ScriptProcess -ScriptPath $ScriptPath -Arguments $Arguments
+    return Complete-ScriptProcess -ActiveProcess $activeProcess
 }
 
 function Add-Pass {
@@ -242,6 +290,11 @@ try {
     if ($manifest.template_version -isnot [string] -or [string]$manifest.template_version -cnotmatch '^\d+\.\d+\.\d+$') {
         throw 'Harness manifest template_version не является release SemVer.'
     }
+    if (@($manifest.portable_files | Where-Object { [string]$_ -ceq '.codex/config.toml' }).Count -ne 1 -or
+        @($manifest.source_only_paths | Where-Object { [string]$_ -ceq '.codex/config.toml' }).Count -ne 0) {
+        throw 'Manifest должен переносить .codex/config.toml ровно один раз.'
+    }
+    $sourceConfigHash = Assert-ExactContext7Config -CandidateRoot $repositoryRoot -Label 'Template source'
     $sourceTag = 'v' + [string]$manifest.template_version
     $sourceRoot = Join-Path $temporaryRoot 'source'
     New-Item -ItemType Directory -Path $sourceRoot | Out-Null
@@ -252,9 +305,25 @@ try {
     foreach ($relativeDirectory in @($manifest.portable_empty_directories)) {
         New-Item -ItemType Directory -Path (Join-Path $sourceRoot ([string]$relativeDirectory)) -Force | Out-Null
     }
+    $null = Assert-ExactContext7Config -CandidateRoot $sourceRoot -Label 'Tagged source fixture' -ExpectedHash $sourceConfigHash
     Initialize-FixtureRepository -Root $sourceRoot -Branch 'source'
     Invoke-Git -Root $sourceRoot -Arguments @('remote', 'add', 'origin', $templateUrl) | Out-Null
     Invoke-Git -Root $sourceRoot -Arguments @('tag', $sourceTag) | Out-Null
+    $taggedSourceCommitLines = @(Invoke-Git -Root $sourceRoot -Arguments @('rev-parse', 'HEAD'))
+    $taggedSourceCommit = [string]$taggedSourceCommitLines[0]
+    $taggedReadmeHash = (Get-FileHash -LiteralPath (Join-Path $sourceRoot 'README.md') -Algorithm SHA256).Hash.ToLowerInvariant()
+    Invoke-Git -Root $sourceRoot -Arguments @('checkout', '--quiet', '-b', 'replacement-object-fixture') | Out-Null
+    [System.IO.File]::AppendAllText(
+        (Join-Path $sourceRoot 'README.md'),
+        "`nReplacement object fixture must never reach payload.`n",
+        $utf8NoBom
+    )
+    Invoke-Git -Root $sourceRoot -Arguments @('add', '--', 'README.md') | Out-Null
+    Invoke-Git -Root $sourceRoot -Arguments @('commit', '--quiet', '-m', 'replacement object fixture') | Out-Null
+    $replacementCommitLines = @(Invoke-Git -Root $sourceRoot -Arguments @('rev-parse', 'HEAD'))
+    $replacementCommit = [string]$replacementCommitLines[0]
+    Invoke-Git -Root $sourceRoot -Arguments @('checkout', '--quiet', 'source') | Out-Null
+    Invoke-Git -Root $sourceRoot -Arguments @('replace', '--force', $taggedSourceCommit, $replacementCommit) | Out-Null
 
     $payloadRoot = Join-Path $temporaryRoot 'payload'
     $builderResult = Invoke-ScriptProcess -ScriptPath (Join-Path $sourceRoot 'scripts\build-github-template.ps1') -Arguments @(
@@ -265,12 +334,118 @@ try {
     if ($builderResult.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $payloadRoot -PathType Container)) {
         throw 'Happy-path consumer build failed.'
     }
-    Add-Pass 'exact tagged source builds DistributionTemplate payload'
+    $payloadReadmeHash = (Get-FileHash -LiteralPath (Join-Path $payloadRoot 'README.md') -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($payloadReadmeHash -cne $taggedReadmeHash) {
+        throw 'Replacement object affected exact tagged payload provenance.'
+    }
+    Invoke-Git -Root $sourceRoot -Arguments @('replace', '--delete', $taggedSourceCommit) | Out-Null
+    $null = Assert-ExactContext7Config -CandidateRoot $payloadRoot -Label 'Distribution payload' -ExpectedHash $sourceConfigHash
+    Add-Pass 'exact raw tagged source builds DistributionTemplate payload'
+
+    $concurrentDriftTarget = Join-Path $temporaryRoot 'concurrent-drift-build'
+    $primaryReadmePath = Join-Path $sourceRoot 'README.md'
+    $primaryReadmeBytes = [System.IO.File]::ReadAllBytes($primaryReadmePath)
+    $activeDriftBuild = Start-ScriptProcess -ScriptPath (Join-Path $sourceRoot 'scripts\build-github-template.ps1') -Arguments @(
+        '-Destination', $concurrentDriftTarget,
+        '-SourceTag', $sourceTag,
+        '-TemplateRepositoryUrl', $templateUrl
+    )
+    $driftBuildResult = $null
+    $mutationApplied = $false
+    try {
+        $snapshotDeadline = [DateTime]::UtcNow.AddSeconds(30)
+        while ([DateTime]::UtcNow -lt $snapshotDeadline) {
+            $snapshotMarkers = @(Get-ChildItem -LiteralPath $temporaryRoot -Directory -Force | Where-Object {
+                $_.Name -cmatch '^\.codex-github-template-snapshot-[0-9a-f]{32}$'
+            })
+            if ($snapshotMarkers.Count -eq 1) {
+                [System.IO.File]::AppendAllText($primaryReadmePath, "`nConcurrent source drift fixture.`n", $utf8NoBom)
+                $mutationApplied = $true
+                break
+            }
+            if ($activeDriftBuild.Process.HasExited) { break }
+            Start-Sleep -Milliseconds 10
+        }
+        if (-not $mutationApplied) {
+            $driftBuildResult = Complete-ScriptProcess -ActiveProcess $activeDriftBuild
+            $activeDriftBuild = $null
+            throw "Concurrent drift fixture did not observe snapshot marker: exit=$($driftBuildResult.ExitCode)"
+        }
+        $driftBuildResult = Complete-ScriptProcess -ActiveProcess $activeDriftBuild
+        $activeDriftBuild = $null
+    }
+    finally {
+        [System.IO.File]::WriteAllBytes($primaryReadmePath, $primaryReadmeBytes)
+        if ($null -ne $activeDriftBuild) {
+            if (-not $activeDriftBuild.Process.HasExited) { $activeDriftBuild.Process.Kill($true) }
+            $null = Complete-ScriptProcess -ActiveProcess $activeDriftBuild
+        }
+    }
+    $temporaryBuildArtifacts = @(Get-ChildItem -LiteralPath $temporaryRoot -Directory -Force | Where-Object {
+        $_.Name -cmatch '^\.codex-github-template(?:-snapshot)?-[0-9a-f]{32}$'
+    })
+    $driftDiagnostic = $driftBuildResult.Stdout + "`n" + $driftBuildResult.Stderr
+    if ($driftBuildResult.ExitCode -eq 0 -or (Test-Path -LiteralPath $concurrentDriftTarget) -or
+        $temporaryBuildArtifacts.Count -ne 0 -or
+        -not $driftDiagnostic.Contains('Source HEAD, tag или worktree изменились во время build.')) {
+        throw 'Concurrent primary source drift was not rejected with exact temporary cleanup.'
+    }
+    Add-Pass 'concurrent primary source drift is rejected after snapshot without destination'
+
+    $mutatingIndexerSource = Join-Path $temporaryRoot 'mutating-indexer-source'
+    New-Item -ItemType Directory -Path $mutatingIndexerSource | Out-Null
+    foreach ($relativePath in ($contractPaths | Sort-Object -Unique)) {
+        Copy-FileExact -SourceRoot $repositoryRoot -DestinationRoot $mutatingIndexerSource -RelativePath ([string]$relativePath)
+    }
+    foreach ($relativeDirectory in @($manifest.portable_empty_directories)) {
+        New-Item -ItemType Directory -Path (Join-Path $mutatingIndexerSource ([string]$relativeDirectory)) -Force | Out-Null
+    }
+    $mutatingPlanIndexer = Join-Path $mutatingIndexerSource 'scripts/update-plan-index.ps1'
+    $indexerText = [System.IO.File]::ReadAllText($mutatingPlanIndexer).Replace("`r`n", "`n")
+    $indexerAnchor = '$ErrorActionPreference = ''Stop'''
+    if ([regex]::Matches($indexerText, [regex]::Escape($indexerAnchor)).Count -ne 1) {
+        throw 'Mutating indexer fixture не нашел exact injection anchor.'
+    }
+    $indexerInjection = @(
+        $indexerAnchor,
+        '',
+        'if ($Mode -ceq ''Write'') {',
+        '    $fixtureEncoding = [System.Text.UTF8Encoding]::new($false)',
+        '    [System.IO.File]::AppendAllText((Join-Path $Root ''README.md''), "`nIndexer staging mutation fixture.`n", $fixtureEncoding)',
+        '}'
+    ) -join "`n"
+    [System.IO.File]::WriteAllText(
+        $mutatingPlanIndexer,
+        $indexerText.Replace($indexerAnchor, $indexerInjection),
+        $utf8NoBom
+    )
+    Initialize-FixtureRepository -Root $mutatingIndexerSource -Branch 'source'
+    Invoke-Git -Root $mutatingIndexerSource -Arguments @('remote', 'add', 'origin', $templateUrl) | Out-Null
+    Invoke-Git -Root $mutatingIndexerSource -Arguments @('tag', $sourceTag) | Out-Null
+    $mutatingIndexerTarget = Join-Path $temporaryRoot 'mutating-indexer-build'
+    $mutatingIndexerBuild = Invoke-ScriptProcess `
+        -ScriptPath (Join-Path $mutatingIndexerSource 'scripts\build-github-template.ps1') `
+        -Arguments @(
+            '-Destination', $mutatingIndexerTarget,
+            '-SourceTag', $sourceTag,
+            '-TemplateRepositoryUrl', $templateUrl
+        )
+    $mutatingBuildArtifacts = @(Get-ChildItem -LiteralPath $temporaryRoot -Directory -Force | Where-Object {
+        $_.Name -cmatch '^\.codex-github-template(?:-snapshot)?-[0-9a-f]{32}$'
+    })
+    $mutatingIndexerDiagnostic = $mutatingIndexerBuild.Stdout + "`n" + $mutatingIndexerBuild.Stderr
+    if ($mutatingIndexerBuild.ExitCode -eq 0 -or (Test-Path -LiteralPath $mutatingIndexerTarget) -or
+        $mutatingBuildArtifacts.Count -ne 0 -or
+        -not $mutatingIndexerDiagnostic.Contains('Manifest file не совпадает с blob tagged source commit: README.md')) {
+        throw 'Tagged indexer staging mutation was not rejected with exact temporary cleanup.'
+    }
+    Add-Pass 'tagged indexer cannot mutate non-derived staging payload'
 
     $roundtripSource = New-ConsumerFixture -Name 'git-roundtrip-source'
     $roundtripClone = Join-Path $temporaryRoot 'git-roundtrip-clone'
     & $gitExe -c "core.hooksPath=$nullDevice" clone --quiet --no-local $roundtripSource $roundtripClone
     if ($LASTEXITCODE -ne 0) { throw 'Git roundtrip clone failed.' }
+    $null = Assert-ExactContext7Config -CandidateRoot $roundtripClone -Label 'Git roundtrip clone' -ExpectedHash $sourceConfigHash
     $roundtripVerify = Invoke-ScriptProcess `
         -ScriptPath (Join-Path $roundtripClone 'scripts\verify-structure.ps1') `
         -Arguments @('-Root', $roundtripClone, '-Mode', 'DistributionTemplate')
@@ -362,10 +537,12 @@ try {
     Add-Pass 'ignored untracked manifest file is rejected without destination'
 
     $happyRoot = New-ConsumerFixture -Name 'happy'
+    $null = Assert-ExactContext7Config -CandidateRoot $happyRoot -Label 'GitHub Template consumer' -ExpectedHash $sourceConfigHash
     $headBefore = (Invoke-Git -Root $happyRoot -Arguments @('rev-parse', 'HEAD'))[0]
     $remoteBefore = (Invoke-Git -Root $happyRoot -Arguments @('remote', 'get-url', 'origin'))[0]
     $happyResult = Invoke-Initializer -Root $happyRoot
     if ($happyResult.ExitCode -ne 0) { throw 'GitHub-style initializer happy path failed.' }
+    $null = Assert-ExactContext7Config -CandidateRoot $happyRoot -Label 'Initialized GitHub Template consumer' -ExpectedHash $sourceConfigHash
     $headAfter = (Invoke-Git -Root $happyRoot -Arguments @('rev-parse', 'HEAD'))[0]
     $remoteAfter = (Invoke-Git -Root $happyRoot -Arguments @('remote', 'get-url', 'origin'))[0]
     $commitCount = (Invoke-Git -Root $happyRoot -Arguments @('rev-list', '--count', 'HEAD'))[0]
@@ -377,6 +554,7 @@ try {
     }
     $generatedReadme = [System.IO.File]::ReadAllText((Join-Path $happyRoot 'README.md'))
     if (-not $generatedReadme.Contains('## Первый рабочий цикл') -or
+        -not $generatedReadme.Contains('Работай с текущим локальным проектом, созданным из Codex Analyst Template.') -or
         $generatedReadme.Contains('## Как владельцу выпустить GitHub Template') -or
         $generatedReadme.Contains('build-github-template.ps1')) {
         throw 'Generated README не соответствует usage-only contract.'
@@ -404,6 +582,12 @@ try {
     Invoke-Git -Root $driftRoot -Arguments @('add', '--', 'README.md') | Out-Null
     Invoke-Git -Root $driftRoot -Arguments @('commit', '--quiet', '-m', 'tamper payload') | Out-Null
     Assert-RejectedWithoutTreeMutation -Name 'descriptor payload drift is rejected' -Root $driftRoot
+
+    $context7DriftRoot = New-ConsumerFixture -Name 'context7-config-drift'
+    [System.IO.File]::AppendAllText((Join-Path $context7DriftRoot '.codex/config.toml'), "`n[mcp_servers.other]`nenabled = true`n", $utf8NoBom)
+    Invoke-Git -Root $context7DriftRoot -Arguments @('add', '--', '.codex/config.toml') | Out-Null
+    Invoke-Git -Root $context7DriftRoot -Arguments @('commit', '--quiet', '-m', 'tamper Context7 contract') | Out-Null
+    Assert-RejectedWithoutTreeMutation -Name 'Context7 descriptor drift is rejected' -Root $context7DriftRoot
 
     Write-Host "PASS: GitHub Template distribution harness завершен, checks=$($passes.Count)."
 }

@@ -12,7 +12,7 @@
 - `new-analysis-run.ps1` - атомарно создает exact eight-file analysis run в допустимом generated mode.
 - `verify-analysis.ps1` - проверяет run lifecycle, formal artifact namespace, method refs, attachments, Mermaid, traceability и safety; поддерживает `-Report` и `-SelfTest`.
 - `test-it-analysis-semantics.ps1` - source-only offline runner проверяет normalized JSON fixtures и независимые forward-test results по IDs, refs, relations и verdicts без model, network или MCP calls.
-- `verify-codex-agents.ps1` - статически проверяет точный TOML-контракт пяти read-only ролей и лимит трех specialist threads.
+- `verify-codex-agents.ps1` - offline статически проверяет точный TOML-контракт пяти read-only ролей, лимит трех specialist threads и единственный remote Context7 MCP с закрытым tool allowlist, без credentials или stdio dependency.
 - `verify-template-sanitization.ps1` - блокирует project-specific traces, PII, credentials и абсолютные пользовательские пути в source или consumer payload.
 - `verify-knowledge.ps1` - проверяет project modes, candidates, RAW, evidence, mastery и root reachability; поддерживает `-Report` и `-SelfTest`.
 - `update-knowledge-graph.ps1` - детерминированно строит или проверяет tracked `knowledge/graph/INDEX.md`; поддерживает `-Mode Check | Write | Report | SelfTest`.
@@ -20,13 +20,13 @@
 - `update-plan-index.ps1` - детерминированно строит или проверяет `plans/INDEX.md`.
 - `verify-structure.ps1` - проверяет manifest, reserved roots, Markdown-ссылки, anchors, регистр и пути, затем вызывает trusted graph, mastery, core canon, formal-analysis, Codex agents, plans и knowledge gates.
 
-Source-only `build-github-template.ps1` строит consumer payload из exact clean source tag/commit, сверяет declared repository с GitHub identity `origin`, требует обычный tracked index state всех manifest-файлов, заполняет `TEMPLATE-DISTRIBUTION.json` и проверяет `DistributionTemplate`. Source-only `test-github-template-distribution.ps1` воспроизводит happy path и negative trust fixtures во временных Git repositories. Оба скрипта не входят в generated project.
+Source-only `build-github-template.ps1` строит consumer payload из detached snapshot exact clean source tag/commit, игнорирует replacement refs, сверяет declared repository с GitHub identity `origin`, требует обычный tracked index state всех manifest-файлов и перед atomic publish повторно подтверждает provenance portable payload. Затем он заполняет `TEMPLATE-DISTRIBUTION.json` и проверяет `DistributionTemplate`. Source-only `test-github-template-distribution.ps1` воспроизводит happy path, byte-identical Context7 config и negative trust fixtures во временных Git repositories. Оба скрипта не входят в generated project и не вызывают MCP или сеть.
 
 Source-only `test-mastery-v2.ps1` создает fresh generated project и проверяет preview без мутаций, direct authority, apply, data-driven intents, stale registry и SHA-точный rollback. Расширенный `test-knowledge-mastery.ps1` сохраняет baseline, supersedes, overdue и research-use regressions.
 
 Source-only `test-it-analysis-semantics.ps1` хранит eval corpus вне consumer payload. Его normalized projection допускает pre-materialization intake без canonical subject только для exact closed reasons `missing-evaluable-subject` и `quarantined-before-materialization` при отрицательном verdict и всех закрытых guards. Это не `REV-*`, не canonical handoff и не ослабление обязательных `subject_refs` в analysis contract. Consumer получает усиленные methods и run assets, но не frozen semantic fixtures.
 
-Source-only `test-platform.ps1` и `test-cross-platform-bootstrap.ps1` проверяют Windows/macOS semantics, local copy и GitHub-style initialization. Consumer-boundary test дополнительно проверяет URL-first distribution copy -> independent generated project. Workflow `.github/workflows/template-integrity.yml` запускает ключевые gates на `windows-latest` и `macos-latest` и не входит в consumer payload.
+Source-only `test-platform.ps1` и `test-cross-platform-bootstrap.ps1` проверяют Windows/macOS semantics, local copy, GitHub-style initialization и byte-identical `.codex/config.toml`. Consumer-boundary test дополнительно проверяет URL-first distribution copy -> independent generated project с тем же exact Context7 contract. Эти проверки offline и не вызывают MCP или сеть. Workflow `.github/workflows/template-integrity.yml` запускает ключевые gates на `windows-latest` и `macos-latest` и не входит в consumer payload.
 
 ## Portable manifest
 

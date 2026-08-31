@@ -12,7 +12,7 @@
 - отдельная локальная папка с generated-project + initialized + report-only;
 - уникальный project ID;
 - независимый Git main без remote и без commit;
-- formal-analysis, четыре project-local skills и пять read-only Codex roles;
+- formal-analysis, четыре project-local skills, пять read-only Codex roles и exact optional Context7 MCP config;
 - зеленые structure, analysis, agents, plans, canon и knowledge gates.
 
 Параметры по умолчанию:
@@ -26,9 +26,9 @@
 
 Ограничения:
 1. Принимай только публичный HTTPS URL вида https://github.com/<OWNER>/<REPOSITORY> без credentials, query и fragment.
-2. Поддерживаемая среда: Windows 10/11 или macOS, PowerShell 7, Git 2.28+ и локальная filesystem. Linux не входит в v1.
+2. Поддерживаемая среда: Windows 10/11 или macOS, PowerShell 7, Git 2.28+, Codex client с project-scoped Streamable HTTP MCP и `enabled_tools`, локальная filesystem. Официальный минимальный номер Codex не заявлен: несовместимый parser/runtime является блокером, а не основанием удалить allowlist. Linux не входит в v1.
 3. Не объединяй шаблон с существующей папкой и не создавай final destination до завершения trust gates.
-4. Не читай .env и secrets, не устанавливай MCP, plugins, connectors, models или дополнительные dependencies.
+4. Не читай .env и secrets, не устанавливай дополнительные MCP, plugins, connectors, models или dependencies. Встроенную exact Context7-конфигурацию только скопируй и проверь как часть portable payload; не вызывай MCP во время установки.
 5. Не выполняй git add, commit, push, tag, GitHub write, remote mutation или branch deletion.
 6. Не инициализируй canonical clone на месте. Он является временным read-only источником.
 7. Installation workflow не требует Plan v2.
@@ -78,6 +78,7 @@
     - TEMPLATE-ORIGIN.md, TEMPLATE-LICENSE.md и TEMPLATE-THIRD-PARTY-NOTICES.md существуют;
     - root LICENSE отсутствует, лицензия продукта не выбрана;
     - source-only paths отсутствуют;
+    - portable `.codex/config.toml` содержит только optional remote Context7 с official URL, `required = false` и allowlist `resolve-library-id`, `query-docs`, без auth, headers, stdio command или иных MCP; user/system config layers находятся вне этой гарантии;
     - commit, tag и push не выполнялись.
 11. Удали только точный TEMP_CLONE, созданный этой установкой, после проверки его абсолютного пути. Final project не удаляй.
 12. Верни краткий итог: абсолютный путь, project ID, template version, режим, gates и следующий шаг - заполнить PROJECT.md, затем выполнить один bounded analysis run.

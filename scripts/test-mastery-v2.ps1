@@ -151,6 +151,56 @@ function Invoke-RepositoryScript {
     return $result
 }
 
+function Set-FixtureRegexReplacement {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$Pattern,
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string]$Replacement
+    )
+    $content = [System.IO.File]::ReadAllText($Path)
+    $matches = [regex]::Matches($content, $Pattern)
+    if ($matches.Count -ne 1) {
+        throw "Fixture mutation должна найти ровно одно совпадение: $Pattern"
+    }
+    $replacementValue = $Replacement
+    $updated = [regex]::Replace(
+        $content,
+        $Pattern,
+        [System.Text.RegularExpressions.MatchEvaluator]{ param($match) $replacementValue },
+        1
+    )
+    Write-FixtureText -Path $Path -Content $updated
+}
+
+function Assert-TargetedMethodGatePass {
+    param([Parameter(Mandatory = $true)][string]$PlanRef)
+    [void](Invoke-RepositoryScript -RelativePath 'scripts/verify-plans.ps1' -Arguments @(
+        '-Root', $fixtureRoot,
+        '-MethodPlanRef', $PlanRef
+    ) -StdoutPatterns @('(?m)^PASS: Plan Local Mastery selection '))
+}
+
+function Assert-FixtureExactText {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string]$Expected
+    )
+    if ([System.IO.File]::ReadAllText($Path) -cne $Expected) {
+        throw "Fixture не восстановлен exact bytes: $Path"
+    }
+}
+
+function Assert-TargetedMethodGateRejects {
+    param([Parameter(Mandatory = $true)][string]$PlanRef)
+    [void](Invoke-RepositoryScript -RelativePath 'scripts/verify-plans.ps1' -Arguments @(
+        '-Root', $fixtureRoot,
+        '-MethodPlanRef', $PlanRef
+    ) -ExpectedExitCode 1 -StdoutPatterns @(
+        'FAIL: Plan method selection problems',
+        'canonical knowledge gate'
+    ))
+}
+
 try {
     if (-not $fixtureRoot.StartsWith($tempBase + [System.IO.Path]::DirectorySeparatorChar, $tempComparison) -or
         [System.IO.Path]::GetFileName($fixtureRoot) -cnotmatch '^model-project-mastery-v2-[a-f0-9]{32}$') {
@@ -213,6 +263,183 @@ try {
         if ($methodText -cnotmatch $pattern) { throw "Method artifact не содержит pattern: $pattern" }
     }
 
+    $validCandidateText = $candidateText
+    $newPlan = Invoke-RepositoryScript -RelativePath 'scripts/new-plan.ps1' -Arguments @(
+        '-Root', $fixtureRoot,
+        '-TaskKey', 'mastery-plan-integration',
+        '-Title', 'Mastery Plan integration fixture'
+    ) -StdoutPatterns @(
+        '(?m)^PLAN_ID=PLAN-\d{8}-mastery-plan-integration\r?$',
+        '(?m)^PLAN_REF=plans/\d{4}-\d{2}-\d{2}-mastery-plan-integration\.md\r?$',
+        '(?m)^PLAN_ACTION=created\r?$'
+    )
+    $planRefMatch = [regex]::Match(
+        [string]$newPlan.Stdout,
+        '(?m)^PLAN_REF=(?<ref>plans/\d{4}-\d{2}-\d{2}-mastery-plan-integration\.md)\r?$'
+    )
+    if (-not $planRefMatch.Success) { throw 'new-plan не вернул portable PLAN_REF.' }
+    $planRef = $planRefMatch.Groups['ref'].Value
+    $planPath = Join-Path $fixtureRoot $planRef
+    Set-FixtureRegexReplacement -Path $planPath `
+        -Pattern '(?ms)^## Метод выполнения\r?\n\r?\n- Intent ID: pending\r?\n- Local method ID: none\r?\n- Local method ref: none' `
+        -Replacement "## Метод выполнения`n`n- Intent ID: planning`n- Local method ID: phase-review-checklist`n- Local method ref: mastery/local/phase-review-checklist.md"
+    foreach ($checkpoint in @(
+        [pscustomobject]@{ Label = 'Текущая фаза'; Value = 'plan preflight' },
+        [pscustomobject]@{ Label = 'Уже выполнено'; Value = 'Local Mastery method создан и выбран.' },
+        [pscustomobject]@{ Label = 'Последние успешные проверки'; Value = 'new-mastery применил candidate и обновил registry.' },
+        [pscustomobject]@{ Label = 'Точные рабочие paths'; Value = 'mastery/local/phase-review-checklist.md; knowledge candidate; этот plan.' },
+        [pscustomobject]@{ Label = 'Следующее действие'; Value = 'Перевести plan в in-progress.' },
+        [pscustomobject]@{ Label = 'Блокеры'; Value = 'нет' }
+    )) {
+        Set-FixtureRegexReplacement -Path $planPath `
+            -Pattern ('(?m)^- ' + [regex]::Escape($checkpoint.Label) + ':[^\r\n]*') `
+            -Replacement ('- ' + $checkpoint.Label + ': ' + $checkpoint.Value)
+    }
+    [void](Invoke-RepositoryScript -RelativePath 'scripts/set-plan-status.ps1' -Arguments @(
+        '-Root', $fixtureRoot,
+        '-PlanRef', $planRef,
+        '-Status', 'in-progress',
+        '-CurrentPhase', 'P1'
+    ) -StdoutPatterns @(
+        '(?m)^PLAN_STATUS=in-progress\r?$',
+        '(?m)^PLAN_ACTION=updated\r?$'
+    ))
+    Assert-TargetedMethodGatePass -PlanRef $planRef
+    [void](Invoke-RepositoryScript -RelativePath 'scripts/verify-plans.ps1' -Arguments @('-Root', $fixtureRoot))
+    $validInProgressPlanText = [System.IO.File]::ReadAllText($planPath)
+
+    Set-FixtureRegexReplacement -Path $candidatePath `
+        -Pattern '(?m)^authority_ref:[^\r\n]*' `
+        -Replacement "authority_ref: 'not valid'"
+    Assert-TargetedMethodGateRejects -PlanRef $planRef
+    Write-FixtureText -Path $candidatePath -Content $validCandidateText
+    Assert-FixtureExactText -Path $candidatePath -Expected $validCandidateText
+
+    Set-FixtureRegexReplacement -Path $candidatePath `
+        -Pattern '(?m)^source_refs:\r?\n  - [^\r\n]+\r?\n' `
+        -Replacement "source_refs: []`n"
+    Assert-TargetedMethodGateRejects -PlanRef $planRef
+    Write-FixtureText -Path $candidatePath -Content $validCandidateText
+    Assert-FixtureExactText -Path $candidatePath -Expected $validCandidateText
+
+    Set-FixtureRegexReplacement -Path $candidatePath `
+        -Pattern '(?m)^state: applied\r?\n' `
+        -Replacement "state: applied`nfixture_unknown_field: true`n"
+    Assert-TargetedMethodGateRejects -PlanRef $planRef
+    Write-FixtureText -Path $candidatePath -Content $validCandidateText
+    Assert-FixtureExactText -Path $candidatePath -Expected $validCandidateText
+
+    Set-FixtureRegexReplacement -Path $candidatePath `
+        -Pattern '(?m)^applied_at:[^\r\n]*' `
+        -Replacement "applied_at: '2000-01-01T00:00:00+00:00'"
+    Assert-TargetedMethodGateRejects -PlanRef $planRef
+    Write-FixtureText -Path $candidatePath -Content $validCandidateText
+    Assert-FixtureExactText -Path $candidatePath -Expected $validCandidateText
+
+    Set-FixtureRegexReplacement -Path $planPath `
+        -Pattern '(?m)^closeout_status: pending$' `
+        -Replacement 'closeout_status: complete'
+    Set-FixtureRegexReplacement -Path $planPath `
+        -Pattern '(?m)^knowledge_outcome: null$' `
+        -Replacement 'knowledge_outcome: none'
+    Set-FixtureRegexReplacement -Path $planPath `
+        -Pattern '(?m)^result_refs: \[\]$' `
+        -Replacement "result_refs:`n  - mastery/local/phase-review-checklist.md"
+    Set-FixtureRegexReplacement -Path $planPath `
+        -Pattern '(?m)^(## Фаза P1 - )\[WIP\]' `
+        -Replacement '## Фаза P1 - [x]'
+    Set-FixtureRegexReplacement -Path $planPath `
+        -Pattern '(?m)^- \[ \]' `
+        -Replacement '- [x]'
+    Set-FixtureRegexReplacement -Path $planPath `
+        -Pattern '(?ms)^## Проверки\r?\n\r?\n(?=## Связанные решения)' `
+        -Replacement "## Проверки`n`n- Complete preconditions подготовлены до negative method gate.`n`n"
+    Set-FixtureRegexReplacement -Path $planPath `
+        -Pattern '(?m)^- Реализовано целиком:[^\r\n]*' `
+        -Replacement '- Реализовано целиком: Plan method integration fixture.'
+    Set-FixtureRegexReplacement -Path $planPath `
+        -Pattern '(?m)^- Что осталось:[^\r\n]*' `
+        -Replacement '- Что осталось: нет.'
+    Set-FixtureRegexReplacement -Path $planPath `
+        -Pattern '(?m)^- Коммиты:[^\r\n]*' `
+        -Replacement '- Коммиты: не требуются.'
+    $completeReadyPlanText = [System.IO.File]::ReadAllText($planPath)
+    if ($completeReadyPlanText -match '(?m)^## Фаза P[1-9][0-9]* - \[(?: |WIP)\]' -or
+        $completeReadyPlanText -match '(?m)^\s*- \[ \]' -or
+        $completeReadyPlanText -cnotmatch '(?m)^closeout_status: complete$' -or
+        $completeReadyPlanText -cnotmatch '(?m)^knowledge_outcome: none$' -or
+        $completeReadyPlanText -cnotmatch '(?m)^  - mastery/local/phase-review-checklist\.md$') {
+        throw 'Complete-negative plan не подготовлен к terminal transition.'
+    }
+    Set-FixtureRegexReplacement -Path $candidatePath `
+        -Pattern '(?m)^authority_ref:[^\r\n]*' `
+        -Replacement "authority_ref: 'not valid'"
+    [void](Invoke-RepositoryScript -RelativePath 'scripts/set-plan-status.ps1' -Arguments @(
+        '-Root', $fixtureRoot,
+        '-PlanRef', $planRef,
+        '-Status', 'complete'
+    ) -ExpectedExitCode 1 -StderrPatterns @('Plan Local Mastery selection'))
+    if ([System.IO.File]::ReadAllText($planPath) -cne $completeReadyPlanText) {
+        throw 'Failed in-progress -> complete transition изменила plan.'
+    }
+    Write-FixtureText -Path $candidatePath -Content $validCandidateText
+    Write-FixtureText -Path $planPath -Content $validInProgressPlanText
+    Assert-FixtureExactText -Path $candidatePath -Expected $validCandidateText
+    Assert-FixtureExactText -Path $planPath -Expected $validInProgressPlanText
+    Assert-TargetedMethodGatePass -PlanRef $planRef
+
+    $rollbackCandidateId = New-MethodCandidate -ClaimId 'rollback-checklist' -Title 'Rollback checklist'
+    $rollbackCandidatePath = @(Get-ChildItem -LiteralPath (Join-Path $fixtureRoot 'knowledge/candidates') -Recurse -File -Filter "$rollbackCandidateId.md")[0].FullName
+    [void](Invoke-RepositoryScript -RelativePath 'scripts/update-knowledge-graph.ps1' -Arguments @(
+        '-Root', $fixtureRoot,
+        '-Mode', 'Write'
+    ))
+    $validRollbackCandidateText = [System.IO.File]::ReadAllText($rollbackCandidatePath)
+    Set-FixtureRegexReplacement -Path $rollbackCandidatePath `
+        -Pattern '(?m)^state: ready[^\r\n]*' `
+        -Replacement 'state: applied'
+    Set-FixtureRegexReplacement -Path $rollbackCandidatePath `
+        -Pattern '(?m)^applied_at: null[^\r\n]*' `
+        -Replacement ("applied_at: '" + [DateTimeOffset]::UtcNow.ToString('yyyy-MM-ddTHH:mm:sszzz') + "'")
+    Assert-TargetedMethodGateRejects -PlanRef $planRef
+    Write-FixtureText -Path $rollbackCandidatePath -Content $validRollbackCandidateText
+    Assert-FixtureExactText -Path $rollbackCandidatePath -Expected $validRollbackCandidateText
+    Assert-TargetedMethodGatePass -PlanRef $planRef
+
+    Set-FixtureRegexReplacement -Path $candidatePath `
+        -Pattern '(?m)^authority_ref:[^\r\n]*' `
+        -Replacement "authority_ref: 'not valid'"
+    [void](Invoke-RepositoryScript -RelativePath 'scripts/set-plan-status.ps1' -Arguments @(
+        '-Root', $fixtureRoot,
+        '-PlanRef', $planRef,
+        '-Status', 'blocked',
+        '-BlockedReason', 'fixture candidate intentionally invalid'
+    ) -StdoutPatterns @(
+        '(?m)^PLAN_STATUS=blocked\r?$',
+        '(?m)^PLAN_ACTION=updated\r?$'
+    ))
+    $blockedPlanText = [System.IO.File]::ReadAllText($planPath)
+    [void](Invoke-RepositoryScript -RelativePath 'scripts/set-plan-status.ps1' -Arguments @(
+        '-Root', $fixtureRoot,
+        '-PlanRef', $planRef,
+        '-Status', 'in-progress'
+    ) -ExpectedExitCode 1 -StderrPatterns @('Plan Local Mastery selection'))
+    if ([System.IO.File]::ReadAllText($planPath) -cne $blockedPlanText) {
+        throw 'Failed blocked -> in-progress transition изменила plan.'
+    }
+    Write-FixtureText -Path $candidatePath -Content $validCandidateText
+    Assert-FixtureExactText -Path $candidatePath -Expected $validCandidateText
+    [void](Invoke-RepositoryScript -RelativePath 'scripts/set-plan-status.ps1' -Arguments @(
+        '-Root', $fixtureRoot,
+        '-PlanRef', $planRef,
+        '-Status', 'in-progress'
+    ) -StdoutPatterns @(
+        '(?m)^PLAN_STATUS=in-progress\r?$',
+        '(?m)^PLAN_ACTION=updated\r?$'
+    ))
+    Assert-TargetedMethodGatePass -PlanRef $planRef
+    [void](Invoke-RepositoryScript -RelativePath 'scripts/verify-plans.ps1' -Arguments @('-Root', $fixtureRoot))
+
     [void](Invoke-RepositoryScript -RelativePath 'scripts/verify-knowledge.ps1' -Arguments @('-Root', $fixtureRoot))
     [void](Invoke-RepositoryScript -RelativePath 'scripts/update-mastery-index.ps1' -Arguments @('-Root', $fixtureRoot, '-Mode', 'Check'))
     [void](Invoke-RepositoryScript -RelativePath 'scripts/update-knowledge-graph.ps1' -Arguments @('-Root', $fixtureRoot, '-Mode', 'Check'))
@@ -236,7 +463,6 @@ try {
         throw 'Unknown intent не был заблокирован до мутации.'
     }
 
-    $rollbackCandidateId = New-MethodCandidate -ClaimId 'rollback-checklist' -Title 'Rollback checklist'
     [void](Invoke-RepositoryScript -RelativePath 'scripts/update-knowledge-graph.ps1' -Arguments @('-Root', $fixtureRoot, '-Mode', 'Write'))
     $verifyStructurePath = Join-Path $fixtureRoot 'scripts/verify-structure.ps1'
     $verifyStructureSnapshot = [System.IO.File]::ReadAllText($verifyStructurePath)
@@ -251,7 +477,6 @@ try {
     if ($beforeRollback -cne $afterRollback) { throw 'Late apply failure не восстановил pre-apply SHA tree.' }
     $rollbackMethod = Join-Path $fixtureRoot 'mastery/local/rollback-checklist.md'
     if (Test-Path -LiteralPath $rollbackMethod) { throw 'Rollback оставил method artifact.' }
-    $rollbackCandidatePath = @(Get-ChildItem -LiteralPath (Join-Path $fixtureRoot 'knowledge/candidates') -Recurse -File -Filter "$rollbackCandidateId.md")[0].FullName
     if ([System.IO.File]::ReadAllText($rollbackCandidatePath) -cnotmatch '(?m)^state: ready\s*$') {
         throw 'Rollback не вернул candidate в ready state.'
     }
@@ -261,7 +486,7 @@ try {
     [void](Invoke-RepositoryScript -RelativePath 'scripts/update-knowledge-graph.ps1' -Arguments @('-Root', $fixtureRoot, '-Mode', 'Check'))
     [void](Invoke-RepositoryScript -RelativePath 'scripts/verify-structure.ps1' -Arguments @('-Root', $fixtureRoot, '-Mode', 'GeneratedProject'))
 
-    Write-Host 'PASS: Mastery v2 preview, authority, apply, index, intent and rollback fixtures passed.'
+    Write-Host 'PASS: Mastery v2 preview, authority, apply, Plan method gate, index, intent and rollback fixtures passed.'
 }
 finally {
     if (Test-Path -LiteralPath $fixtureRoot -PathType Container) {

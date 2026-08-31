@@ -17,6 +17,7 @@ $tempComparison = Get-ModelProjectPathComparison -Path $tempBase
 $fixtureRoot = [System.IO.Path]::GetFullPath(
     (Join-Path $tempBase ('model-project-bootstrap-' + [guid]::NewGuid().ToString('N')))
 )
+$expectedCodexConfig = "[agents]`nenabled = true`nmax_concurrent_threads_per_session = 3`ninterrupt_message = true`n`n[mcp_servers.codex_analyst_context7]`nurl = `"https://mcp.context7.com/mcp`"`nenabled = true`nrequired = false`nenabled_tools = [`"resolve-library-id`", `"query-docs`"]`n"
 
 function Invoke-CheckedProcess {
     param(
@@ -67,6 +68,28 @@ function Get-Sha256Hex {
     return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
 }
 
+function Assert-ExactContext7Config {
+    param(
+        [Parameter(Mandatory = $true)][string]$CandidateRoot,
+        [Parameter(Mandatory = $true)][string]$Label,
+        [string]$ExpectedHash = ''
+    )
+
+    $path = Join-Path $CandidateRoot '.codex/config.toml'
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        throw "$Label не содержит .codex/config.toml."
+    }
+    $text = [System.IO.File]::ReadAllText($path).Replace("`r`n", "`n")
+    if (($text.TrimEnd("`n") + "`n") -cne $expectedCodexConfig) {
+        throw "$Label содержит неразрешенную Context7 MCP configuration."
+    }
+    $hash = Get-Sha256Hex -Path $path
+    if (-not [string]::IsNullOrWhiteSpace($ExpectedHash) -and $hash -cne $ExpectedHash) {
+        throw "$Label получил неидентичную .codex/config.toml."
+    }
+    return $hash
+}
+
 try {
     if (-not $fixtureRoot.StartsWith(
             $tempBase + [System.IO.Path]::DirectorySeparatorChar,
@@ -79,6 +102,7 @@ try {
     $pwsh = Get-ModelProjectPowerShellHost -ControlledRoots @($sourceRoot, $fixtureRoot)
     $git = Get-ModelProjectGitExecutable -ControlledRoots @($sourceRoot, $fixtureRoot)
     $newProjectScript = Join-Path $sourceRoot 'scripts/new-project.ps1'
+    $sourceConfigHash = Assert-ExactContext7Config -CandidateRoot $sourceRoot -Label 'Template source'
 
     $localDestination = Join-Path $fixtureRoot 'local-project'
     $localResult = Invoke-CheckedProcess -Executable $pwsh -Arguments @(
@@ -97,10 +121,16 @@ try {
         -not (Test-Path -LiteralPath (Join-Path $localDestination '.git') -PathType Container)) {
         throw 'Local bootstrap result contract нарушен.'
     }
+    $null = Assert-ExactContext7Config -CandidateRoot $localDestination -Label 'Local bootstrap' -ExpectedHash $sourceConfigHash
 
     $manifest = Get-Content -LiteralPath (Join-Path $sourceRoot '.template-manifest.json') -Raw | ConvertFrom-Json
+    if (@($manifest.portable_files | Where-Object { [string]$_ -ceq '.codex/config.toml' }).Count -ne 1 -or
+        @($manifest.source_only_paths | Where-Object { [string]$_ -ceq '.codex/config.toml' }).Count -ne 0) {
+        throw 'Manifest должен переносить .codex/config.toml ровно один раз.'
+    }
     $githubDestination = Join-Path $fixtureRoot 'github-project'
     Copy-PortablePayload -Manifest $manifest -Destination $githubDestination
+    $null = Assert-ExactContext7Config -CandidateRoot $githubDestination -Label 'GitHub payload' -ExpectedHash $sourceConfigHash
     $githubProjectPath = Join-Path $githubDestination 'PROJECT.md'
     $githubProjectText = [System.IO.File]::ReadAllText($githubProjectPath)
     [System.IO.File]::WriteAllText(
@@ -179,6 +209,7 @@ try {
         -not (Test-Path -LiteralPath (Join-Path $githubDestination 'TEMPLATE-ORIGIN.md') -PathType Leaf)) {
         throw 'GitHub Template initialization result contract нарушен.'
     }
+    $null = Assert-ExactContext7Config -CandidateRoot $githubDestination -Label 'Initialized GitHub Template project' -ExpectedHash $sourceConfigHash
 
     $invalidWrapper = Join-Path $fixtureRoot 'invalid-input-wrapper.ps1'
     [System.IO.File]::WriteAllText(
@@ -217,7 +248,7 @@ switch ($Case) {
         }
     }
 
-    Write-Host 'PASS: local copy, GitHub Template initialization, default owner and input rejection are cross-platform.'
+    Write-Host 'PASS: local copy, GitHub Template initialization, exact Context7 config, default owner and input rejection are cross-platform.'
 }
 finally {
     if (Test-Path -LiteralPath $fixtureRoot -PathType Container) {

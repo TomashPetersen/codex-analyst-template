@@ -17,7 +17,11 @@ pwsh -NoProfile -File ./scripts/set-plan-status.ps1 `
   -Status in-progress
 ```
 
-`new-plan.ps1` безопасно возвращает существующий active plan вместо дубля. Файлы не перемещаются между status-папками.
+`new-plan.ps1` безопасно возвращает существующий active plan вместо дубля. При `PLAN_ACTION=existing` сначала прочитай plan и `Resume checkpoint`, сохрани его `Метод выполнения` либо осознанно измени выбор после gate. Только при `PLAN_ACTION=created` выбери intent из `mastery/INTENTS.json`, открой `mastery/local/INDEX.md` и заполни `Метод выполнения`: `none` либо максимум один зарегистрированный method с applied candidate, active status, непросроченным review и совпадающим intent. Файлы не перемещаются между status-папками.
+
+Новый `planned` plan может временно содержать `pending + none + none`. Для `in-progress` intent уже закрыт; ID и ref одновременно равны `none` либо образуют одну пару. Если preflight ломается до выбора intent, переход в `blocked` может сохранить exact `pending + none + none`, но общий verifier остается красным до закрытия выбора. `complete` хранит исторический выбор и не становится невалидным из-за последующей deprecation или наступления `review_due`.
+
+Переход в `blocked` сохраняет синтаксически закрытый выбор без требования live-доступности catalog, registry, method или candidate. Общий verifier продолжает показывать повреждение, а возврат в `in-progress` и переход в `complete` требуют полного method gate; для выбранного method он переиспользует canonical knowledge verifier.
 
 ## Lifecycle
 

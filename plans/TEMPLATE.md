@@ -20,6 +20,12 @@ blocked_reason: null
 
 ## Цель
 
+## Метод выполнения
+
+- Intent ID: pending
+- Local method ID: none
+- Local method ref: none
+
 ## Границы
 
 Входит:

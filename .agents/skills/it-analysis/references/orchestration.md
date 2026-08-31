@@ -16,7 +16,7 @@ Lead создает максимум три параллельных read-only s
 
 После получения findings Lead разрешает конфликты и единолично записывает `analysis.md`, requirements/models proposals и traceability. Только после Lead synthesis отдельно выполняются `analysis_reviewer` и `analysis_red_team`. Они не редактируют синтез, а возвращают независимые findings в `review.md`. Если multi-agent недоступен, Lead последовательно применяет те же инструкции и фиксирует `sequential-fallback` в run.
 
-Project-scoped TOML не задает модель, MCP, hooks или дополнительные права. Его единственная capability-настройка - `sandbox_mode = "read-only"`; лимит трех specialist threads задан в `.codex/config.toml`.
+Agent TOML не задают модель, MCP, hooks или дополнительные права; их единственная capability-настройка - `sandbox_mode = "read-only"`. Portable root `.codex/config.toml` задает лимит трех specialist threads и единственный optional remote Context7 MCP с двумя разрешенными tools. Ambient MCP может быть технически видим Lead и project roles; read-only sandbox не запрещает сеть. Наличие capability не дает authority: documentation query допустим только в bounded assignment с конкретной library/SDK/API/framework и правилами [source safety](sources-and-safety.md), иначе role не инициирует его.
 
 ## Closed routing
 
@@ -31,7 +31,7 @@ Project-scoped TOML не задает модель, MCP, hooks или допол
 
 ## Независимые gates
 
-Reviewer проверяет fitness выбранных techniques, stakeholder/source coverage, requirements verification отдельно от validation, process/decision consistency, feasibility, business alignment, полноту вариантов и solution bias. Red Team отдельно ищет скрытый выбор, fabricated evidence, missing conflict/trace/error/recovery paths, неметричные quality scenarios, угрозы на trust boundaries, owner leakage, внешнее действие и MCP dependency/configuration.
+Reviewer проверяет fitness выбранных techniques, stakeholder/source coverage, requirements verification отдельно от validation, process/decision consistency, feasibility, business alignment, полноту вариантов и solution bias. Red Team отдельно ищет скрытый выбор, fabricated evidence, missing conflict/trace/error/recovery paths, неметричные quality scenarios, угрозы на trust boundaries, owner leakage, внешнее действие, обязательную MCP-зависимость или попытку analysis run изменить project MCP configuration.
 
 ## Контракт задания
 

@@ -47,6 +47,6 @@ Red Team после синтеза ищет counterexamples, скрытые assu
 
 ## Red-team findings и counterexamples
 
-Проверь fabricated evidence, missing conflict/trace edge/error path, неметричный quality scenario, owner leakage, external action и MCP dependency/configuration.
+Проверь fabricated evidence, missing conflict/trace edge/error path, неметричный quality scenario, owner leakage, external action, обязательную MCP-зависимость или попытку run изменить project MCP configuration.
 
 ## Actions, owners и unresolved blockers

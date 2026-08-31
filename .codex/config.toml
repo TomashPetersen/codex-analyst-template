@@ -2,3 +2,9 @@
 enabled = true
 max_concurrent_threads_per_session = 3
 interrupt_message = true
+
+[mcp_servers.codex_analyst_context7]
+url = "https://mcp.context7.com/mcp"
+enabled = true
+required = false
+enabled_tools = ["resolve-library-id", "query-docs"]

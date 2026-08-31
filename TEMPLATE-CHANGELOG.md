@@ -1,13 +1,18 @@
 # История шаблона
 
-## 1.1.0 - Unreleased
+## 1.1.0 - 2026-08-31
 
+- Delivery-задачи теперь до предметной работы выбирают intent, проверяют Local Mastery и сохраняют максимум один active, непросроченный и применимый method в проверяемом разделе Plan v2.
+- Корневые routes используют knowledge graph только для bounded cross-domain discovery, impact, traceability, backlinks, conflicts и duplicate search, после чего ведут к точным owner artifacts.
+- README содержит два коротких copy-ready промта: URL-first установка с GitHub и начало работы в локальном пространстве через Codex.
+- Deployable consumer получает единственный optional remote Context7 MCP с namespaced server ID `codex_analyst_context7`, exact official URL и tool allowlist, без credentials, `npx`, Node.js dependency или обязательного per-run вызова; namespaced ID предотвращает mixed-transport collision с распространенным user-level `context7`, а offline gates отклоняют generic project ID, другие MCP и configuration drift.
 - Усилен единый `it-analysis`: Business Analysis, Requirements Engineering, process/decision semantics, NFR и solution architecture используют проверяемые методы и сохраняют authority boundaries.
 - IBM Solution Architect оригинально переоперационализирован как profile `solution-architecture` для существующего `system_analyst` только при `intent_id: architecture`; новые роли и IBM output files не добавлялись.
 - Добавлены `requirements-verification`, `requirements-prioritization`, `solution-evaluation` и architecture routing с одним primary и максимум одним supplementary method.
 - Восьмифайловый run и canonical body contracts разделяют requirements verification, stakeholder validation и approval, а `REV-*` использует machine-readable `review_record`.
 - Добавлены deterministic verifier rules и source-only offline semantic-contract fixtures без model, network или MCP calls.
-- Template candidate и mastery bundle подготовлены как локальная `1.1.0`; опубликованным consumer release остается `v1.0.1` до отдельной release-команды.
+- Trusted builder материализует exact detached snapshot source tag, игнорирует Git replacement refs и перед atomic publish повторно подтверждает provenance каждого portable файла.
+- Template и mastery bundle подготовлены как `1.1.0`; distribution consumer этой версии собирается только из проверенного source tag `v1.1.0`.
 
 ## 1.0.1 - 2026-08-27
 
