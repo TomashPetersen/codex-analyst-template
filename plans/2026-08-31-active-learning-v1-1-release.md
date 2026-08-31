@@ -6,7 +6,7 @@ task_key: active-learning-v1-1-release
 prompt_ref: prompts/plan-and-deliver.md
 status: in-progress
 current_phase: P3
-updated_at: 2026-08-31T17:25:54Z
+updated_at: 2026-08-31T18:57:25Z
 completed_at: null
 closeout_status: pending
 knowledge_outcome: null
@@ -151,13 +151,13 @@ Deliverable: knowledge outcome, complete plan, финальные gates и sourc
 ## Resume checkpoint
 
 - Текущая фаза: P3
-- Уже выполнено: P1-P2 закрыты; полный release profile и focused gates пройдены; trusted builder hardened against source drift, staging mutation и replacement refs; независимые review и red-team дали no blockers.
-- Последние успешные проверки: Полный профиль PASS; distribution harness PASS checks=17; verify-structure TemplateSource PASS 161; sanitizer Source PASS; Plan PASS; graph PASS nodes=0 edges=0; knowledge report PASS candidates/conflicts/mastery_drift=0; AST PASS 9; git diff --check PASS.
-- Точные рабочие paths: AGENTS.md; README.md; TEMPLATE.md; TEMPLATE-CHANGELOG.md; .template-manifest.json; .agents/skills; .codex/config.toml; plans; prompts; scripts/build-github-template.ps1; scripts/verify-plans.ps1; scripts/set-plan-status.ps1; focused tests; Context7 source-only history.
-- Git checkpoint: v1:add781d0a60fe5117f6e9d719b3084705e00aa6f64bea20ea774b5196594082e
-- Следующее действие: Проверить live remote refs, выполнить exact staged inventory, создать source commit и push без force; затем дождаться hosted CI.
-- Блокеры: нет
-- Обновлено: 2026-08-31T17:25:54Z
+- Уже выполнено: Release commit bf8703f отправлен fast-forward в source. Hosted run 33419990968: macOS PASS за 57m19s; Windows отменен только job timeout 60m после 1h0m15s. CI timeout увеличен до 90m без изменения gates.
+- Последние успешные проверки: Source local profile PASS; distribution checks=17; security review no blockers; exact staging 37 paths; credential audit PASS; source push bf8703f; macOS hosted PASS; Windows tests не сообщили failure до timeout.
+- Точные рабочие paths: .github/workflows/template-integrity.yml; plans/2026-08-31-active-learning-v1-1-release.md; plans/INDEX.md.
+- Git checkpoint: v1:8dab1e9fdf1f3ca40291b46211065ecc1b4aab53328e4002b5739029d54f4b20
+- Следующее действие: Проверить one-line CI diff, создать corrective source commit, push без force и дождаться зеленого Windows/macOS rerun.
+- Блокеры: нет: timeout cause подтвержден публичными job pages
+- Обновлено: 2026-08-31T18:57:25Z
 
 ## Итог
 

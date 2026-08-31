@@ -12,7 +12,7 @@
 
 | Plan ID | Task key | Текущая фаза | Обновлено | План |
 |---|---|---|---|---|
-| PLAN-20260831-active-learning-v1-1-release | active-learning-v1-1-release | P3 | 2026-08-31T17:25:54Z | [План: Активное обучение, GitHub prompts и выпуск 1.1.0](2026-08-31-active-learning-v1-1-release.md) |
+| PLAN-20260831-active-learning-v1-1-release | active-learning-v1-1-release | P3 | 2026-08-31T18:57:25Z | [План: Активное обучение, GitHub prompts и выпуск 1.1.0](2026-08-31-active-learning-v1-1-release.md) |
 
 ## Сделано
 
