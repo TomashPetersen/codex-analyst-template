@@ -190,10 +190,10 @@ try {
     [void](Invoke-ChildScript -Script (Join-Path $fixtureRoot 'scripts/verify-codex-agents.ps1') -Arguments @('-Root', $fixtureRoot))
 
     $consumerReadme = [System.IO.File]::ReadAllText((Join-Path $fixtureRoot 'README.md'))
-    $shortInstallCommand = 'Установи этот шаблон на мой компьютер по ссылке <URL>. Сначала прочитай README.md и выполни раздел «URL-first контракт для Codex».'
+    $shortInstallCommand = 'Установи этот шаблон на мой компьютер:'
     $workPromptFragment = 'Работай с текущим локальным проектом, созданным из Codex Analyst Template.'
     $urlFirstPosition = $consumerReadme.IndexOf($shortInstallCommand, [System.StringComparison]::Ordinal)
-    $githubTemplatePosition = $consumerReadme.IndexOf('## Дополнительный путь через GitHub Template', [System.StringComparison]::Ordinal)
+    $githubTemplatePosition = $consumerReadme.IndexOf('## Если нужен свой репозиторий на GitHub', [System.StringComparison]::Ordinal)
     if ($urlFirstPosition -lt 0 -or $githubTemplatePosition -le $urlFirstPosition) {
         throw 'Consumer README не делает URL-first prompt основным install route.'
     }
@@ -202,11 +202,11 @@ try {
     }
     $installPrompt = [System.IO.File]::ReadAllText((Join-Path $fixtureRoot 'CODEX-INSTALL-PROMPT.md'))
     foreach ($requiredPromptFragment in @(
-        'Заменить нужно только `<URL>`.',
+        'https://github.com/TomashPetersen/codex-analyst-template',
         'git clone --branch main --single-branch --depth 1 <URL> <TEMP_CLONE>',
         'pwsh -NoProfile -File ./scripts/new-project.ps1 -Destination "<ABSOLUTE_TARGET_PATH>"',
-        'независимый Git main без remote и без commit',
-        'Если trust gate не проходит'
+        'независимый репозиторий Git: ветка `main`, без удаленного репозитория и без коммитов',
+        'Если проверка безопасности не прошла'
     )) {
         if (-not $installPrompt.Contains($requiredPromptFragment)) {
             throw "Consumer install prompt потерял URL-first fragment: $requiredPromptFragment"

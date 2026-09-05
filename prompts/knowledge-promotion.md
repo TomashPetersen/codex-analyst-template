@@ -4,14 +4,17 @@ prompt_contract_version: 1
 plan_policy: none
 ---
 
-# Review и promotion знания
+# Проверка и применение предложения для базы знаний
 
 ```text
-Прочитай AGENTS.md, PROJECT.md, knowledge/INDEX.md и candidate <CANDIDATE_REF>.
-Проверь ownership, sources, confidence, review due, дубли, conflicts, privacy и
-целевой канон. Покажи точный preview: какие строки и backlinks изменятся.
+Прочитай AGENTS.md, PROJECT.md, knowledge/INDEX.md и предложение для базы знаний
+<CANDIDATE_REF>. Проверь, кому принадлежат сведения, их источники, уверенность
+в выводах, срок повторной проверки, дубли, противоречия, конфиденциальность
+и целевой основной документ. Покажи, какие именно строки и обратные ссылки
+изменятся.
 
-Ничего не применяй без отдельного явного approval и authority_ref. После approval
-выполни восстановимый promotion, обнови graph и запусти knowledge, privacy и
-structure gates. Не выполняй external write, commit или push.
+Ничего не применяй без отдельного явного одобрения и authority_ref.
+После одобрения внеси изменения с возможностью отката, обнови карту связей знаний
+и выполни проверки знаний, конфиденциальности и структуры.
+Не меняй внешние системы и не выполняй commit или push.
 ```

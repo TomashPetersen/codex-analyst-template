@@ -1,41 +1,40 @@
-# Source maintenance: Codex Analyst Template
+# Разработка и публикация Codex Analyst Template
 
-Этот файл существует только в ветке source и не входит в consumer payload.
+Этот файл находится только в ветке `source`. В устанавливаемую копию шаблона он не входит.
 
-## Контракт version 1.1.0
+## Текущая версия
 
-- публичное имя: Codex Analyst Template;
-- source branch: `source`;
-- производная GitHub Template branch: `main`;
-- release version: `1.1.0`;
-- source tag этой версии: `v1.1.0`;
-- consumer `main` строится только из source tag `v1.1.0`;
-- tags `v1.0.0` и `v1.0.1` неизменяемы;
-- Windows 10/11 является основной платформой;
-- macOS проверяется PowerShell 7 и CI;
-- Linux не входит в v1.
+- Название: Codex Analyst Template.
+- Ветка разработки: `source`.
+- Ветка для установки и кнопки GitHub Template: `main`.
+- Версия: `1.1.0`.
+- Тег исходников этой версии: `v1.1.0`.
+- Набор файлов для `main` собирается только из проверенного тега `v1.1.0`.
+- Теги `v1.0.0` и `v1.0.1` сохраняются без изменений.
+- Основная платформа: Windows 10/11. Проверки macOS выполняются с PowerShell 7, в том числе в GitHub Actions. Linux пока не входит в проверяемый набор платформ.
 
-## GitHub About и основной пользовательский вход
-
-Рекомендуемое описание repository:
+## Краткое описание на GitHub
 
 ```text
-Скопируйте URL этого репозитория в Codex и напишите: «Установи этот шаблон на мой компьютер. Сначала прочитай README.md и выполни URL-first контракт».
+Шаблон для бизнес- и системного анализа с Codex: требования, процессы, исследования и технические задания. Установка и настройка на компьютере готовыми запросами.
 ```
 
-Основной install UX - URL canonical consumer `main` плюс одна короткая команда. `Use this template` остается дополнительным маршрутом для пользователя, которому сразу нужен отдельный GitHub repository.
+Основной путь пользователя: открыть локальную папку в Codex, отправить запрос с адресом репозитория, дождаться установки и заполнить сведения о своем проекте. Готовые запросы находятся в [README.md](README.md) и [инструкции установки](CODEX-INSTALL-PROMPT.md). Кнопка `Use this template` нужна для дополнительного пути с собственным репозиторием GitHub.
 
-## Source и consumer boundary
+## Что попадает в установленную копию
 
-Consumer строится только по `portable_files` из `.template-manifest.json`. В него входят URL-first `new-project.ps1`, formal-analysis, четыре project-local skills, пять read-only Codex roles, exact optional remote Context7 MCP config, Plan v2, product/business/research, knowledge и mastery. Source-only планы, ADR, retrospectives, regression harnesses, builder, workflow и release history не переносятся.
+Состав определяет список `portable_files` в `.template-manifest.json`. Он включает установщик, аналитические документы, четыре набора инструкций, пять ролей помощников с доступом только для чтения, предусмотренную настройку Context7, планы, исследования, описание продукта и бизнеса, правила знаний и методы работы.
 
-В source и consumer запрещены данные конкретного продукта, заполненные runs, RAW, candidates, local mastery, origin, персональные сведения, credentials, другие MCP/integrations и абсолютные пользовательские пути. Context7-конфигурация не содержит auth material, не является обязательной runtime dependency и не вызывается distribution scripts.
+Планы разработки шаблона, технические решения по самому шаблону, история выпусков, сборщик и служебные тесты не переносятся. В исходниках и устанавливаемой копии не должно быть данных конкретного продукта, заполненных рабочих разборов, личного профиля, секретов и абсолютных пользовательских путей.
 
-## Проверочный профиль
+Настройка Context7 не содержит ключей доступа. Скрипты установки не вызывают этот сервис. Другие внешние подключения шаблон не добавляет.
 
-Перед release-кандидатом выполни:
+## Проверки перед публикацией
+
+Выполни полный профиль:
 
 ```powershell
+pwsh -NoProfile -File ./scripts/test-platform.ps1
 pwsh -NoProfile -File ./scripts/verify-structure.ps1 -Mode TemplateSource
 pwsh -NoProfile -File ./scripts/verify-analysis.ps1 -SelfTest
 pwsh -NoProfile -File ./scripts/test-it-analysis-semantics.ps1 -SelfTest
@@ -48,9 +47,15 @@ pwsh -NoProfile -File ./scripts/test-analyst-consumer-boundary.ps1
 pwsh -NoProfile -File ./scripts/test-cross-platform-bootstrap.ps1
 pwsh -NoProfile -File ./scripts/test-github-template-distribution.ps1
 pwsh -NoProfile -File ./scripts/verify-template-sanitization.ps1 -Scope Source
+pwsh -NoProfile -File ./scripts/verify-knowledge.ps1 -SelfTest
+pwsh -NoProfile -File ./scripts/test-knowledge-privacy.ps1
 ```
 
-Builder запускается только после отдельного release-разрешения. Тогда он требует чистый tracked source tag `v1.1.0`, совпадение version contract и GitHub identity origin:
+Проверки GitHub Actions находятся в [процессе проверки шаблона](.github/workflows/template-integrity.yml).
+
+## Сборка и публикация
+
+Сборка выполняется после прямого разрешения на выпуск. Она требует неизмененного состояния исходников, соответствующего тегу `v1.1.0`, совпадения версии и адреса репозитория:
 
 ```powershell
 pwsh -NoProfile -File ./scripts/build-github-template.ps1 `
@@ -59,8 +64,27 @@ pwsh -NoProfile -File ./scripts/build-github-template.ps1 `
   -TemplateRepositoryUrl https://github.com/<OWNER>/<REPOSITORY>
 ```
 
-## Release gate
+Коммит, создание тега, отправка изменений, перенос собранных файлов в `main`, смена основной ветки и публикация выпуска требуют соответствующей прямой команды. Тег создается после полного набора локальных проверок и успешных проверок GitHub Actions. Ошибка проверки останавливает публикацию.
 
-Commit, tag, push, перенос consumer payload в `main`, смена default branch и публикация GitHub не выполняются без отдельной прямой команды. Неизменяемый source tag создается только после полного локального и CI-профиля. Ошибка любого gate блокирует release, но не разрешает ослаблять manifest или sanitizer.
+Нельзя вручную подменять файлы в `main` и пересчитывать их контрольные суммы: сборщик сверяет содержимое с исходниками тега. Для следующей версии нужен новый тег; старые теги не перемещаются.
 
-Source-only история этой версии: [архитектурное решение шаблона](docs/decisions/2026-08-20-codex-analyst-template-v1.md), [решение URL-first установки](docs/decisions/2026-08-22-url-first-codex-install.md), [решение Context7 MCP](docs/decisions/2026-08-30-context7-mcp-template.md), [план шаблона](plans/2026-08-20-codex-analyst-template-v1.md), [план URL-first установки](plans/2026-08-22-url-first-codex-install.md), [план GitHub release](plans/2026-08-23-github-release-v1-0-0.md), [план усиления IT Analysis 1.1.0](plans/2026-08-29-it-analysis-v1-1.md), [план фиксации IT Analysis 1.1.0 в GitHub source](plans/2026-08-30-publish-it-analysis-v1-1-source.md), [план Context7 MCP](plans/2026-08-30-context7-mcp-template.md), [план восстановления Context7 config layers](plans/2026-08-31-context7-config-layer-recovery.md), [план выпуска 1.1.0](plans/2026-08-31-active-learning-v1-1-release.md), [ретроспектива шаблона](retrospectives/2026-08-21_19-27_codex-analyst-template-v1.md), [ретроспектива URL-first установки](retrospectives/2026-08-22_14-55_url-first-codex-install.md), [ретроспектива GitHub release](retrospectives/2026-08-28_11-20_github-release-v1-0-1.md), [ретроспектива Context7 recovery](retrospectives/2026-08-31_09-25_context7-config-layer-recovery.md), [ретроспектива выпуска 1.1.0](retrospectives/2026-09-01_00-35_codex-analyst-template-v1-1-0.md), [changelog](TEMPLATE-CHANGELOG.md).
+## История разработки
+
+- [Устройство шаблона](docs/decisions/2026-08-20-codex-analyst-template-v1.md).
+- [Установка по ссылке](docs/decisions/2026-08-22-url-first-codex-install.md).
+- [Подключение Context7](docs/decisions/2026-08-30-context7-mcp-template.md).
+- [Первоначальный план](plans/2026-08-20-codex-analyst-template-v1.md).
+- [План установки по ссылке](plans/2026-08-22-url-first-codex-install.md).
+- [План первого выпуска](plans/2026-08-23-github-release-v1-0-0.md).
+- [План улучшения анализа](plans/2026-08-29-it-analysis-v1-1.md).
+- [Публикация улучшений анализа](plans/2026-08-30-publish-it-analysis-v1-1-source.md).
+- [План подключения Context7](plans/2026-08-30-context7-mcp-template.md).
+- [Восстановление загрузки настроек](plans/2026-08-31-context7-config-layer-recovery.md).
+- [План выпуска 1.1.0](plans/2026-08-31-active-learning-v1-1-release.md).
+- [Понятное описание и быстрый запуск](plans/2026-09-05-plain-russian-quickstart.md).
+- [Выводы из создания шаблона](retrospectives/2026-08-21_19-27_codex-analyst-template-v1.md).
+- [Выводы из разработки установки](retrospectives/2026-08-22_14-55_url-first-codex-install.md).
+- [Выводы из первого выпуска](retrospectives/2026-08-28_11-20_github-release-v1-0-1.md).
+- [Выводы из восстановления настроек](retrospectives/2026-08-31_09-25_context7-config-layer-recovery.md).
+- [Выводы из выпуска 1.1.0](retrospectives/2026-09-01_00-35_codex-analyst-template-v1-1-0.md).
+- [Изменения версий](TEMPLATE-CHANGELOG.md).

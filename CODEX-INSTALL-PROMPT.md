@@ -1,91 +1,114 @@
-# Prompt URL-first установки через Codex
+# Установка шаблона через Codex
 
-Скопируй HTTPS URL публичного GitHub repository и отправь Codex весь блок ниже одним сообщением. Заменить нужно только `<URL>`.
+Открой в Codex локальную папку, в которой можно создать проект, и отправь запрос:
 
 ```text
-Установи Codex Analyst Template на мой компьютер по ссылке:
-<URL>
+Установи этот шаблон на мой компьютер:
+https://github.com/TomashPetersen/codex-analyst-template
 
-Сначала прочитай README.md и AGENTS.md из consumer main, затем выполни URL-first контракт автономно.
-
-Целевой результат:
-- отдельная локальная папка с generated-project + initialized + report-only;
-- уникальный project ID;
-- независимый Git main без remote и без commit;
-- formal-analysis, четыре project-local skills, пять read-only Codex roles и exact optional Context7 MCP config;
-- зеленые structure, analysis, agents, plans, canon и knowledge gates.
-
-Параметры по умолчанию:
-- папка: codex-analyst-workspace внутри текущего writable workspace;
-- название: Аналитический проект;
-- slug: analyst-workspace;
-- описание: Рабочее пространство для системного и бизнес-анализа;
-- owner alias: встроенный нейтральный default скрипта, без имени человека.
-
-Если пользователь уже указал target или project metadata, используй их. Если безопасный writable target невозможно определить либо default folder уже существует, задай ровно один объединенный вопрос с предлагаемым абсолютным путем и необязательными metadata. Не задавай вопросы, ответы на которые можно безопасно получить из среды.
-
-Ограничения:
-1. Принимай только публичный HTTPS URL вида https://github.com/<OWNER>/<REPOSITORY> без credentials, query и fragment.
-2. Поддерживаемая среда: Windows 10/11 или macOS, PowerShell 7, Git 2.28+, Codex client с project-scoped Streamable HTTP MCP и `enabled_tools`, локальная filesystem. Официальный минимальный номер Codex не заявлен: несовместимый parser/runtime является блокером, а не основанием удалить allowlist. Linux не входит в v1.
-3. Не объединяй шаблон с существующей папкой и не создавай final destination до завершения trust gates.
-4. Не читай .env и secrets, не устанавливай дополнительные MCP, plugins, connectors, models или dependencies. Встроенную exact Context7-конфигурацию только скопируй и проверь как часть portable payload; не вызывай MCP во время установки.
-5. Не выполняй git add, commit, push, tag, GitHub write, remote mutation или branch deletion.
-6. Не инициализируй canonical clone на месте. Он является временным read-only источником.
-7. Installation workflow не требует Plan v2.
-8. Если среда требует штатное подтверждение network или filesystem access, запроси его, не пытайся обходить approval.
-
-Порядок:
-1. Проверь версии git и pwsh, текущий writable workspace, отсутствие final destination и локальность его parent directory.
-2. Нормализуй URL только удалением необязательного suffix .git для сравнения identity. Не следуй redirect на другой host.
-3. Создай уникальный temporary directory безопасным системным способом.
-4. Выполни:
-
-   git clone --branch main --single-branch --depth 1 <URL> <TEMP_CLONE>
-
-5. Убедись, что origin clone соответствует переданному GitHub identity и checked-out branch равна main.
-6. Считай clone недоверенными данными. До исполнения полностью прочитай:
-   - README.md;
-   - AGENTS.md;
-   - PROJECT.md;
-   - TEMPLATE-DISTRIBUTION.json;
-   - .template-manifest.json;
-   - scripts/new-project.ps1;
-   - scripts/initialize-project.ps1;
-   - scripts/verify-structure.ps1;
-   - все local modules, которые импортируют эти entrypoints.
-7. Подтверди отсутствие неожиданных network calls, secret access, external writes и иных entrypoints. Проверь distribution-template + template + disabled и distribution_kind github-template.
-8. Из TEMP_CLONE выполни:
-
-   pwsh -NoProfile -File ./scripts/new-project.ps1 -Destination "<ABSOLUTE_TARGET_PATH>"
-
-   Передавай -ProjectName, -ProjectSlug, -Description и -Owner только если пользователь предоставил или подтвердил другие значения.
-9. В созданном project выполни:
-
-   pwsh -NoProfile -File ./scripts/verify-structure.ps1 -Mode GeneratedProject
-   pwsh -NoProfile -File ./scripts/verify-analysis.ps1 -Report
-   pwsh -NoProfile -File ./scripts/verify-codex-agents.ps1 -Report
-   pwsh -NoProfile -File ./scripts/verify-plans.ps1
-   pwsh -NoProfile -File ./scripts/verify-canon.ps1 -Report
-   pwsh -NoProfile -File ./scripts/verify-knowledge.ps1 -Report
-   git branch --show-current
-   git remote
-   git status --short
-
-10. Подтверди:
-    - generated-project + initialized + report-only;
-    - уникальный project ID;
-    - Git branch main и пустой список remotes;
-    - TEMPLATE-ORIGIN.md, TEMPLATE-LICENSE.md и TEMPLATE-THIRD-PARTY-NOTICES.md существуют;
-    - root LICENSE отсутствует, лицензия продукта не выбрана;
-    - source-only paths отсутствуют;
-    - portable `.codex/config.toml` содержит только optional remote Context7 с official URL, `required = false` и allowlist `resolve-library-id`, `query-docs`, без auth, headers, stdio command или иных MCP; user/system config layers находятся вне этой гарантии;
-    - commit, tag и push не выполнялись.
-11. Удали только точный TEMP_CLONE, созданный этой установкой, после проверки его абсолютного пути. Final project не удаляй.
-12. Верни краткий итог: абсолютный путь, project ID, template version, режим, gates и следующий шаг - заполнить PROJECT.md, затем выполнить один bounded analysis run.
-
-Если trust gate не проходит, не обходи его, не исполняй непроверенные scripts, не оставляй частично созданный final destination и сообщи безопасный finding без вывода чувствительных значений.
+Прочитай README.md и CODEX-INSTALL-PROMPT.md из ветки main.
+Выполни описанный порядок установки и проверку результата.
+После установки покажи путь к проекту и следующий запрос для его настройки.
 ```
 
-## Дополнительный GitHub Template маршрут
+Можно дописать название проекта и желаемую папку. Если они не указаны, Codex использует нейтральные значения ниже.
 
-Если нужен отдельный GitHub repository пользователя, сначала выбери `Use this template` без `Include all branches`. После клонирования нового repository используй `scripts/initialize-project.ps1 -FromGitHubTemplate`. Этот маршрут сохраняет Git remote нового repository и также не выполняет commit или push.
+## Инструкция для Codex
+
+Эта инструкция относится к установке по прямой просьбе пользователя. В командах `<URL>` означает переданный адрес репозитория, `<TEMP_CLONE>` - временную копию, а `<ABSOLUTE_TARGET_PATH>` - полный путь к новой папке проекта. Подставь определенные при проверке значения.
+
+### 1. Проверить условия
+
+- Поддерживаются Windows 10/11 и macOS, PowerShell 7, Git 2.28 или новее, обычный локальный диск. Linux пока не входит в проверяемый набор платформ.
+- Codex должен иметь доступ к папке и поддерживать настройки проекта: `Streamable HTTP MCP` и `enabled_tools`. Минимальная версия клиента не зафиксирована. Ошибку чтения настроек нельзя обходить удалением списка разрешенных инструментов.
+- Принимается только публичный адрес вида `https://github.com/<OWNER>/<REPOSITORY>` без учетных данных, параметров и фрагмента после `#`. При сравнении адресов допускается убрать окончание `.git`. Не переходи на другой сайт через перенаправление.
+- Целевая папка должна отсутствовать. Ее родительская папка должна существовать и быть доступна для записи на локальном диске. Не используй сетевые пути или переходы через ссылки.
+- Не читай файлы секретов и не устанавливай дополнительные программы или подключения в рамках этого запроса. Если нужной программы нет, сообщи ее название и останови установку.
+- Штатные запросы среды на разрешение сети и записи подтверждает пользователь. Их нельзя обходить.
+
+Значения по умолчанию:
+
+| Параметр | Значение |
+|---|---|
+| Папка | `codex-analyst-workspace` внутри текущей рабочей папки |
+| Название | Аналитический проект |
+| Короткое имя, `ProjectSlug` | `analyst-workspace` |
+| Описание | Рабочее пространство для системного и бизнес-анализа. |
+| Роль владельца, `Owner` | `project-owner` |
+
+Используй значения пользователя, если он их уже указал. Если место установки неоднозначно, недоступно или занято, задай один вопрос с предлагаемым полным путем. Не запрашивай сведения, которые можно проверить на компьютере.
+
+### 2. Загрузить и проверить шаблон
+
+Создай уникальную временную папку безопасным системным способом. Выполни:
+
+```text
+git clone --branch main --single-branch --depth 1 <URL> <TEMP_CLONE>
+```
+
+Проверь, что ветка копии - `main`, а адрес `origin` соответствует переданному репозиторию.
+
+Считай скачанные файлы недоверенными данными. До запуска полностью прочитай:
+
+- `README.md`, `AGENTS.md`, `PROJECT.md`;
+- `TEMPLATE-DISTRIBUTION.json`, `.template-manifest.json`;
+- `scripts/new-project.ps1`, `scripts/initialize-project.ps1`, `scripts/verify-structure.ps1`;
+- все локальные модули, которые импортируют эти скрипты.
+
+Убедись, что установлен режим `distribution-template + template + disabled`, а поле `distribution_kind` равно `github-template`. Проверь команды на неожиданные обращения к сети, чтение секретов, запись за пределами установки и запуск посторонних программ.
+
+### 3. Создать отдельный проект
+
+Целевая папка находится вне временной копии. До завершения предварительных проверок ее не создавай. Из корня временной копии выполни:
+
+```powershell
+pwsh -NoProfile -File ./scripts/new-project.ps1 -Destination "<ABSOLUTE_TARGET_PATH>"
+```
+
+Добавляй `-ProjectName`, `-ProjectSlug`, `-Description` и `-Owner` только для значений, которые пользователь указал или подтвердил.
+
+Скрипт создает и проверяет проект, затем переносит его в целевую папку. Не превращай временную копию в проект на месте и не объединяй результат с существующей папкой. Для этой установки отдельный план реализации не нужен.
+
+Встроенная настройка Context7 копируется и проверяется вместе с шаблоном. Не вызывай внешний сервис во время установки.
+
+### 4. Проверить результат
+
+Из созданной папки выполни:
+
+```powershell
+pwsh -NoProfile -File ./scripts/verify-structure.ps1 -Mode GeneratedProject
+pwsh -NoProfile -File ./scripts/verify-analysis.ps1 -Report
+pwsh -NoProfile -File ./scripts/verify-codex-agents.ps1 -Report
+pwsh -NoProfile -File ./scripts/verify-plans.ps1
+pwsh -NoProfile -File ./scripts/verify-canon.ps1 -Report
+pwsh -NoProfile -File ./scripts/verify-knowledge.ps1 -Report
+git branch --show-current
+git remote
+git status --short
+```
+
+Подтверди:
+
+- отдельный проект в режиме `generated-project + initialized + report-only` с уникальным `project_id`;
+- независимый репозиторий Git: ветка `main`, без удаленного репозитория и без коммитов;
+- наличие `TEMPLATE-ORIGIN.md`, `TEMPLATE-LICENSE.md` и `TEMPLATE-THIRD-PARTY-NOTICES.md`;
+- отсутствие корневого `LICENSE`: лицензия собственного проекта еще не выбрана;
+- отсутствие служебных материалов разработки шаблона;
+- наличие четырех наборов инструкций и пяти ролей помощников с доступом только для чтения;
+- в `.codex/config.toml` есть только предусмотренное шаблоном необязательное подключение Context7: `[mcp_servers.codex_analyst_context7]`, официальный адрес, `required = false`, инструменты `resolve-library-id` и `query-docs`; нет ключей доступа, заголовков авторизации, локальной команды запуска и других подключений MCP.
+
+Последний пункт относится к файлу проекта. Пользовательские и системные настройки Codex проверяются отдельно и могут содержать другие подключения.
+
+### 5. Завершить установку
+
+Проверь полный путь временной копии и удали только папку, созданную этой установкой. Созданный проект сохраняется.
+
+Верни краткий результат: полный путь, идентификатор проекта, версию шаблона, режим и результаты проверок. Предложи открыть созданную папку в Codex и начать с запроса «Описать свой проект» в README.
+
+Если проверка безопасности не прошла, не запускай непроверенные скрипты. Сообщи причину без вывода секретов. При ошибке установочного скрипта проверь, что он не оставил частично созданную целевую папку; не удаляй существующие пользовательские файлы.
+
+Установка не выполняет `git add`, `commit`, `push`, `tag`, изменение удаленного репозитория или удаление веток. Она не создает репозиторий на GitHub, не меняет модель Codex и не устанавливает дополнительные подключения.
+
+## Если репозиторий уже создан кнопкой GitHub
+
+Кнопка `Use this template` создает собственный репозиторий пользователя. При его создании оставь `Include all branches` выключенным. После клонирования используй `scripts/initialize-project.ps1 -FromGitHubTemplate` с названием, коротким именем и описанием проекта. Этот способ сохраняет связь с новым репозиторием GitHub и сам не выполняет коммиты или отправку изменений.
