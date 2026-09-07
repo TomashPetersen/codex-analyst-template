@@ -4,14 +4,15 @@ prompt_contract_version: 1
 plan_policy: none
 ---
 
-# Read-only review
+# Проверка без изменения файлов
 
 ```text
-Прочитай AGENTS.md, PROJECT.md и релевантные indexes. Выполни только review или
-diagnose: проверь фактический код, тесты, diff и канон, ранжируй findings по риску,
-дай точные file refs и укажи пробелы evidence. Не меняй файлы и не создавай plan.
+Прочитай AGENTS.md, PROJECT.md и указатели нужных разделов. Выполни только проверку
+или диагностику: изучи фактический код, тесты, изменения и основные документы.
+Расположи замечания по уровню риска, дай точные ссылки на файлы и укажи,
+каких подтверждений не хватает. Не меняй файлы и не создавай план.
 
 Если пользователь попросит исправить найденное или изменение окажется значимым,
-остановись и предложи feature-bugfix-delivery.md или plan-and-deliver.md с
-plan_policy: required.
+остановись и предложи feature-bugfix-delivery.md или plan-and-deliver.md
+с plan_policy: required.
 ```

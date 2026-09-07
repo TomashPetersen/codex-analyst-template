@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
   "distribution_kind": "github-template",
-  "template_version": "1.1.0",
-  "source_tag": "v1.1.0",
-  "source_commit": "26afe812820dcf8f4539dd53064eb7ec6ca5d640",
+  "template_version": "1.1.1",
+  "source_tag": "v1.1.1",
+  "source_commit": "7b978621f23a28b2c41f4c0a51f5191087e6afad",
   "template_repository_url": "https://github.com/TomashPetersen/codex-analyst-template",
-  "built_at": "2026-08-31T23:00:45+04:00",
+  "built_at": "2026-09-07T17:24:02+04:00",
   "payload_sha256": [
     {
       "path": ".agents/skills/it-analysis/agents/openai.yaml",
@@ -161,7 +161,7 @@
     },
     {
       "path": ".template-manifest.json",
-      "sha256": "8c05bc0d9b9df8d19b05378898039aa74eac84b4c6926d617c627de48b41bc99"
+      "sha256": "9093ae20c24bb399fb611d4f3d9dfae9a0290bdc7a95afccbf865d4332e49130"
     },
     {
       "path": "AGENTS.md",
@@ -261,7 +261,7 @@
     },
     {
       "path": "CODEX-INSTALL-PROMPT.md",
-      "sha256": "7daf75d8d03afff37e7bfe4dcbea302f3613792a7986a8ee526d154a16d59498"
+      "sha256": "a5117044f74bfc2a634b5c65062c2de5f894636846bafca8c0b38aa2b1c50030"
     },
     {
       "path": "docs/analysis/changes/README.md",
@@ -409,7 +409,7 @@
     },
     {
       "path": "INDEX.md",
-      "sha256": "b07cddb167021a72b36265ca15d91dba0abdf36a120d2c2b95b2432d74594ff1"
+      "sha256": "0a92f2e0b35728277492ef484f20518e8d67f57a7912bde90f0988865e284032"
     },
     {
       "path": "knowledge/candidates/TEMPLATE.md",
@@ -549,87 +549,87 @@
     },
     {
       "path": "prompts/ai-clone-interview.md",
-      "sha256": "206a8580bc1174df75725745e162a084e334666d63c49a2826c257a152cd691c"
+      "sha256": "1cfe99d002646ed608256f9f7556718154a53ea59065768ae4bc664f073e0c97"
     },
     {
       "path": "prompts/analysis-handoff.md",
-      "sha256": "6cc77200f2c672bf3c9c386b1146339595ff821f87585b6502a49a8b8ca82cfe"
+      "sha256": "e2c6703fc5f7344cd42e4952ff976f9aff9cbd154161e4673e5d705ab8d154c5"
     },
     {
       "path": "prompts/analysis-program.md",
-      "sha256": "9f5b0ca9b8f8f7af2eaa8f335227e4ee0cc47e60a0b9938817ee9fc1dddeb149"
+      "sha256": "09671937ccaaf0e51989be4d7f1d19ae35014bc727058738bb781b472cd608ba"
     },
     {
       "path": "prompts/analysis-review.md",
-      "sha256": "846dc259b6ebbdce548ef7e53badf61e891dfc6b0a9053e13ee46f48061271e1"
+      "sha256": "aeb608c66aebb8dcbd371a8f948f7260ad5e0a0ace78e2f10a90613e707f11b6"
     },
     {
       "path": "prompts/analysis-run.md",
-      "sha256": "44a94ec1a6e2c4f2d0200aedf500f2a1c2c7fdd0d98250ccd607e4161d92bdba"
+      "sha256": "599d453f864d7954d71876e1133edcc563b3091f9dda0867723548b0d248088a"
     },
     {
       "path": "prompts/architecture-change.md",
-      "sha256": "9d6623aec7a319556d81b1fe36bb71645b4ad55bb7e7760acbe9e7d073556b68"
+      "sha256": "8ce3bb0d098ec1af8af3f6a396b51eacda2cbe97c9cc8d917a58048213a0d854"
     },
     {
       "path": "prompts/architecture-codebase-inventory.md",
-      "sha256": "741d154ec33c30936a8d4c8a2ba3d63716168c83782b90108cd4ddd2a3ab0d63"
+      "sha256": "9099e915d9e5a378776ec23b1e2f86f2262e9fe31a278b58d7780abce1451dc9"
     },
     {
       "path": "prompts/business-architecture-interview.md",
-      "sha256": "9c2363d923758362275872d19b4188350b753d6de074b1c23bdc4a19522350fd"
+      "sha256": "f0b9344ecab5bb057018bd160e703e93d7565e9723240fddf2df91de75b9efb2"
     },
     {
       "path": "prompts/continue-plan.md",
-      "sha256": "24e2ee2899e0148380c94dfabc2ab42961b0ca0aa22763d92ebbebf70c8c1464"
+      "sha256": "f5501025c61557b36ea4fda5e1f52326ead227a35bbd8a9045786d124248a1dc"
     },
     {
       "path": "prompts/create-mastery.md",
-      "sha256": "53f68608473d6ae9eba108c033fa2fa5e5c74fd627bb3010ccf6949cee09b595"
+      "sha256": "1c8dc9ab625953d636e0052bf456d3e3c5bd45963a572610a3ca1572a25489b3"
     },
     {
       "path": "prompts/feature-bugfix-delivery.md",
-      "sha256": "894a561541b32a9639c0a1be19bf3828c653f9cd0b050664919bb869061ac547"
+      "sha256": "da7edc75c324022cebb0991a7c26dfac1505c5d3135704d0fc4ba6c67fabe000"
     },
     {
       "path": "prompts/idea-validation.md",
-      "sha256": "1da5c3aa084482dc3837d3e1f0def8eeb4f34e7f504b1b373fc7cc153eece9a0"
+      "sha256": "fb4aba1d954e8b7abb7cb202edec77927e9526f2d36cd99169fc0e3b598d2300"
     },
     {
       "path": "prompts/knowledge-promotion.md",
-      "sha256": "bd5711575a4c2637b95f1e39fa10106b15b7bc79445d27a594192884774319c1"
+      "sha256": "71a8c41182928588d8f9ce743b6c04aed52a948e9a0c3c6637f60657fe02b9f8"
     },
     {
       "path": "prompts/plan-and-deliver.md",
-      "sha256": "7556b537baa55be4febdb501f2e3d0507f1ac60fc35ccef4bb353897d0cebf57"
+      "sha256": "52856a4f556b7805410b857ef3b11db21b536018864f0639b68a82c9380fd7d6"
     },
     {
       "path": "prompts/plan-closeout.md",
-      "sha256": "2be36766057325d0fa342ecb768797f97d034d2a2dea92dc1bbd44f0ca1f6116"
+      "sha256": "97cce9d2e6db66508f4a1c11b96537db1de7d5775d7bae47edb262550447c448"
     },
     {
       "path": "prompts/product-interview.md",
-      "sha256": "c75d47f30b39fdd24e358e8479832270e51eff25b41cbd519a3dcfc0e5b58bb9"
+      "sha256": "fa72fb4410bbd50773ada07fd0179185f39e8e6fe9620ac79619d183f4a2715e"
     },
     {
       "path": "prompts/project-passport.md",
-      "sha256": "a6aa05e74e284888b07a9387e685d80fa82332c1e117cba8235a27f729a98aeb"
+      "sha256": "c409e44828e24c1dda8335968d844443677508fb51c36596273c1ed2742ff892"
     },
     {
       "path": "prompts/read-only-review.md",
-      "sha256": "52318bd947c45a188b6a0f4cd2aa397d53d8737583fcf10c83faca201d265eb2"
+      "sha256": "68129d25a8e9466de81b4b886789bc643dc127efe22a276154a4679fb90916e4"
     },
     {
       "path": "prompts/README.md",
-      "sha256": "95a1dd768acf805d0eff5e33fe713edf9744ad29e213d26d08d834dd6088d73b"
+      "sha256": "34dd84f981f7c9e06075a32ebaf20c4ed0fd58fcd70ab5539805bc31dea29241"
     },
     {
       "path": "prompts/research-run.md",
-      "sha256": "8a2b42835fc92cecf3cdd48891c75ceb861eead42735afc9364a4d6fbf103dbe"
+      "sha256": "15f8e1300b89158d62bc34a93dd3d3e3a4a3265447bf53cbc9d0450e79e955a1"
     },
     {
       "path": "README.md",
-      "sha256": "08734129195e959c3733402f6a024cf9c9b584c9df65cefb113184807c633c5c"
+      "sha256": "a82828c0d407243a69a15392584584e0b7988d23ef8d1d0ef14eece86ec1bebe"
     },
     {
       "path": "research/INDEX.md",

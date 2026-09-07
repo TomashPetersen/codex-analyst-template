@@ -1,60 +1,64 @@
-# Карта Codex Analyst Template
+# Карта проекта
 
-## Начало
+## Начать работу
 
-- [`README.md`](README.md) - установка и первый рабочий цикл.
-- [`CODEX-INSTALL-PROMPT.md`](CODEX-INSTALL-PROMPT.md) - готовый URL-first prompt установки из GitHub через Codex.
-- [`PROJECT.md`](PROJECT.md) - паспорт, границы и статус.
-- [`AGENTS.md`](AGENTS.md) - маршрутизация Codex, Plan v2 и safety.
-- [`ai-clone/INDEX.md`](ai-clone/INDEX.md) - обезличиваемый профиль сотрудничества.
-- [`prompts/README.md`](prompts/README.md) - компактные доменные prompts.
+- [README.md](README.md) - назначение шаблона, установка, настройка и первая задача.
+- [CODEX-INSTALL-PROMPT.md](CODEX-INSTALL-PROMPT.md) - готовый запрос и порядок установки через Codex.
+- [PROJECT.md](PROJECT.md) - цель проекта, границы, ограничения и критерии результата.
+- [Готовые запросы](prompts/README.md) - установка рабочего контекста, анализ, проверка и продолжение задач.
+- [AGENTS.md](AGENTS.md) - правила работы Codex в этом репозитории.
+- [Профиль сотрудничества](ai-clone/INDEX.md) - предпочтения владельца, которые нужно учитывать при работе.
 
-## Знания и работа
+## Найти документы и результаты
 
-- [`idea/INDEX.md`](idea/INDEX.md) - гипотезы, evidence, PoV, MVP и риски.
-- [`product/INDEX.md`](product/INDEX.md) - продукт, пользователи, опыт и capabilities.
-- [`business/INDEX.md`](business/INDEX.md) - бизнес-архитектура, экономика, продвижение и метрики.
-- [`analysis/INDEX.md`](analysis/INDEX.md) - рабочие восьмифайловые analysis runs и единый контракт handoff.
-- [`business/analysis/INDEX.md`](business/analysis/INDEX.md) - stakeholders, capabilities, процессы, правила и бизнес-требования.
-- [`docs/analysis/INDEX.md`](docs/analysis/INDEX.md) - use cases, требования, модели, интеграции, спецификации и review.
-- [`docs/architecture/INDEX.md`](docs/architecture/INDEX.md) - технический контекст и границы.
-- [`docs/codebase/INDEX.md`](docs/codebase/INDEX.md) - фактическая карта реализации и команд.
-- [`docs/decisions/README.md`](docs/decisions/README.md) - ADR и последствия выбора.
-- [`plans/INDEX.md`](plans/INDEX.md) - производный индекс текущих и завершенных plans.
-- [`knowledge/INDEX.md`](knowledge/INDEX.md) - candidates, provenance, closeout и promotion.
-- [`knowledge/graph/INDEX.md`](knowledge/graph/INDEX.md) - производная карта активного канона и backlinks.
-- [`mastery/INDEX.md`](mastery/INDEX.md) - Researcher, Analyst и Local Mastery.
-- [`research/INDEX.md`](research/INDEX.md) - evidence runs.
-- [`inbox/README.md`](inbox/README.md) - единая RAW-приемная и маршрут к [`inbox/raw/`](inbox/raw/README.md).
-- [`retrospectives/README.md`](retrospectives/README.md) - необязательная история инцидентов и крупных выпусков.
-
-## Skills и scripts
-
-- [`.agents/skills/project-delivery/SKILL.md`](.agents/skills/project-delivery/SKILL.md) - реализация через сохраняемый Plan v2.
-- [`.agents/skills/knowledge-curator/SKILL.md`](.agents/skills/knowledge-curator/SKILL.md) - closeout, candidates и разрешенный promotion.
-- [`.agents/skills/startup-researcher/SKILL.md`](.agents/skills/startup-researcher/SKILL.md) - доказательное исследование.
-- [`.agents/skills/it-analysis/SKILL.md`](.agents/skills/it-analysis/SKILL.md) - бизнес-, системный и solution-анализ с traceability и review.
-- [`.codex/config.toml`](.codex/config.toml) - лимит трех specialist threads и единственный optional remote Context7 MCP; пять read-only ролей находятся в `.codex/agents/`.
-- [`scripts/README.md`](scripts/README.md) - инициализация, generators и gates.
-
-## Минимальные маршруты
-
-| Задача | Начать с |
+| Раздел | Содержание |
 |---|---|
-| Понять проект | `PROJECT.md` |
-| Найти связанные знания в generated project | `scripts/update-knowledge-graph.ps1 -Mode Report`, затем `knowledge/graph/INDEX.md` и точные owner artifacts |
-| Оценить impact развития template source | `TEMPLATE.md`, `.template-manifest.json`, scripts и точные source owners |
-| Продолжить значимую работу | `plans/INDEX.md`, затем active plan и Resume checkpoint |
-| Запланировать реализацию | `prompts/plan-and-deliver.md` и `$project-delivery` |
-| Заполнить профиль | `prompts/ai-clone-interview.md` |
-| Проверить идею | `prompts/idea-validation.md` и `$startup-researcher` |
-| Выполнить один analysis run | `prompts/analysis-run.md` и `$it-analysis` |
-| Выполнить программу анализа | `prompts/analysis-program.md` и `$project-delivery` |
-| Проверить или передать анализ | `prompts/analysis-review.md` или `prompts/analysis-handoff.md` |
-| Заполнить продукт | `prompts/product-interview.md` |
-| Заполнить бизнес | `prompts/business-architecture-interview.md` |
-| Инвентаризировать систему | `prompts/architecture-codebase-inventory.md` |
-| Найти принятое решение | accepted ADR в `docs/decisions/` |
-| Сохранить RAW | `knowledge/INDEX.md`, затем `inbox/raw/` |
-| Создать или применить знание | `knowledge/INDEX.md`, затем `$knowledge-curator` |
-| Создать Local Mastery | `prompts/create-mastery.md`, затем candidate lifecycle |
+| [Идея](idea/INDEX.md) | Проблема, гипотезы, проверка пользы, первая версия и риски |
+| [Продукт](product/INDEX.md) | Пользователи, их задачи, возможности продукта и опыт использования |
+| [Бизнес](business/INDEX.md) | Устройство бизнеса, экономика, продвижение и метрики |
+| [Рабочий анализ](analysis/INDEX.md) | Отдельные разборы задач, источники и выводы |
+| [Бизнес-анализ](business/analysis/INDEX.md) | Заинтересованные стороны, возможности организации, процессы, правила и бизнес-требования |
+| [Системный анализ](docs/analysis/INDEX.md) | Сценарии, требования, данные, взаимодействие систем, спецификации и проверки |
+| [Архитектура](docs/architecture/INDEX.md) | Устройство системы и границы ее частей |
+| [Карта кода](docs/codebase/INDEX.md) | Фактическая реализация и команды работы с ней |
+| [Технические решения](docs/decisions/README.md) | Принятые решения, основания и последствия |
+| [Планы](plans/INDEX.md) | Текущие и завершенные планы, точки продолжения |
+| [Исследования](research/INDEX.md) | Собранные свидетельства и проверка гипотез |
+| [Знания](knowledge/INDEX.md) | Отбор, проверка и применение устойчивых выводов |
+| [Связи знаний](knowledge/graph/INDEX.md) | Производная карта документов и ссылок между ними |
+| [Методы](mastery/INDEX.md) | Подходы к анализу, исследованию и выполнению задач |
+| [Входящие материалы](inbox/README.md) | Порядок сохранения материалов по прямому запросу |
+| [Разбор завершенных работ](retrospectives/README.md) | Выводы из крупных выпусков и инцидентов |
+
+## Выбрать порядок работы
+
+| Задача | С чего начать |
+|---|---|
+| Заполнить сведения о проекте | [Запрос для паспорта](prompts/project-passport.md) |
+| Настроить общение | [Интервью о сотрудничестве](prompts/ai-clone-interview.md) |
+| Проверить идею | [Запрос для проверки идеи](prompts/idea-validation.md) |
+| Разобрать один вопрос | [Запрос для анализа](prompts/analysis-run.md) |
+| Провести несколько связанных разборов | [Программа анализа](prompts/analysis-program.md) |
+| Проверить готовый разбор | [Независимая проверка](prompts/analysis-review.md) |
+| Оформить утвержденные результаты | [Перенос результатов анализа](prompts/analysis-handoff.md) |
+| Описать продукт | [Интервью о продукте](prompts/product-interview.md) |
+| Описать бизнес | [Интервью о бизнесе](prompts/business-architecture-interview.md) |
+| Изучить существующую систему | [Описание архитектуры и кода](prompts/architecture-codebase-inventory.md) |
+| Спланировать и выполнить изменение | [Запрос для работы по плану](prompts/plan-and-deliver.md) |
+| Продолжить задачу | [Запрос для продолжения](prompts/continue-plan.md) |
+| Сохранить полезный метод | [Запрос для описания метода](prompts/create-mastery.md) |
+
+## Служебные инструкции
+
+Codex загружает нужный набор инструкций по задаче:
+
+- [`it-analysis`](.agents/skills/it-analysis/SKILL.md) - бизнес- и системный анализ, выбор технического решения, проверка связей между требованиями и источниками.
+- [`project-delivery`](.agents/skills/project-delivery/SKILL.md) - выполнение изменений по сохраняемому плану.
+- [`knowledge-curator`](.agents/skills/knowledge-curator/SKILL.md) - отбор полезных выводов и их согласованное применение.
+- [`startup-researcher`](.agents/skills/startup-researcher/SKILL.md) - исследование идей с проверяемыми источниками.
+- [Настройки помощников и Context7](.codex/config.toml) - роли помощников и необязательное подключение к документации библиотек.
+- [Команды и проверки](scripts/README.md) - создание проекта и проверка файлов.
+
+В созданном проекте поиск связей между разделами начинается с `scripts/update-knowledge-graph.ps1 -Mode Report`, затем используются карта знаний и исходные документы. Для задачи внутри одного раздела достаточно его индекса. Методы проекта выбираются через [mastery/local/INDEX.md](mastery/local/INDEX.md).
+
+При развитии самого шаблона влияние изменений проверяется по `TEMPLATE.md`, `.template-manifest.json`, скриптам и затронутым исходным файлам. Планы и рабочие разборы не заменяют утвержденные документы.
