@@ -12,7 +12,7 @@
 
 | Plan ID | Task key | Текущая фаза | Обновлено | План |
 |---|---|---|---|---|
-| PLAN-20260905-plain-russian-quickstart | plain-russian-quickstart | P2 | 2026-09-05T08:42:17Z | [План: Понятное описание, установка и первые запросы](2026-09-05-plain-russian-quickstart.md) |
+| PLAN-20260905-plain-russian-quickstart | plain-russian-quickstart | P2 | 2026-09-07T13:21:24Z | [План: Понятное описание, установка и первые запросы](2026-09-05-plain-russian-quickstart.md) |
 
 ## Сделано
 

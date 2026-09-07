@@ -1,34 +1,41 @@
 # История шаблона
 
+## 1.1.1 - 2026-09-07
+
+- Переписаны описание, установка, карта проекта и 20 файлов с готовыми запросами. Убраны лишние англицизмы, сохранены точные команды и служебные поля.
+- Добавлены последовательные запросы для заполнения паспорта, настройки общения, первого анализа и продолжения работы.
+- Примеры установки согласованы с проверкой состава создаваемого проекта.
+- Набор методов остается версии `1.1.0`. Установщик и настройки подключений не изменены.
+
 ## 1.1.0 - 2026-08-31
 
-- Delivery-задачи теперь до предметной работы выбирают intent, проверяют Local Mastery и сохраняют максимум один active, непросроченный и применимый method в проверяемом разделе Plan v2.
-- Корневые routes используют knowledge graph только для bounded cross-domain discovery, impact, traceability, backlinks, conflicts и duplicate search, после чего ведут к точным owner artifacts.
-- README содержит два коротких copy-ready промта: URL-first установка с GitHub и начало работы в локальном пространстве через Codex.
-- Deployable consumer получает единственный optional remote Context7 MCP с namespaced server ID `codex_analyst_context7`, exact official URL и tool allowlist, без credentials, `npx`, Node.js dependency или обязательного per-run вызова; namespaced ID предотвращает mixed-transport collision с распространенным user-level `context7`, а offline gates отклоняют generic project ID, другие MCP и configuration drift.
-- Усилен единый `it-analysis`: Business Analysis, Requirements Engineering, process/decision semantics, NFR и solution architecture используют проверяемые методы и сохраняют authority boundaries.
-- IBM Solution Architect оригинально переоперационализирован как profile `solution-architecture` для существующего `system_analyst` только при `intent_id: architecture`; новые роли и IBM output files не добавлялись.
-- Добавлены `requirements-verification`, `requirements-prioritization`, `solution-evaluation` и architecture routing с одним primary и максимум одним supplementary method.
-- Восьмифайловый run и canonical body contracts разделяют requirements verification, stakeholder validation и approval, а `REV-*` использует machine-readable `review_record`.
-- Добавлены deterministic verifier rules и source-only offline semantic-contract fixtures без model, network или MCP calls.
-- Trusted builder материализует exact detached snapshot source tag, игнорирует Git replacement refs и перед atomic publish повторно подтверждает provenance каждого portable файла.
-- Template и mastery bundle подготовлены как `1.1.0`; distribution consumer этой версии собирается только из проверенного source tag `v1.1.0`.
+- Перед выполнением изменений агент выбирает тип задачи, проверяет локальные методы и сохраняет в плане формата `Plan v2` один подходящий действующий метод либо `none`.
+- Для поиска связей между разделами, влияния изменений, противоречий и повторов используется карта знаний, затем открываются исходные документы.
+- В README добавлены короткие запросы для установки с GitHub и начала работы в локальной папке.
+- В устанавливаемую копию включено необязательное подключение Context7 через MCP, протокол доступа к внешним инструментам. Идентификатор `codex_analyst_context7` отделяет его от пользовательского подключения `context7`. Сохранены официальный адрес и список разрешенных инструментов; ключи доступа и зависимость от `npx` или Node.js не добавлены. Локальные проверки отклоняют посторонние подключения и изменения настроек.
+- Усилен `it-analysis`: бизнес-анализ, работа с требованиями, моделирование процессов и решений, нефункциональные требования и выбор архитектуры учитывают границы разрешенных действий.
+- Материалы IBM Solution Architect адаптированы в профиль `solution-architecture` для существующей роли `system_analyst` при `intent_id: architecture`. Новые роли и дополнительные выходные файлы IBM не добавлены.
+- Добавлены `requirements-verification`, `requirements-prioritization`, `solution-evaluation` и выбор архитектурных методов: один основной и не более одного дополнительного.
+- В рабочем наборе из восьми файлов разделены проверка качества требований, подтверждение их соответствия потребностям и утверждение. Документы `REV-*` используют служебную запись `review_record`.
+- Добавлены воспроизводимые проверки аналитических правил на искусственных примерах, без обращения к модели, сети или MCP.
+- Сборщик получает точное содержимое тега в отдельной рабочей копии Git, игнорирует подмену объектов через ссылки Git и перед публикацией повторно сверяет происхождение каждого переносимого файла.
+- Версия шаблона и набора методов - `1.1.0`; устанавливаемая копия этой версии собирается из проверенного тега `v1.1.0`.
 
 ## 1.0.1 - 2026-08-27
 
-- Нормализованы physical system temp roots для hosted macOS fixtures без ослабления reparse-point gates.
-- Reparse fixtures semantic knowledge gate используют Junction на Windows и SymbolicLink на macOS.
-- Полная GitHub Actions matrix подтверждена на Windows и macOS до корректирующего tag.
-- `v1.0.0` сохранен неизменным; consumer `main` пересобирается только из tagged source `v1.0.1`.
+- Исправлено определение физических путей временных папок в проверках macOS без ослабления запрета на переходы через ссылки.
+- Проверки ссылок используют `Junction` на Windows и `SymbolicLink` на macOS.
+- До создания исправляющего тега полный набор GitHub Actions прошел на Windows и macOS.
+- Тег `v1.0.0` сохранен; устанавливаемая копия обновлена из исходников тега `v1.0.1`.
 
 ## 1.0.0 - 2026-08-20
 
-- Создан публично-безопасный Codex Analyst Template для системного и бизнес-анализа.
-- Добавлены formal-analysis, восьмифайловый run, OpenAPI/AsyncAPI attachments, Mermaid, terminal run gates и 86-scenario self-test.
-- Добавлены пять project-scoped read-only ролей с лимитом трех одновременно работающих специалистов и single-writer synthesis.
-- Добавлены четыре project-local skills и prompts для bounded run, программы анализа, review и разрешенного handoff.
-- Analyst Mastery включен в immutable baseline, registry расширен всеми 18 closed analysis intents.
-- Knowledge graph включает approved formal-analysis artifacts и исключает plans, runs, RAW и retrospectives.
-- Добавлены sanitize gate, consumer-boundary test, Windows bootstrap и macOS CI contract.
-- Основным onboarding стал URL-first маршрут: Codex клонирует consumer `main` во временный каталог и создает независимый локальный проект через portable `new-project.ps1`; `Use this template` остается дополнительным путем.
-- Подготовлена release-модель source/main/v1.0.0 без выполнения commit, tag, push или публикации.
+- Создан русскоязычный Codex Analyst Template для системного и бизнес-анализа, пригодный для публичного распространения.
+- Добавлены рабочий анализ из восьми файлов, приложения OpenAPI и AsyncAPI, диаграммы Mermaid, проверки завершения анализа и 86 проверочных сценариев.
+- Добавлены пять ролей с доступом только для чтения. Одновременно работают не более трех специалистов, итоговые файлы записывает ведущий аналитик.
+- Добавлены четыре набора инструкций и готовые запросы для отдельного анализа, программы анализа, независимой проверки и согласованного переноса результатов.
+- Базовые методы аналитика защищены контрольными суммами; каталог расширен всеми 18 предусмотренными типами аналитических задач.
+- Карта знаний включает утвержденные аналитические документы. Планы, рабочие разборы, исходные материалы и итоги крупных работ хранятся отдельно.
+- Добавлены проверки обезличивания, состава устанавливаемой копии, установки в Windows и автоматические проверки macOS.
+- Основным способом стала установка по ссылке: Codex загружает ветку `main` во временную папку и создает отдельный локальный проект через `new-project.ps1`. Кнопка `Use this template` сохранена как дополнительный путь.
+- Подготовлен порядок выпуска с ветками `source`, `main` и тегом `v1.0.0`; на этом этапе коммит, тег, отправка и публикация еще не выполнялись.
